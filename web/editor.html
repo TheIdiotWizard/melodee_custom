@@ -2065,7 +2065,7 @@ function makeMockDevice(opt = {}) {
     ...Array.from({length:8},()=>D("",F.INT,0,127,0)),
     E("MIDI", ["USB", "TRS", "BLE"], 0), E("DRUM", ["OFF", ...Array.from({ length: 16 }, (_, i) => String(i + 1))], 10), E("ROUT", ["CH1-4", "SEL", "CH5-8", "CH9-12", "CH13-16"], 0), D("CPU", F.INT, 0, 0, 0),
     D("SLOT", F.INT, 1, 33, 1), E("BOOT", ["OFF", ...Array.from({ length: 32 }, (_, i) => String(i + 1))], 0), E("LOAD", NGO, 0), E("SAVE", NGO, 0),
-    E("ENG", ["-", "-", "-", "SID", "-", "-", "-", "-",
+    E("ENG", ["-", "-", "-", "SID", "-", "-", "-", "WHEEL",
       "-", "-", "DRUM", "-", "FM6", "-", "-", "CZ-1", "-", "-", "-", "PROPHET", "-", "MIDI Track"], 0), D("A4", F.INT, 400, 480, 440, null, "Hz"),
     E("CLRSQ", NGO, 0), E("INIT", NGO, 0),
     ...Array.from({length:3},()=>D("",F.INT,0,127,0)),
@@ -2100,7 +2100,12 @@ function makeMockDevice(opt = {}) {
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},   /* 5: retired VOICE; stored ID reserved */
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
-    {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
+    { name: "WHEEL", titles: ["BARS", "TONE"], edit: [E("REG", ["FLUTE", "MELLO", "HOLLW", "SMOOT", "3BAR", "BLUES", "GOSPL", "ROCK",
+        "TOPS", "CLARI", "REED", "STRNG", "CHAPL", "BRITE", "BASS", "FULL"], 4), D("SUB", F.INT, -8, 8, 0), D("BODY", F.INT, -8, 8, 0), D("TOP", F.INT, -8, 8, 0),
+        E("PERC", ["OFF", "2ND", "3RD", "2SOFT", "3SOFT", "2SLOW", "3SLOW"], 0), D("CLICK", F.PCT, 0, 127, 40), D("DRV", F.PCT, 0, 127, 0), E("ROTR", ["OFF", "SLOW", "FAST"], 1)],
+      presets: [P("FULL ORGAN", [15, 0, 0, 0, 0, 30, 20, 1], [0, 64, 127, 45]), P("JAZZ PERC", [4, 0, 0, 0, 2, 50, 8, 1], [0, 64, 127, 40]),
+        P("GOSPEL", [6, 0, 0, 0, 1, 60, 40, 2], [0, 64, 127, 45]), P("SOFT FLUTE", [1, 0, -2, 0, 0, 10, 0, 1], [0, 64, 127, 55]),
+        P("ROCK DRIVE", [7, 0, 0, 0, 0, 70, 100, 2], [0, 64, 127, 40])] },   /* 7: WHEEL (Felucca's tonewheel organ, restored) */
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
     { name: "DRUM", titles: ["KIT", "HIT"], edit: [D("KIT", F.ENUM, 4, 8, 4, ["808","909","SID","CR78","FM"]), D("TUNE", F.PCT, 0, 127, 64),
@@ -2873,7 +2878,7 @@ function enumLabel(d, v) {
 /* the order the device shows its engines in (src/engines.c ENGINE_ORDER): the lists here follow it, the protocol keeps
    the engine numbers. engineOrder(names): the indices of names in that order, "-" (a reserved number) left out; a name
    the list does not know (another firmware) follows in index order */
-const ENGINE_ORDER = ["PROPHET", "ANALOG", "FM6", "DIGITAL", "PHASE", "CZ-1", "SID", "VOICE", "NOISE",
+const ENGINE_ORDER = ["PROPHET", "ANALOG", "FM6", "DIGITAL", "PHASE", "CZ-1", "SID", "WHEEL", "VOICE", "NOISE",
   "DRUM", "MIDI Track"];
 function engineOrder(names) {
   const rank = (n) => { const k = ENGINE_ORDER.indexOf(n); return k < 0 ? ENGINE_ORDER.length : k; };

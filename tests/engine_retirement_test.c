@@ -6,7 +6,21 @@ int main(void)
 {
     int bad=0; reset(); up_boot();
     bad+=check("engine and native collection IDs remain unchanged",NENGINES==22 && ENGI_MIDI==21 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
+#if MELODEE_WHEEL
+    const uint8_t retired[]={2,5,6,9,11};
+    /* WHEEL (7) is restored: selectable, its factory organs, its part state, and an old project's WHEEL track returns */
+    bad+=check("WHEEL restored: engine 7 selectable with its presets and part state",
+               eng_ok(7) && ENGINES[7]==&ENG_WHEEL && ENGINES[7]->npresets==5 && eng_state_size(7)==sizeof(drw_part_t));
+    {
+        set_engine_of(TSEL,7);TSEL->preset=2;
+        project_capture(&proj_scratch);
+        static project_t wsaved;wsaved=proj_scratch;
+        bad+=check("WHEEL: a saved project restores engine 7 and its preset",
+                   !project_restore_runtime(&wsaved) && TSEL->eng_req==7 && TSEL->preset==2);
+    }
+#else
     const uint8_t retired[]={2,5,6,7,9,11};
+#endif
     for(uint32_t j=0;j<NELEM(retired);j++) {
         uint32_t e=retired[j];
         bad+=check("retired engine absent from browser and DSP resources",!eng_ok(e) && !ENGINES[e]->npresets && !eng_state_size(e));

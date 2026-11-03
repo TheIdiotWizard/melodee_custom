@@ -74,6 +74,9 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define MELODEE_LEGACY_EXTRAS 0 /* reference tests only: retired TRIO, WHEEL and PHYS; PHASE, VOICE and NOISE (retired
                                  * 2026-10-10: the flash for the redesign; CZ-1 keeps PHASE's phase-distortion core) */
 #endif
+#ifndef MELODEE_WHEEL
+#define MELODEE_WHEEL 1 /* WHEEL (engine 7): Felucca's tonewheel organ, restored as a shipping engine. 0: retired again */
+#endif
 #define MELODEE_PROPHET 1
 #define ENGI_FM6 12u
 #define ENGI_PROPHET 19u /* 16..18 reserved: historical preset namespaces */
@@ -86,7 +89,7 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define USER_NONE 65535u
 #define ENGI_ANALOG 0u           /* retired in 1.2: never selectable (eng_ok), its stored sounds play silent */
 #define ENGI_DIGITAL 1u          /* retired: never selectable (eng_ok), its stored sounds play silent */
-#define NENG_SHOWN (6u + MELODEE_SLICE + 6u * MELODEE_LEGACY_EXTRAS)   /* the engines one can pick: PRESETS, the EDIT
+#define NENG_SHOWN (6u + MELODEE_SLICE + (MELODEE_LEGACY_EXTRAS ? 6u : (uint32_t)MELODEE_WHEEL))   /* the engines one can pick: PRESETS, the EDIT
                                                 * layer, the editor, in the display order of engines.c ENGINE_ORDER */
 #define ENGI_SLICE 13u           /* reserved without MELODEE_SLICE: never selectable (eng_ok) */
 #ifdef SMP_USER_SLOTS

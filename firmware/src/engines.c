@@ -57,7 +57,9 @@ static uint32_t eng_state_size(uint32_t e)
 #endif
 #if MELODEE_LEGACY_EXTRAS
     case ENGI_PHYS: return sizeof(phys_slot_t) * PHYS_POLY;
-    case 7: return sizeof(drw_part_t);
+#endif
+#if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
+    case 7: return sizeof(drw_part_t);              /* WHEEL (eng_wheel.c) */
 #endif
 #if MELODEE_LEGACY_EXTRAS
     case 2:                                         /* (PHASE: CZ-1's core) */
@@ -123,8 +125,8 @@ static const engine_t *const ENGINES[NENGINES] = {
 #else
     &ENG_RETIRED,                /* 6: retired TRIO; stored ID reserved */
 #endif
-#if MELODEE_LEGACY_EXTRAS
-    &ENG_WHEEL,
+#if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
+    &ENG_WHEEL,                  /* 7: WHEEL, Felucca's tonewheel organ (restored) */
 #else
     &ENG_RETIRED,                /* 7: retired WHEEL; stored ID reserved */
 #endif
@@ -186,6 +188,9 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     11,                          /* NOISE */
 #else
     ENGI_CZ, 3,                   /* CZ-1 SID */
+#if MELODEE_WHEEL
+    7,                           /* WHEEL */
+#endif
 #endif
 #if MELODEE_SLICE
     13,                          /* SLICE */
@@ -201,7 +206,7 @@ static int eng_extra_retired(uint32_t e)
 #if !MELODEE_PROPHET_PROTOTYPE
     if (e == ENGI_ANALOG) return 1;
 #endif
-    return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || e == 7u || e == 9u || e == 11u));
+    return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
 }
 /* the engines one can pick, in ENGINE_ORDER: eng_ok(e), the n-th of them
  * eng_vis(n), e's place among them eng_rank(e), the next / previous one eng_step(e, dir) (wraps) */

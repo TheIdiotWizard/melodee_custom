@@ -537,7 +537,7 @@ static void graph_slices(void)
 
 /* WHEEL: the nine drawbars as rounded bars over RAISE slots (the bars of the knob just turned: the accent),
  * their footages under them */
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
 static void graph_wheel(const track_t *t, uint16_t c)
 {
     uint32_t k;
@@ -792,7 +792,7 @@ static uint32_t graph_sig(int play)
 #if MELODEE_SLICE
     if (pg->graph == GR_SLICES && slice_page_ok()) h ^= slice_sig();
 #endif
-    if (pg->scope == SC_ENGINE && ((MELODEE_LEGACY_EXTRAS && t->eng_req % NENGINES == 7u) || t->eng_req % NENGINES == ENGI_FM6))
+    if (pg->scope == SC_ENGINE && (((MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL) && t->eng_req % NENGINES == 7u) || t->eng_req % NENGINES == ENGI_FM6))
         h ^= (ui.hot_t ? ui.hot_col + 1u : 0u) * 65537u;
     if (pg->scope == SC_ENGINE && t->eng_req % NENGINES == ENGI_FM6)   /* the patch (PAT's algorithm, levels, FB) */
         h ^= (fm6_pgen[(t - trk) % NTRK] + 1u) * 2246822519u + fm6_fn[(t - trk) % NTRK][FN_ENGINE] * 40503u;
@@ -1055,7 +1055,7 @@ static void draw_graph(void)
                 graph_dxenv(fm6_patch_of(song.sel % NTRK) + FP_PR1, fm6_patch_of(song.sel % NTRK) + FP_PL1, 1, c);
                 break;
             default:
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
                 if (pg->scope == SC_ENGINE && t->eng_req % NENGINES == 7u) graph_wheel(t, c);
                 else
 #endif

@@ -102,6 +102,7 @@
       <a class="sub" href="#fm6">FM6</a>
       <a class="sub" href="#cz1">CZ-1</a>
       <a class="sub" href="#sid">SID</a>
+      <a class="sub" href="#wheel">Wheel</a>
       <a class="sub" href="#drum">Drum</a>
       <a class="sub" href="#midi-track">MIDI Track</a>
       <a class="sub" href="#voice">Voice</a>
@@ -328,7 +329,7 @@
       <section id="engines">
         <h2>Engines</h2>
         <p>Selectable instruments: <strong>PROPHET</strong>, <strong>FM6</strong>, <strong>CZ-1</strong>, <strong>SID</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections (and on FM6 / CZ-1 picks the operator / line). On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
-        <p>Retired engines (ANALOG, DIGITAL, PHASE, VOICE, NOISE, TRIO, WHEEL, PHYS, and others) stay silent if an old project still names them; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
+        <p>Retired engines (ANALOG, DIGITAL, PHASE, VOICE, NOISE, TRIO, PHYS, and others) stay silent if an old project still names them; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
 
         <section id="prophet">
           <h3>Prophet</h3>
@@ -486,6 +487,25 @@
               <tr><td></td><td>RES</td><td>Resonance (0–15).</td></tr>
               <tr><td></td><td>MODE</td><td>LP, BP, HP, NOTCH, LP+BP, BP+HP, ALL, or OFF.</td></tr>
               <tr><td></td><td>DRIVE</td><td>Input drive into the filter.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="wheel">
+          <h3>Wheel</h3>
+          <p class="small">Ported from <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>’s WHEEL engine by Leo Kuroshita (Hügelton Instruments).</p>
+          <p>A tonewheel-style organ: nine sine partials per note at the drawbar footages 16′ 5⅓′ 8′ 4′ 2⅔′ 2′ 1⅗′ 1⅓′ 1′, each at a level from 0 to 8 (about 3 dB a step). The screen shows the nine drawbars. Partials above about 6 kHz fold down an octave, as on a real tonewheel set. Five factory organs: FULL ORGAN, JAZZ PERC, GOSPEL, SOFT FLUTE, ROCK DRIVE. The presets use an organ gate (attack 0, sustain full, short release); the track’s envelope still applies. Stage knobs: REG, PERC, DRV, ROTR.</p>
+          <table>
+            <thead><tr><th>Page</th><th>Control</th><th>What it means</th></tr></thead>
+            <tbody>
+              <tr><td>BARS</td><td>REG</td><td>The drawbar registration, one of 16: FLUTE, MELLO, HOLLW, SMOOT, 3BAR, BLUES, GOSPL, ROCK, TOPS, CLARI, REED, STRNG, CHAPL, BRITE, BASS, FULL.</td></tr>
+              <tr><td></td><td>SUB</td><td>−8 to +8 on the sub bars (16′, 5⅓′).</td></tr>
+              <tr><td></td><td>BODY</td><td>−8 to +8 on the body bars (8′, 4′).</td></tr>
+              <tr><td></td><td>TOP</td><td>−8 to +8 on the upper bars (2⅔′ to 1′).</td></tr>
+              <tr><td>TONE</td><td>PERC</td><td>Percussion on the 2nd (4′) or 3rd (2⅔′) harmonic: OFF, 2ND, 3RD, 2SOFT, 3SOFT, 2SLOW, 3SLOW. Single trigger: it strikes only when no other key of the track is held. With PERC on, the 1′ bar is silent; at normal level the bars drop about 3 dB.</td></tr>
+              <tr><td></td><td>CLICK</td><td>Key click: a short burst of high-passed noise at key-down (half as loud at release).</td></tr>
+              <tr><td></td><td>DRV</td><td>Per-voice soft overdrive. For chord growl, add a DRIVE in the track’s FX rack.</td></tr>
+              <tr><td></td><td>ROTR</td><td>Rotary speaker: OFF, SLOW or FAST. Two rotors (bass and treble, split near 800 Hz) ramp between speeds, the treble in about 1 s and the bass in about 4 s.</td></tr>
             </tbody>
           </table>
         </section>

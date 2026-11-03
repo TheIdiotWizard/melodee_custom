@@ -488,8 +488,12 @@ function mockTables() {
   {
     const m0 = E.makeMockDevice({ auto: false }), ph = m0.tables.ENG[9], dr = m0.tables.ENG[10];
     m0.stop();
-    ok([2,5,6,7,9,11].every((i) => m0.tables.ENG[i].name === "-" && !m0.tables.ENG[i].presets.length),
-       "editor: PHASE, VOICE, TRIO, WHEEL, PHYS and NOISE retired with their original IDs reserved");
+    ok([2,5,6,9,11].every((i) => m0.tables.ENG[i].name === "-" && !m0.tables.ENG[i].presets.length),
+       "editor: PHASE, VOICE, TRIO, PHYS and NOISE retired with their original IDs reserved");
+    const wh = m0.tables.ENG[7];
+    ok(wh.name === "WHEEL" && wh.edit.map((d) => d.label).join() === "REG,SUB,BODY,TOP,PERC,CLICK,DRV,ROTR" &&
+       wh.presets.map((p) => p.name).join() === "FULL ORGAN,JAZZ PERC,GOSPEL,SOFT FLUTE,ROCK DRIVE",
+       "editor: WHEEL restored as engine 7 (REG SUB BODY TOP PERC CLICK DRV ROTR), its five organs");
     ok(dr.name === "DRUM" && dr.edit.map((d) => d.label).join() === "KIT,TUNE,TONE,DECY,SNAP,ACC,KICK,DRV" &&
        dr.edit[0].names.join() === "808,909,SID,CR78,FM" && dr.edit[0].min === 4 && dr.edit[0].max === 8 && dr.presets.length === 6 && dr.presets[0].name === "808 KIT" && dr.presets[2].name === "SID KIT" && dr.presets[3].name === "SID DIGI" && dr.presets[4].name === "CR78 KIT" && dr.presets[5].name === "FM KIT",
        "editor: DRUM engine 10 (KIT TUNE TONE DECY SNAP ACC KICK DRV, KIT 808), 808, 909, SID, CR78 and FM kits");
