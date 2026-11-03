@@ -91,7 +91,11 @@ PY="${PYTHON:-python3}"                           # (as build.sh: the Python wit
 OUT=build/host
 LOG=$OUT/log
 CC="${CC:-cc} -O1 -ffp-contract=off -Wall -Wno-unused-function"
-FW="-w -Ibuild/gen -Ifirmware/src"
+# FW: the suite's fixtures (a plain CZ-1 synth, SID and CZ-1 presets by name) build the CZ-1/SID firmware
+# (MELODEE_FELUCCA_ENGINES=0); FWS: the shipping engines (Felucca's PHASE, LOFI, VOICE, TRIO, PHYS; no CZ-1, no SID),
+# for the editor tables, the engine list, MIDI CCs and its own golden / CPU baselines (tests/*_felucca.txt)
+FWS="-w -Ibuild/gen -Ifirmware/src"
+FW="$FWS -DMELODEE_FELUCCA_ENGINES=0"
 P5=build/prophet5/Prophet-5+10-Factory-Programs-ReadMe1.03
 SOUND=${SOUND:-1}
 PARALLEL=${PARALLEL:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}
@@ -168,7 +172,7 @@ sound() { [ "$SOUND" != 0 ]; }
 # ----------------------------------------------------------- multi-step jobs ---
 web_tests() {                                     # the editor mock's tables must equal the firmware's (desc.json)
     if [ $TABLES = 1 ]; then
-        build descdump descdump $FW &&
+        build descdump descdump $FWS &&
             step "parameter and engine tables as JSON (for the editor mock test)" desc_json
     fi
     if command -v node >/dev/null 2>&1; then
@@ -311,6 +315,7 @@ if core; then
     run "CPU live takes: native replay comparison, timed input, failure cleanup and guarded restoration" "$PY" tests/audio_cpu_take_test.py
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
+    t "Felucca engines: PHASE LOFI VOICE TRIO PHYS restored, CZ-1 retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
     t "capture gating, derived caches and silent-track clocks" performance_test -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "canvas drawing overlaps DMA without changing pending pixels" lcd_overlap_test -O1 -w -Ibuild/gen
     t "user presets (UP_PUT parser, bank round trip, versions, PHYS DRUM -> DRUM, grid records)" upreset_test
@@ -370,7 +375,8 @@ if core && [ $TABLES = 1 ]; then
     t "momentary snapshots: parameter IDs and native patch union restore exactly" ui_momentary_test -O1 $FW
     t "USB/TRS clock, bend, sustain, ownership and panic recovery" midi_control_test -O1 $FW
     t "CLK INT as MIDI master: clock, Start and Stop on the output queues, locked to the steps" midi_clock_out_test -O1 $FW
-    t "MIDI panel knobs: profiles, native edits, encoder modes and bounded foreground dispatch" midi_knob_test -O1 $FW
+    t "MIDI panel knobs: profiles, native edits, encoder modes, CC 20..27 and bounded foreground dispatch" midi_knob_test -O1 $FW
+    t "MIDI panel knobs and CC 20..27, shipping engines" midi_knob_felucca:midi_knob_test -O1 $FWS
     t "MIDI timing: quantized TRS/USB recording, audio timeline, tempo changes and timer wrap" midi_timing_test -O1 $FW
     t "MIDI recording: raw events, quantization at take end, independent releases, banks and capacity" recording_test \
         -O1 $FW
@@ -438,6 +444,8 @@ if sound && [ $TABLES = 1 ]; then
         build/phys_demo build/drum_demo build/noise_demo build/fm6_demo
     t "regression: golden renders, health, voices, CPU budget" regress -O2 $FW -- \
         "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
+    t "regression, shipping engines: golden renders, health, voices, CPU budget" regress_felucca:regress -O2 $FWS -- \
+        "$OUT/regress_felucca" tests/golden_felucca.txt tests/cpu_baseline_felucca.txt
     t "PHYS: stability C-1..G9 over the parameter corners, worst-case cost against PHASE WIRE, demos" phys_test \
         -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW -- "$OUT/phys_test" build/phys_demo
     t "paired FM6/Prophet voices: serial/concurrent sample equality and eight-voice allocation" dual_core_test \

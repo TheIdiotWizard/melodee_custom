@@ -40,6 +40,28 @@ static int midi_knob_receive(uint32_t ch, uint32_t cc, uint32_t value)
     return 1;
 }
 
+/* Fixed CCs, whatever MIDI KNOBS is set to: CC 20..23 turn the FM-1's knobs 1..4 (whatever they edit on the screen
+ * shown, as a hand would), CC 24..27 set tracks 1..4's LVL (midi_control.c, as CC 7 sets a channel's own track).
+ * Absolute: a value is the knob's place over its range. Knob packets share the panel queue (bit 28: fixed, k: the
+ * knob 0..3); a learned CC (MIDI LEARN) still wins */
+#define MIDI_CC_KNOB 20u                         /* CC 20..23: knobs 1..4 */
+#define MIDI_CC_LEVEL 24u                        /* CC 24..27: tracks 1..4's LVL */
+#define MIDI_KNOB_FIXED (1u << 28)
+static int midi_fixed_knob_receive(uint32_t ch, uint32_t cc, uint32_t value)
+{
+    uint32_t k = cc - MIDI_CC_KNOB, w = midi_knob_w;
+    if (k >= 4u) return 0;
+    if (w - midi_knob_r >= MIDI_KNOB_Q) { midi_knob_overflow = 1; return 1; }
+    uint32_t src = midi_event_source == 2u ? 1u : 0u, epoch = midi_knob_usb_epoch;
+#if MELODEE_BLE
+    if (midi_event_source == 3u) { src = 2u; epoch = midi_knob_ble_epoch; }
+#endif
+    midi_knob_q[w % MIDI_KNOB_Q] = MIDI_KNOB_FIXED | value | k << 7 | ch << 10 | src << 14 | (src == 1u ? 0u : epoch << 20);
+    RING_PUBLISH();
+    midi_knob_w = w + 1u;
+    return 1;
+}
+
 /* MIDI master volume attenuates the physical pot, including USB playback.
  * Kept out of the sample loops; unity is exactly the existing master path. */
 static uint32_t midi_master_physical_q12 = 4096u;

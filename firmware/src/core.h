@@ -89,8 +89,19 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define USER_NONE 65535u
 #define ENGI_ANALOG 0u           /* retired in 1.2: never selectable (eng_ok), its stored sounds play silent */
 #define ENGI_DIGITAL 1u          /* retired: never selectable (eng_ok), its stored sounds play silent */
+#ifndef MELODEE_FELUCCA_ENGINES
+#define MELODEE_FELUCCA_ENGINES 1 /* Felucca's PHASE (2), LOFI (3), VOICE (5), TRIO (6) and PHYS (9) in place of CZ-1 (15)
+                                   * and SID (3); 0: the CZ-1 and SID firmware. DRUM's KIT SID keeps its own 6581 */
+#endif
+#define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
+#define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
+#if MELODEE_FELUCCA_ENGINES
+#define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
+                                                /* PROPHET FM6 PHASE LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
+#else
 #define NENG_SHOWN (6u + MELODEE_SLICE + (MELODEE_LEGACY_EXTRAS ? 6u : (uint32_t)MELODEE_WHEEL))   /* the engines one can pick: PRESETS, the EDIT
                                                 * layer, the editor, in the display order of engines.c ENGINE_ORDER */
+#endif
 #define ENGI_SLICE 13u           /* reserved without MELODEE_SLICE: never selectable (eng_ok) */
 #ifdef SMP_USER_SLOTS
 #undef SMP_USER_SLOTS
@@ -296,8 +307,8 @@ typedef struct {
     int32_t fine;                /* unison detune: phase increment * (1 + fine / 4096) */
     int32_t scale_fine;          /* note-on snapshot: scale pitch below 1/16 semitone */
     uint32_t ph[3];
-#if MELODEE_LEGACY_EXTRAS
-    int32_t s[8];                /* retired VOICE/NOISE also use slots 6 and 7 */
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
+    int32_t s[8];                /* VOICE, LOFI, PHASE (FOLD) and retired NOISE also use slots 6 and 7 */
 #else
     int32_t s[6];                /* current engines: slots 0..5, including drum gates */
 #endif

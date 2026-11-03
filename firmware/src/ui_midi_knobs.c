@@ -56,13 +56,29 @@ static void midi_knobs_poll(void)
         uint32_t pkt = midi_knob_q[midi_knob_r % MIDI_KNOB_Q];
         RING_PUBLISH();
         midi_knob_r++;
-        if (((pkt >> 16) & 15u) != config) continue;
+        uint32_t fixed = pkt & MIDI_KNOB_FIXED;
+        if (!fixed && ((pkt >> 16) & 15u) != config) continue;
         uint32_t v = pkt & 127u, k = (pkt >> 7) & 7u, ch = (pkt >> 10) & 15u, src = (pkt >> 14) & 3u;
         if (src >= MIDI_KNOB_SOURCES) continue;
         if (!src && ((pkt >> 20) & 255u) != midi_knob_ui_usb_epoch) continue;
 #if MELODEE_BLE
         if (src == 2u && ((pkt >> 20) & 255u) != midi_knob_ui_ble_epoch) continue;
 #endif
+        if (fixed) {                            /* CC 20..23: knob k + 1 (midi_knobs.c). A parameter takes the value as
+                                                 * its place; other controls step by the change (the first value of a
+                                                 * knob only sets where it is, as MIDI KNOBS' absolute mode does) */
+            static uint8_t fixed_last[4], fixed_seen;
+            uint32_t role = EN_K1 + (k &= 3u);
+            int32_t delta = (fixed_seen >> k) & 1u ? (int32_t)v - fixed_last[k] : 0;
+            fixed_last[k] = (uint8_t)v;
+            fixed_seen |= (uint8_t)(1u << k);
+            panel_moved = 1;
+            if (!delta) continue;
+            midi_panel_delta[role] = clamp(midi_panel_delta[role] + delta, -1024, 1024);
+            midi_panel_mask |= (uint8_t)(1u << role);
+            midi_panel_absolute[role] = (int16_t)v;
+            continue;
+        }
         uint32_t mode = settings_midi_knob_mode, seen = midi_knob_seen[src][ch] & (1u << k);
         int32_t delta = mode == MK_ABSOLUTE ? seen ? (int32_t)v - midi_knob_last[src][ch][k] : 0 :
                         midi_knob_relative(v, mode);

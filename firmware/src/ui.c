@@ -316,7 +316,7 @@ static int page_visible(uint32_t i)
         return drum_track(TSEL);
     if(TSEL->eng_req==ENGI_CZ && PAGES[i].scope==SC_ENGINE && PAGES[i].fam==FAM_EDIT && (PAGES[i].id[0]==P_E0 || PAGES[i].id[0]==P_E4))return 0;
     if (PAGES[i].scope == SC_CZ)                       /* (PHASE's CZ mode; PHASE retired without MELODEE_LEGACY_EXTRAS) */
-        return TSEL->eng_req == 2u && eng_ok(2u) && TSEL->p[P_E7] == 1;
+        return !MELODEE_FELUCCA_ENGINES && TSEL->eng_req == 2u && eng_ok(2u) && TSEL->p[P_E7] == 1;   /* (Felucca's E7: FOLD) */
     if(PAGES[i].scope==SC_P5 || PAGES[i].scope==SC_P5STORE)return TSEL->eng_req==ENGI_PROPHET;
     if (PAGES[i].scope == SC_CZ1)
         return TSEL->eng_req == ENGI_CZ;               /* CZ-1's tone: every panel value */

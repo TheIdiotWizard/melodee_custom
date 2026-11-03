@@ -600,6 +600,11 @@ user presets saved by earlier Melodee versions are not imported, and the user sa
 - **MIDI LEARN and controllers:** the HOME menu's **MIDI LEARN** binds up to 16 CCs to any knob of a track's page or
   Stage's knobs: start it, turn a knob, send a CC. Bindings are kept only until power-off. **MIDI KNOBS** (GENERAL or
   MINILAB) operates the eight panel controls from a controller
+- **Fixed CCs, always on:** CC 20–23 turn the FM-1's knobs 1–4, whatever they edit on the screen shown (Stage, an
+  EDIT page, FX), and CC 24–27 set the LVL of tracks 1–4, on any channel the ROUT setting admits. The values are
+  absolute: a value is the knob's place across its range, and a knob's first value only sets where it is. A CC
+  bound with MIDI LEARN does what MIDI LEARN gave it instead. For a MiniLab 3, set four knobs to CC 20–23 (absolute)
+  and the four faders to CC 24–27 in a User template in Arturia's MIDI Control Center
 - **Bluetooth MIDI:** one BLE-MIDI connection, in and out, alongside USB and TRS. Hold HOME and choose **BLUETOOTH**.
   **Mode** picks how you connect: **CONNECT OUT** scans for BLE controllers and synths from that page; **VISIBLE**
   advertises as Melodee XXXX so a Mac, iPad or phone can connect. The radio's on/off state, the pairing and the last
@@ -1039,14 +1044,32 @@ calibration; the FPU conversion does not establish hardware fidelity.
   FM PORTA and raise FB above 0 to hear the longer loops; the algorithm chart follows ENGINE.
   Each track keeps its own patch and function settings (MODERN / MARK I / OPL, pitch bend,
   portamento, wheel, foot, breath and aftertouch), saved with the project and the template
-- **CZ-1**: native Casio tones, with separate eight-point pitch, timbre and volume envelopes on each line
-- **SID**: a Commodore MOS 6581 / 8580 per note, modelled at the register level after reSID: three oscillators on the 16-bit frequency register (pulse width 12 bits, the 23-bit noise register, ring modulation, hard sync, combined waveforms sampled from real chips), the chip's envelope generator (16 rates, exponential decay, the ADSR delay), each revision's DACs and cutoff curve, the 6581's thump through the C64's output stage; 32 factory presets. MODEL C64 6581 / C64 8580 plays the track as one channel of a C64 tune: one voice, with frequency, pulse width, cutoff and resonance written once a PAL frame (50 Hz) as a player routine writes them; in POLY a held chord is arpeggiated on that voice, one note a frame, with one gate and envelope for the whole chord
+- **PHASE**: phase distortion, as Felucca ships it (Felucca-Engines). A -cos table read through a bent phase whose
+  bend is DCW (SAW, SQR, PLS, DSIN, SPLS), or a sine windowed by a saw, a triangle or a trapezoid (RSAW, RTRI, RTRP);
+  WAVE2 alternates with WAVE every other cycle, a second line (DTN) can be mixed or ring-modulated, SUB adds a sine an
+  octave down, ENV moves DCW with the envelope and FOLD is a sine wavefolder. Six presets: BRASS, ORGAN, STRING, RESO,
+  BELL and WIRE. The main knobs control DCW, ENV, DTN and REL. Engine ID 2
+- **LOFI**: Felucca's chip voice: pulse, triangle, saw, noise or a 32-sample 4-bit wave RAM (16 tables), 4-bit,
+  8-bit or 1-bit amplitude and a held output (CRSH), SWP bends the pitch down after note-on, vibrato, chip-style
+  ARP and a TONE low-pass. CHIP STEP swaps the envelope for a 4-bit stepped one. Five presets: PULSE LD, WAVE BASS,
+  ARP 8BIT, WAVE LEAD and STEP LEAD. The main knobs control WAVE, DUTY, CRSH and REL. Engine ID 3, which SID used:
+  a track saved with SID plays as LOFI
+- **VOICE**: Felucca's formant synth, sung vowels from the keys: a glottal source into four resonators (after
+  Klatt), VOWL / VOWL2 and TALK morphing between vowels, SHIFT, BUZZ, BRTH and Q. Four presets: CHOIR AAH, VOX LEAD,
+  WOW BASS and WHISPER. The main knobs control VOWL, BUZZ, BRTH and TALK. Engine ID 5
+- **TRIO**: Felucca's three-oscillator chip synth: triangle, saw, pulse, pitched noise and combined waves in 16 sets,
+  with ring modulation and hard sync, into a 12 dB/oct multimode filter. Five presets: FAT BASS, ARP LEAD, SYNC LEAD,
+  RING BELL and CHIP CHOIR. The main knobs control CUT, RES, PW and INT2. Engine ID 6
 - **WHEEL**: a tonewheel-style organ, ported from Felucca: nine drawbar partials (16' to 1') from 16
   registrations (REG), with SUB, BODY and TOP trimming the low, middle and upper bars; single-trigger
   percussion on the 2nd or 3rd harmonic (normal or soft, fast or slow), key click, per-voice drive and a
   two-rotor rotary speaker (OFF, SLOW, FAST). The screen shows the drawbars. Five factory organs: FULL ORGAN,
   JAZZ PERC, GOSPEL, SOFT FLUTE and ROCK DRIVE. The main knobs control REG, PERC, DRV and ROTR. Engine ID 7,
   so old projects with WHEEL tracks play again
+- **PHYS**: Felucca's physical models (DaisySP and Rings' sympathetic strings, MIT): MODAL (bells, bars,
+  plates), STRNG (Karplus-Strong), MEMB (drum heads) and SYMP (a string with three sympathetic strings), with
+  strike or bow, accent and the exciter mixed in. Nine presets, BELL TREE to HARP. Three voices per track. The main knobs control STRC, BRIT, DAMP
+  and POS. Engine ID 9
 - **DRUM**: synthesized TR-808, TR-909, SID, CR78 and FM kits with the General MIDI key map. Every drum has its
   own tuning, decay, tone, attack/snappy and level controls; recorded hits can override pitch and length.
   KIT SID plays the track as a C64 drum routine on one 6581: its three voices take the hits, each drum a
@@ -1059,9 +1082,11 @@ calibration; the FPU conversion does not establish hardware fidelity.
   beat) replaces KICK on the HIT page. KIT FM is two-operator FM drums with noise. Both play all eight lanes on one
   voice, like the SID kit
 
-ANALOG, DIGITAL, PHASE, VOICE, NOISE, TRIO and PHYS are retired. Their engine IDs, saved edit
-values and favourite bits remain reserved; old tracks using these engines are silent. PROPHET replaces
-ANALOG in the engine list, and track 1 powers on with PROPHET FUNK BASS II.
+ANALOG, DIGITAL, NOISE, CZ-1 and SID are retired. Their engine IDs, saved edit
+values and favourite bits remain reserved (SID's ID 3 is LOFI's again); old tracks using the others are silent.
+PROPHET replaces ANALOG in the engine list. Track 3 powers on with LOFI PULSE LD in place of the CZ-1 lead.
+DRUM keeps KIT SID and SID DIGI: they have their own 6581.
+`MELODEE_FELUCCA_ENGINES=0` builds the CZ-1 and SID firmware instead.
 
 PROPHET opens on It's a Prophet 5. PRESETS lists INIT and Sequential's 200 factory programs,
 then the shared user slots containing Prophet programs. In the web editor,

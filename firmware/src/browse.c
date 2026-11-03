@@ -22,15 +22,25 @@ static const uint8_t CAT_ORDER[] = {CAT_BASS, CAT_LEAD, CAT_PAD, CAT_KEYS, CAT_O
  * length against its engine's preset count. An engine without one: cat_of_engine */
 static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_MIDI] = "O",                                  /* non-audio destination: OTHER */
-#if MELODEE_LEGACY_EXTRAS                                /* (retired: PHASE VOICE NOISE) */
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES     /* (PHASE VOICE: Felucca's) */
     [2] = "RGSLEU",                                     /* PHASE: BRASS ORGAN STRING RESO BELL WIRE */
     [5] = "PLBF",                                       /* VOICE: CHOIR AAH, VOX LEAD, WOW BASS, WHISPER */
+#endif
+#if MELODEE_LEGACY_EXTRAS
     [11] = "FFFF",                                      /* NOISE */
+#endif
+#if MELODEE_FELUCCA_ENGINES
+    [6] = "BLLEP",                                      /* TRIO: FAT BASS, ARP LEAD, SYNC LEAD, RING BELL, CHIP CHOIR */
+    [9] = "EEUSEDDSU",                                  /* PHYS: BELL TREE .. HARP */
 #endif
 #if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
     [7] = "GGGGG",                                      /* WHEEL: its five organs */
 #endif
+#if MELODEE_SID
     [3] = "OLBBBBBBLLLLLLLLPSPPGGKKUUERFFFF",          /* SID */
+#else
+    [3] = "LBULL",                                      /* LOFI: PULSE LD, WAVE BASS, ARP 8BIT, WAVE LEAD, STEP LEAD */
+#endif
     [10] = "DDDDDD",                                    /* DRUM: the kits (808, 909, SID, SID DIGI, CR78, FM) */
     [12] = "KEBRPEGUKRBEEKGSPLUEWEBEO",                 /* FM6, INIT VOICE */
     [ENGI_CZ] = "ORRRSSSSSUUUBBBBURWSWWWWUKKKKKKKKGGGGGPPPEEEEEDEESSULLLLFDDDEFFFF",   /* INIT TONE, Casio's 64 */

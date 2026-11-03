@@ -2,7 +2,8 @@
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio)
  * Portions Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* TRIO: three oscillators with ring modulation and hard sync into a 12 dB/oct multimode
- * filter, in the style of the sound chips of early 8-bit home computers. Melodee's own design.
+ * filter, in the style of the sound chips of early 8-bit home computers. Felucca's own design (Felucca-Engines
+ * eng_trio.c, MIT), restored in Melodee.
  *
  * Oscillators: triangle, saw, pulse (PW), pitched noise (a new random value 16 times a cycle)
  * and two combined waves (saw AND triangle, pulse AND saw: the bitwise AND of the 16-bit

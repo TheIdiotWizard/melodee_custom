@@ -137,12 +137,15 @@ static int page_and_local_controls(void)
 {
     int bad = 0;
     knob_reset(MK_MINILAB, MK_ABSOLUTE);
+    int16_t *vp; const param_desc_t *d;
+#if MELODEE_CZ
     set_engine_of(TSEL, ENGI_CZ); apply_preset_to(TSEL, 0); go_home();
     knob_cc(1, 18, 64); knob_cc(1, 18, 127);
-    int16_t *vp; const param_desc_t *d = home_param(1, &vp);
+    d = home_param(1, &vp);
     bad += check("absolute MIDI edits the native CZ Stage parameter through its writer", d && *vp == d->max);
     knob_cc(1, 18, 0); d = home_param(1, &vp);
     bad += check("native CZ absolute parameter reaches minimum", d && *vp == d->min);
+#endif
     knob_reset(MK_MINILAB, MK_ABSOLUTE);
     set_engine_of(TSEL, ENGI_FM6); apply_preset_to(TSEL, 0);
     for (uint32_t p = 0; p < NPAGES; p++) if (PAGES[p].scope == SC_FMOP) { ui.home = 0; ui.page = p; break; }
@@ -185,9 +188,55 @@ static int page_and_local_controls(void)
     return bad;
 }
 
+/* CC 20..23: the FM-1's knobs 1..4, whatever MIDI KNOBS is set to; CC 24..27: tracks 1..4's LVL */
+static int fixed_controls(void)
+{
+    int bad = 0;
+    const param_desc_t *d;
+    int16_t *vp;
+    for (uint32_t profile = MK_OFF; profile <= MK_MINILAB; profile++) {
+        knob_reset(profile, MK_ABSOLUTE);
+        set_engine_of(TSEL, ENGI_PROPHET); apply_preset_to(TSEL, 0);
+        const uint8_t ids[4] = {P5_CUTOFF,P5_RESONANCE,P5_ENV_FILTER,P5_RELEASE_AMP};
+        for (uint32_t k = 0; k < 4; k++) {
+            knob_cc(1, 20u + k, 64);
+            uint8_t old = p5_patch_of(TSEL)->raw[ids[k]];
+            bad += check("CC 20..23: a knob's first value only sets its place", p5_patch_of(TSEL)->raw[ids[k]] == old);
+            knob_cc(2, 20u + k, 127);   /* (TRS: the same knob, another source) */
+            knob_cc(1, 20u + k, 127);
+            bad += check("CC 20..23 turn knobs 1..4 to their parameter's maximum, any MIDI KNOBS setting",
+                         p5_patch_of(TSEL)->raw[ids[k]] == 127);
+            knob_cc(1, 20u + k, 0);
+            bad += check("CC 20..23 turn knobs 1..4 to their parameter's minimum", !p5_patch_of(TSEL)->raw[ids[k]]);
+        }
+        set_engine_of(TSEL, 3); apply_preset_to(TSEL, 0); go_home();   /* Stage: engine 3's knob 1 (LOFI's WAVE) */
+        for (uint32_t k = 0; k < 4; k++) {
+            knob_cc(1, 20u + k, 10); knob_cc(1, 20u + k, 127);
+            d = home_param(k, &vp);
+            bad += check("CC 20..23 follow whatever knobs 1..4 edit on the screen shown (Stage)", d && *vp == d->max);
+            knob_cc(1, 20u + k, 0); d = home_param(k, &vp);
+            bad += check("CC 20..23 reach a Stage parameter's minimum", d && *vp == d->min);
+        }
+        for (uint32_t tr = 0; tr < NPART; tr++) {
+            knob_cc(1, 24u + tr, 0);
+            bad += check("CC 24..27 set tracks 1..4's LVL to its minimum", trk[tr].p[P_LEVEL] == TP[P_LEVEL].min);
+            knob_cc(1, 24u + tr, 127);
+            bad += check("CC 24..27 set tracks 1..4's LVL to its maximum", trk[tr].p[P_LEVEL] == TP[P_LEVEL].max);
+        }
+        trk[0].p[P_LEVEL] = trk[1].p[P_LEVEL] = 50;
+        knob_cc(1, 25, 127);
+        bad += check("CC 25 sets track 2 alone", trk[1].p[P_LEVEL] == TP[P_LEVEL].max && trk[0].p[P_LEVEL] == 50);
+        mlearn[0] = (mlearn_t){.cc = 24, .track = 0, .page = 0xFF, .slot = 0};
+        trk[0].p[P_LEVEL] = 50; route_input(1, 0xB0, 24, 0);
+        bad += check("a learned CC 24 does what MIDI LEARN gave it, not track 1's LVL", trk[0].p[P_LEVEL] == 50);
+        memset(mlearn, 0, sizeof mlearn); mlearn_dirty = 0;
+    }
+    return bad;
+}
+
 int main(void)
 {
-    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls();
+    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls() + fixed_controls();
     printf("%s\n", bad ? "MIDI KNOB TEST FAILED" : "MIDI knob integration tests passed");
     return bad != 0;
 }

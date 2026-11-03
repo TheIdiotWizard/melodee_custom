@@ -188,7 +188,11 @@ static void host_power_on_sound(track_t *t, uint32_t k)
 
 /* the plain synth a test plays when the engine is not what it tests (ANALOG's place until 2.0 retired it): CZ-1,
  * on the generic voice path (NPOLY voices, no cap of its own) as ANALOG was */
+#if MELODEE_FELUCCA_ENGINES
+#define HOST_SYNTH 2u            /* (Felucca's engines, no CZ-1: PHASE; the suite's fixtures run the CZ-1 build) */
+#else
 #define HOST_SYNTH ENGI_CZ
+#endif
 
 /* Explicit legacy fixture: hidden from factory browsing, still used by saved GM projects. */
 static void host_808_kit(track_t *t)

@@ -7,16 +7,23 @@ midi_parameter 47
 audition_tick 129
 click_render 30
 phase_render 127
+# Felucca's PHASE (eng_fphase.c: fph_render inlines its loop; FOLD's crossfade block) and LOFI
+fph_render_f 116
+fph_xfade 242
+lofi_render 87
 sid_render 1204
 formant_render 314
 trio_render 341
 trio_pass 175
 wheel_render 267
 wheel_block 102
-phys_render 61
+# PHYS restored (MELODEE_FELUCCA_ENGINES): Felucca's loop as it builds now, against the retired one's 61
+phys_render 68
 drum_render 72
 # SID-kit renderer baseline before the 2026-10-25 channel/filter split.
-dsk_render 629
+# KIT SID without the SID engine: its envelope helper has one caller left and is inlined into the loop (2 calls
+# there before): the same work counted as loop instructions, not a slower kit
+dsk_render 786
 noise_render 247
 # Native fp32 serial FM6, decoded r3/fprev1 and counted with natural loops.
 # Includes extracted operator/output helpers; dual-core profile measures 3439.

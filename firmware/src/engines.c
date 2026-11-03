@@ -11,7 +11,11 @@
 #include "eng_phase.c"
 #include "eng_cz.c"
 #include "eng_sid.c"
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_FELUCCA_ENGINES
+#include "eng_fphase.c"         /* PHASE: Felucca's, with FOLD (eng_phase.c is the CZ-1's core) */
+#include "eng_lofi.c"           /* LOFI: Felucca's chip voice */
+#endif
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
 #include "eng_formant.c"
 #endif
 #include "eng_trio.c"
@@ -55,17 +59,21 @@ static uint32_t eng_state_size(uint32_t e)
     case 0: return sizeof(p5_part_t);
 #endif
 #endif
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
     case ENGI_PHYS: return sizeof(phys_slot_t) * PHYS_POLY;
 #endif
 #if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
     case 7: return sizeof(drw_part_t);              /* WHEEL (eng_wheel.c) */
 #endif
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS && !MELODEE_FELUCCA_ENGINES
     case 2:                                         /* (PHASE: CZ-1's core) */
 #endif
+#if MELODEE_CZ
     case ENGI_CZ: return sizeof(cz_part_t);
+#endif
+#if MELODEE_SID
     case 3: return sizeof(sid_part_t);              /* SID (eng_sid.c) */
+#endif                                              /* (Felucca's PHASE, LOFI, VOICE and TRIO: voice_t alone) */
     case ENGI_DRUM: return sizeof(drum909_part_t);
     case ENGI_FM6: return sizeof(fm6_part_t);
 #if MELODEE_SLICE
@@ -108,19 +116,25 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,                /* 0: retired ANALOG; stored ID reserved */
 #endif
     &ENG_RETIRED,                /* 1: retired DIGITAL; stored ID reserved */
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_FELUCCA_ENGINES
+    &ENG_FPHASE,                 /* 2: PHASE, Felucca's (restored with its original number) */
+#elif MELODEE_LEGACY_EXTRAS
     &ENG_PHASE,                  /* 2 */
 #else
     &ENG_RETIRED,                /* 2: retired PHASE; stored ID reserved (its core: CZ-1's) */
 #endif
+#if MELODEE_SID
     &ENG_SID,                    /* 3: SID replaces LOFI without reusing a stored ID */
+#else
+    &ENG_LOFI,                   /* 3: LOFI, Felucca's (restored; SID's tracks while it shipped play as LOFI) */
+#endif
     &ENG_RETIRED,                /* 4: retired SAMPLE; reserved to preserve stored indices */
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
     &ENG_FORMANT,                /* 5 VOICE (eng_formant.c: "voice" is a sounding note in voice.c) */
 #else
     &ENG_RETIRED,                /* 5: retired VOICE; stored ID reserved */
 #endif
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
     &ENG_TRIO,
 #else
     &ENG_RETIRED,                /* 6: retired TRIO; stored ID reserved */
@@ -131,7 +145,7 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,                /* 7: retired WHEEL; stored ID reserved */
 #endif
     &ENG_RETIRED,                /* 8: retired GRAIN; stored index reserved */
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
     &ENG_PHYS,
 #else
     &ENG_RETIRED,                /* 9: retired PHYS; stored ID reserved */
@@ -149,7 +163,11 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,             /* 13: reserved (MELODEE_SLICE=0 builds without SLICE) */
 #endif
     &ENG_RETIRED,                /* 14: retired OBXF; stored index reserved */
+#if MELODEE_CZ
     &ENG_CZ,                     /* 15: native Casio CZ-1 */
+#else
+    &ENG_RETIRED,                /* 15: retired CZ-1; stored ID reserved */
+#endif
     &ENG_RETIRED, &ENG_RETIRED, &ENG_RETIRED, /* 16..18 reserved */
     &ENG_P5_TEST,                /* 19: Prophet (ANALOG's ID 0 stays reserved) */
     &ENG_RETIRED,                /* 20: Prophet user-preset namespace */
@@ -182,7 +200,16 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */
+#if MELODEE_FELUCCA_ENGINES
+    2, 3, 5, 6,                  /* PHASE LOFI VOICE TRIO */
+#if MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS
+    7,                           /* WHEEL */
+#endif
+    9,                           /* PHYS */
 #if MELODEE_LEGACY_EXTRAS
+    11,                          /* NOISE */
+#endif
+#elif MELODEE_LEGACY_EXTRAS
     2, ENGI_CZ, 3, 5,             /* PHASE CZ-1 SID VOICE */
     6, 7, 9,
     11,                          /* NOISE */
@@ -206,6 +233,8 @@ static int eng_extra_retired(uint32_t e)
 #if !MELODEE_PROPHET_PROTOTYPE
     if (e == ENGI_ANALOG) return 1;
 #endif
+    if (!MELODEE_CZ && e == ENGI_CZ) return 1;
+    if (MELODEE_FELUCCA_ENGINES && (e == 2u || e == 5u || e == 6u || e == 9u)) return 0;
     return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
 }
 /* the engines one can pick, in ENGINE_ORDER: eng_ok(e), the n-th of them
@@ -236,7 +265,11 @@ static uint32_t eng_step(uint32_t e, int32_t dir)
 /* the parts at power-on and in a new song (engine, preset; the steps empty): poly, bass, lead, drums. IT'S A
  * PROPHET 5, FM6 SOLID BASS, CZ-1 SYNTH.LEAD 1, 808 KIT (until 2026-10-16: PROPHET FUNK BASS II, FM6 PAD, SID INIT
  * SID, 808 KIT) */
+#if MELODEE_CZ
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {ENGI_CZ, 52}, {ENGI_DRUM, 0}};
+#else                                            /* (without the CZ-1: LOFI PULSE LD, Melodee 1.0's lead) */
+static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {3, 0}, {ENGI_DRUM, 0}};
+#endif
 /* track k's power-on engine and preset: TRK_DEF's, a MIDI-only track the MIDI Track's */
 static uint32_t trk_def_engine(uint32_t k) { return k < NPART ? TRK_DEF[k][0] : ENGI_MIDI; }
 static uint32_t trk_def_preset(uint32_t k) { return k < NPART ? TRK_DEF[k][1] : 0u; }

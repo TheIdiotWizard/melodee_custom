@@ -41,7 +41,7 @@ ok(["FM-1", "FM-1 MIDI 1", "Melodee", "Felucca"].every(name => E.isDevicePort({n
    "editor: discover and reconnect FM-1 and older firmware MIDI ports");
 
 {
-  const mock=E.makeMockDevice({shared:true}),input=[...mock.access.inputs.values()][0],output=[...mock.access.outputs.values()][0];
+  const mock=E.makeMockDevice({shared:true,cz:true}),input=[...mock.access.inputs.values()][0],output=[...mock.access.outputs.values()][0];
   const link=new E.Link(d=>output.send(d),{timeout:500});input.onmidimessage=e=>link.receive(e.data);const rq=(r,o)=>link.request(r,o),info=E.parse[E.CMD.INFO](await rq(E.req.info()));
   ok(info.shared?.total===384&&!info.native,"shared: one 384-slot capability replaces the engine pools");
   let all=await E.bank.list(rq,info);ok(all.total===384&&all.slots.at(-1).slot===383,"shared: pagination reaches slot U384 without wrapping");
@@ -164,12 +164,12 @@ async function czTests() {
   ok(invalid===3,"CZ: malformed, foreign and truncated files are rejected");
   const edited=b.slice();E.CZ.editPoint(edited,0,2,4,"rate",53);
   ok(edited.every((x,i)=>i===29||x===b[i]),"CZ: one edited rate leaves every other native byte intact");
-  const m=E.makeMockDevice();const inp=[...m.access.inputs.values()][0],out=[...m.access.outputs.values()][0];const link=new E.Link(d=>out.send(d),{timeout:500});inp.onmidimessage=e=>link.receive(e.data);const rq=(r,o)=>link.request(r,o);
+  const m=E.makeMockDevice({cz:true})   /* (firmware with the CZ-1) */;const inp=[...m.access.inputs.values()][0],out=[...m.access.outputs.values()][0];const link=new E.Link(d=>out.send(d),{timeout:500});inp.onmidimessage=e=>link.receive(e.data);const rq=(r,o)=>link.request(r,o);
   const info=E.parse[E.CMD.INFO](await rq(E.req.info()));ok(info.cz,"CZ: firmware capability is advertised");
   await rq(E.req.track(2));const pt=E.czLibraryPatch({name:E.CZ.name(b),raw:b},info);pt.p[34]=77;pt.p[13]=12;
   await E.auditionPatch(rq,info,pt);const live=E.parse[E.CMD.CZ_GET](await rq(E.req.czGet(0,2)));
   ok(eq(live.raw,b),"CZ: audition targets selected track 3 with complete native data");
-  const sound=E.parse[E.CMD.DUMP](await rq(E.req.dump()),info);ok(sound.engine===15 && info.engines[2]==="-" && info.engines[15]==="CZ-1" && sound.p[34]===0 && sound.p[13]===12,"CZ: native library audition ignores removed effects and restores modulation after raw tone upload");
+  const sound=E.parse[E.CMD.DUMP](await rq(E.req.dump()),info);ok(sound.engine===15 && info.engines[2]==="PHASE" && info.engines[15]==="CZ-1" && sound.p[34]===0 && sound.p[13]===12,"CZ: native library audition ignores removed effects and restores modulation after raw tone upload");
   const captured=await E.capturePatch(rq,info,"Captured");ok(eq(captured.patch.cz,b),"CZ: capture reads the selected track's native tone");
   ok(await E.bank.put(rq,8,pt)===0,"CZ: upload to user preset bank");const saved=await E.bank.get(rq,info,8);ok(eq(saved.cz,b),"CZ: user preset bank returns all 144 tone bytes");
   const ctx={keys:Array.from({length:92},(_,i)=>`P${i}`),pe0:84,engines:info.engines};const lib=E.libraryFile("library",[captured.patch],ctx);const imported=E.readLibraryFile(lib,ctx);ok(eq(imported.patches[0].cz,b),"CZ: library JSON round trip retains native bytes");
@@ -227,7 +227,7 @@ await czTests();
 }
 
 async function nativeTests() {
-  const m=E.makeMockDevice(), inp=[...m.access.inputs.values()][0], out=[...m.access.outputs.values()][0];
+  const m=E.makeMockDevice({cz:true}),   /* (firmware with the CZ-1) */ inp=[...m.access.inputs.values()][0], out=[...m.access.outputs.values()][0];
   const link=new E.Link(d=>out.send(d),{timeout:500});inp.onmidimessage=e=>link.receive(e.data);const rq=(r,o)=>link.request(r,o);
   const info=E.parse[E.CMD.INFO](await rq(E.req.info()));
   const cz=E.CZ.init(),fm=Array.from(E.FM6.INIT_PK);E.CZ.setName(cz,"FULL CZ NAME XY!");
@@ -264,7 +264,7 @@ async function editorMock() {
   const rq = async (r, o) => link.request(r, o);
   const info = E.parse[E.CMD.INFO](await rq(E.req.info()));
   ok(info.nengines === 22 && info.engines[20] === "-" && info.engines[21] === "MIDI Track" && info.engines[14] === "-" && info.engines[1] === "-" && info.engines[12] === "FM6" && info.engines[13] === "-"
- && info.engines[2] === "-" && info.engines[5] === "-" && info.engines[6] === "-" && info.engines[7] === "-" && info.engines[8] === "-" && info.engines[9] === "-" && info.engines[10] === "DRUM" && info.engines[11] === "-" && info.pcount === 124 && info.pe0 === 116 && info.engines[4] === "-",
+ && info.engines[2] === "PHASE" && info.engines[3] === "LOFI" && info.engines[5] === "VOICE" && info.engines[6] === "TRIO" && info.engines[7] === "WHEEL" && info.engines[8] === "-" && info.engines[9] === "PHYS" && info.engines[15] === "-" && info.engines[10] === "DRUM" && info.engines[11] === "-" && info.pcount === 124 && info.pe0 === 116 && info.engines[4] === "-",
     "editor: INFO");
   let descs = 0;
   for (let i = 0; i < info.pcount; i++) if (E.parse[E.CMD.DESC](await rq(E.req.desc(0, i))).label) descs++;
@@ -372,7 +372,7 @@ async function editorMock() {
   ok(!prefs.favorites[info.namespace.general][31] && !E.devicePresetRows(info, names, prefs).some((r) => r.user), "editor: erased slot disappears and loses star");
   {   /* the lists in the device's order: FM6 second, MIDI Track last, "-" never; the numbers stay */
     const shown = E.engineOrder(info.engines).map((i) => info.engines[i]);
-    ok(shown.join() === "PROPHET,FM6,CZ-1,SID,DRUM,MIDI Track" &&
+    ok(shown.join() === "PROPHET,FM6,PHASE,LOFI,VOICE,TRIO,WHEEL,PHYS,DRUM,MIDI Track" &&
        E.engineOrder(info.engines)[1] === 12 && E.engineOrder(info.engines).at(-1) === 21,
        "editor: engines listed FM6 second, MIDI Track last (indices kept)");
     ok(E.engineOrder(["ANALOG", "X", "-", "DRUM", "FM6"]).join() === "0,4,3,1", "editor: an unknown engine follows the known ones");
@@ -457,7 +457,7 @@ async function editorMock() {
 
 async function editorSamplePresets() {
  const {rq,done}=attachMock();const info=E.parse[E.CMD.INFO](await rq(E.req.info()));
- ok([4,6,7,8,9,13,14].every(i=>info.engines[i]==="-" && !E.engineOrder(info.engines).includes(i)),"editor: SAMPLE, GRAIN and SLICE removed; other engine IDs kept");done();
+ ok([4,8,13,14,15].every(i=>info.engines[i]==="-" && !E.engineOrder(info.engines).includes(i)),"editor: SAMPLE, GRAIN, SLICE and CZ-1 removed; other engine IDs kept");done();
 }
 
 async function editorMidiTrack() {
@@ -488,8 +488,11 @@ function mockTables() {
   {
     const m0 = E.makeMockDevice({ auto: false }), ph = m0.tables.ENG[9], dr = m0.tables.ENG[10];
     m0.stop();
-    ok([2,5,6,9,11].every((i) => m0.tables.ENG[i].name === "-" && !m0.tables.ENG[i].presets.length),
-       "editor: PHASE, VOICE, TRIO, PHYS and NOISE retired with their original IDs reserved");
+    ok([11, 15].every((i) => m0.tables.ENG[i].name === "-" && !m0.tables.ENG[i].presets.length),
+       "editor: NOISE and CZ-1 retired with their original IDs reserved");
+    ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 9]].every(([i, n, k]) =>
+       m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),
+       "editor: Felucca's PHASE, LOFI, VOICE, TRIO and PHYS restored with their original IDs");
     const wh = m0.tables.ENG[7];
     ok(wh.name === "WHEEL" && wh.edit.map((d) => d.label).join() === "REG,SUB,BODY,TOP,PERC,CLICK,DRV,ROTR" &&
        wh.presets.map((p) => p.name).join() === "FULL ORGAN,JAZZ PERC,GOSPEL,SOFT FLUTE,ROCK DRIVE",
@@ -758,7 +761,7 @@ async function editorLibrarian() {
   ok(rc === 0 && !b2.slots[11].used && b2.slots[10].used && rcEmpty === 1, "librarian: UP_ERASE, UP_LOAD of an empty slot -> rc 1");
 
   /* audition: a patch that holds a pattern; the sound only, the sequence (with notes) stays */
-  const bass = await E.bank.get(rq, info, 2);   /* SID BREADBOX, with the ACID steps */
+  const bass = await E.bank.get(rq, info, 2);   /* BREADBOX (engine 3: LOFI here), with the ACID steps */
   await rq(E.req.stepSet(20, { n: 1, notes: [50, 0, 0, 0], time: 0, flags: 0, vel: 90 }));
   await rq(E.req.set(0, 29, 24));               /* the track's own: LEN 24, ARP MODE 2 */
   await rq(E.req.set(0, 17, 2));
@@ -816,18 +819,18 @@ async function editorLibrarian() {
       "library file: retired effect labels never activate new FX controls");
   }
   ok(back.patches.length === 2 && !back.skipped && eq(back.patches[0].p, cap.p) && eq(back.patches[1].p, bass.p)
-    && js(back.patches[1].pattern) === js(bass.pattern) && back.patches[1].tags.join() === "bass,device" && back.patches[1].engineName === "SID",
+    && js(back.patches[1].pattern) === js(bass.pattern) && back.patches[1].tags.join() === "bass,device" && back.patches[1].engineName === "LOFI",
     "library file: write -> read round trip");
   /* a future firmware: one more parameter at id 5, engines in another order and one of them gone */
   const keys2 = [...keys.slice(0, 5), "NEW", ...keys.slice(5)];
-  const eng2 = ["ANALOG", "SAMPLE", "SID"];
+  const eng2 = ["ANALOG", "SAMPLE", "LOFI"];
   const fut = E.readLibraryFile(file, { keys: keys2, engines: eng2 });
   const p0 = fut.patches[0].p;
   ok(fut.patches.length === 2 && p0.length === info.pcount+1 && p0[5] === null && p0[6] === cap.p[5] && p0[info.pcount] === cap.p[info.pcount-1]
     && fut.patches[0].engine === 2 && fut.patches[1].engine === 2, "library file: other ids / engine order mapped by label and name");
   const lost = E.readLibraryFile({ ...file, patches: [{ ...file.patches[0], engineName: "WAVETABLE" }] }, ctx);
   ok(lost.patches.length === 0 && lost.skipped === 1, "library file: a patch for an unknown engine is skipped");
-  const bankFile = E.libraryFile("bank", [{ ...g, engineName: "SID", slot: 10 }], ctx);
+  const bankFile = E.libraryFile("bank", [{ ...g, engineName: "LOFI", slot: 10 }], ctx);
   ok(bankFile.kind === "bank" && bankFile.patches[0].slot === 10 && E.readLibraryFile(bankFile, ctx).patches[0].slot === 10, "library file: bank export keeps slot numbers");
   {   /* files from the 69-parameter firmware (P_E0 61): the engine's 8 land on E0..E7 (E0..E7), FM op ENV, the
          chord keys, the MPC degree, the lane levels, LFO 2 and SPRD stay unset */

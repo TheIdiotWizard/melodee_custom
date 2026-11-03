@@ -279,7 +279,12 @@ static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint
     switch(cc){case 5:id=P_GLIDE;break;case 7:id=P_LEVEL;break;case 10:id=P_PAN;break;
     case 72:id=P_REL;break;case 73:id=P_ATK;break;case 75:id=P_DEC;break;
     case 74:case 71:{
+#if MELODEE_FELUCCA_ENGINES   /* CC 74 / 71 (high / low nibble): E0 + n - 1. PHASE DCW / FOLD, LOFI TONE / CRSH, VOICE Q,
+                               * TRIO CUT / RES, PHYS BRIT / DAMP */
+        static const uint8_t map[NENGINES]={0,0,0x38,0x84,0,0x07,0x67,0,0,0x34,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
+#else
         static const uint8_t map[NENGINES]={0,0,0x30,0x56,0,0x07,0,0,0,0,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
+#endif
         uint32_t macro=(map[t->eng_req%NENGINES]>>(cc==74?4:0))&15u;
         if(macro)id=P_E0+macro-1u;else if(cc==74 && t->eng_req==ENGI_CZ)id=P_ED_FLT;
         break; }default:return;}
@@ -378,6 +383,11 @@ static void __attribute__((noinline)) midi_event(uint32_t st, uint32_t ch, uint3
     /* Panel CCs are consumed once, before modulation, synth controls or MIDI
      * Track forwarding. ROUT admits the channel; the UI edits the selected part. */
     if (st == 0xB0u && t && midi_knob_receive(ch, d1, d2)) return;
+    if (st == 0xB0u && t && midi_fixed_knob_receive(ch, d1, d2)) return;   /* CC 20..23: knobs 1..4 */
+    if (st == 0xB0u && t && d1 - MIDI_CC_LEVEL < (uint32_t)NPART) {       /* CC 24..27: tracks 1..4's LVL */
+        midi_parameter(&trk[d1 - MIDI_CC_LEVEL], 7u, d2);
+        return;
+    }
     if (st != 0x80u && st != 0x90u) {
         uint32_t targets = midi_targets(ch);
         for (uint32_t tr = 0; tr < trk_n(); tr++)

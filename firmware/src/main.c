@@ -367,7 +367,7 @@ static void fm1_main(void)
                 fm1_enter_uboot();
             }
         }
-        cz_service();
+        if (MELODEE_CZ) cz_service();                   /* (CZ-1 SysEx: only with the CZ-1) */
         fm6_service();                                  /* DX7 SysEx for FM6, a pending FM6 settings save */
 #if MELODEE_OTA
         ed_service();                                   /* web editor SysEx */

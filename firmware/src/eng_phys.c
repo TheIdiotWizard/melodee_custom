@@ -3,7 +3,7 @@
  * Portions Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* PHYS: physical models. The DSP is ported to fixed point from DaisySP (Electrosmith, Emilie Gillet;
  * MIT: phys_dsp.c) and Rings' sympathetic strings (Emilie Gillet; MIT: phys_symp.c); this file is the
- * Melodee engine around them.
+ * Felucca engine around them (Felucca's eng_phys.c), restored in Melodee.
  *
  * MODEL picks one of four (the values are stored: new ones are appended):
  *   MODAL   a bank of 12 band-pass modes (bells, bars, plates): STRC stretches the partials
