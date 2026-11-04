@@ -552,7 +552,7 @@ user presets saved by earlier Melodee versions are not imported, and the user sa
   RECENT, with knob acceleration; factory presets, 384 shared user slots and 32 projects, named on the device, in one
   storage pool; a startup project and a template for new projects; projects from Melodee 1.0 or later load
 - **Screen:** Melodee's own look: Rubik type, icons drawn for Melodee, every track in its own colour (the screen takes the
-  selected track's, each knob a shade of it), eight palettes: NIGHT, DAY, CONTRAST, SUNSET, OCEAN, NEON, CANDY and LO-FI
+  selected track's, each knob a shade of it), nine palettes: NIGHT, DAY, CONTRAST, SUNSET, OCEAN, NEON, CANDY, LO-FI and DUSK
 - **Stage (HOME):** the selected track's own four knobs (its engine's: the Prophet's cutoff, resonance, filter envelope
   and release, the CZ-1's wave, DCW, detune and vibrato), the notes and chord it plays in front of the live waveform
   (the last voicing stays after release; a DRUM track lights its lanes as they hit), and a lane per track: its sound,

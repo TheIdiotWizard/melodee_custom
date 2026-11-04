@@ -6,7 +6,8 @@
 
   gen_ui_palettes.py OUT.h [--report]
 
-Melodee's palettes: NIGHT (the default: warm ink), DAY (light) and CONTRAST (black and white). A palette is BG
+Melodee's palettes: NIGHT (the default: warm ink), DAY (light), CONTRAST (black and white) and the others below; DUSK is
+CONTRAST with muted track colours (purple, pink, yellow, green). A palette is BG
 (background), SURF (surface: cards, dialogs, menu rows), TEXT, ACCENT (the one active thing: hot knob, cursor,
 playhead) and four track colours: the selected track's is THEME (values, curves, gauges, selection), so the screen
 takes the colour of the track ALGORITHM picks (src/gfx.c palette_track). The firmware derives the rest with fixed
@@ -47,6 +48,8 @@ PALETTES = [
      ((150, 20, 102), (32, 64, 178), (0, 88, 90), (138, 54, 0))),
     ("LO-FI",    (32, 28, 26),    (48, 42, 38),    (236, 226, 208), (250, 244, 232),
      ((218, 140, 128), (214, 182, 104), (146, 184, 142), (142, 164, 206))),
+    ("DUSK",     (0, 0, 0),       (34, 34, 34),    (255, 255, 255), (255, 255, 255),   # CONTRAST, muted tracks:
+     ((178, 156, 226), (226, 156, 192), (220, 204, 132), (156, 204, 150))),           # purple, pink, yellow, green
 ]
 TEST_GRAY = ("GRAY", (14, 14, 14), (36, 36, 36), (204, 204, 204), (255, 255, 255),
              ((232, 232, 232), (220, 220, 220), (208, 208, 208), (244, 244, 244)))

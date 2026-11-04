@@ -1745,7 +1745,7 @@ static int test_display_preferences(void)
     {
         int steps_ok = settings.palette == 2;
         for (uint32_t k = 3; k < NPALETTES; k++) { turn(EN_K1, 1); steps_ok &= settings.palette == k; }
-        bad += check("COLOR KNOB 1 steps on through SUNSET .. LO-FI, then wraps to NIGHT",
+        bad += check("COLOR KNOB 1 steps on through SUNSET .. DUSK, then wraps to NIGHT",
                      steps_ok && (turn(EN_K1, 1), settings.palette == UI_DEFAULT_INDEX));
     }
     press(B_OCTDN);
