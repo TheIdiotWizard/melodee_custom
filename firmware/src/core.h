@@ -615,6 +615,29 @@ static inline uint32_t swing_step_len(const track_t *t, uint32_t base, uint32_t 
 
 /* ----------------------------------------------------------- system --- */
 #define RING_PUBLISH() __asm__ volatile("" ::: "memory")   /* slot store before the index update */
+/* The main loop borrows the selection for calls that read TSEL about another track (Stage's rows, MIDI LEARN, the
+ * fixed CCs): sel_borrow_begin, song.sel = that track, the call, sel_borrow_end. The audio interrupt reads SEL_LIVE,
+ * the selection the player made: a key pressed (or a ROUT SEL note) while the selection is borrowed went to the
+ * borrowed track before, sounding another track's sound. Borrows nest */
+static volatile uint8_t sel_borrowed, sel_owner;
+#define SEL_LIVE ((uint32_t)(sel_borrowed ? sel_owner : song.sel))
+static inline uint32_t sel_borrow_begin(void)
+{
+    uint32_t s = song.sel;
+    if (!sel_borrowed) sel_owner = (uint8_t)s;
+    RING_PUBLISH();
+    sel_borrowed++;
+    RING_PUBLISH();
+    return s;
+}
+static inline void sel_borrow_end(uint32_t s)
+{
+    RING_PUBLISH();
+    song.sel = (uint8_t)s;
+    RING_PUBLISH();
+    sel_borrowed--;
+    RING_PUBLISH();
+}
 static volatile uint32_t fm1_ms;  /* milliseconds since boot (TIMER4-based, TIMER5 ISR in main.c) */
 /* boot-loop guard (main.c): two boots in a row that die in the first 30 s -> UBOOT */
 #define BOOTGUARD_MAGIC 0x42475244u

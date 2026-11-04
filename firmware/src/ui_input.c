@@ -2138,7 +2138,7 @@ static void mlearn_apply(const mlearn_t *b, uint32_t value)
 {
     if (b->track >= trk_n() || trk[b->track].eng_req != b->eng || (b->page != 0xFFu && b->page >= NPAGES))
         return;
-    __typeof__(song.sel) sel = song.sel;                /* (the bound track for edit_param's TSEL, then back) */
+    uint32_t sel = sel_borrow_begin();                  /* (the bound track for edit_param's TSEL, then back) */
     const page_t *over = page_over;
     song.sel = b->track;
     page_over = b->page == 0xFFu ? stage_page() : &PAGES[b->page];
@@ -2148,30 +2148,30 @@ static void mlearn_apply(const mlearn_t *b, uint32_t value)
         midi_edit_value = -1;
     }
     page_over = over;
-    song.sel = sel;
+    sel_borrow_end(sel);
     if (b->track == song.sel) ui.force = 1;
 }
 /* CC 20..23: the Stage knob k of track tr (its engine's, as MIDI LEARN binds Stage's knobs), the value absolute */
 static void midi_stage_knob(uint32_t tr, uint32_t k, uint32_t value)
 {
-    __typeof__(song.sel) sel = song.sel;
+    uint32_t sel = sel_borrow_begin();
     const page_t *over = page_over;
-    song.sel = tr;
+    song.sel = (uint8_t)tr;
     page_over = stage_page();
     midi_edit_value = (int32_t)value;
     edit_param(k, 0);
     midi_edit_value = -1;
     page_over = over;
-    song.sel = sel;
+    sel_borrow_end(sel);
     ui.force = 1;
 }
 /* CC 24: track tr's sound steps by s, as PRESETS steps it (its LIST, all engines then the user presets; wraps) */
 static void midi_track_preset(uint32_t tr, int32_t s)
 {
-    __typeof__(song.sel) sel = song.sel;
-    uint32_t total, cur, n;
+    uint32_t total, cur, n, sel;
     if (!s || trk_midi_slot(tr)) return;
-    song.sel = tr;
+    sel = sel_borrow_begin();
+    song.sel = (uint8_t)tr;
     cur = list_cur(&total);
     if (total) {
         int32_t m = s % (int32_t)total;
@@ -2179,7 +2179,7 @@ static void midi_track_preset(uint32_t tr, int32_t s)
         if (brw.on && brw.trk == tr) brw.on = 0;     /* (a PRESETS browse of this track waits no longer) */
         if (n != cur) preset_go(n);
     }
-    song.sel = sel;
+    sel_borrow_end(sel);
     ui.force = 1;
 }
 /* CC 91 / 93: the MIX of the shared rack's slot holding want (else alt), 0..127 over MIX's range */

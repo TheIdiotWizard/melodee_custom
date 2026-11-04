@@ -261,9 +261,38 @@ static int fixed_controls(void)
     return bad;
 }
 
+/* The UI borrows the selection (Stage's rows, MIDI LEARN, the fixed CCs: core.h sel_borrow_begin): a key or a ROUT SEL
+ * note arriving meanwhile plays the player's selected track, never the borrowed one */
+static uint32_t voices_on(const track_t *t)
+{
+    uint32_t n = 0;
+    for (uint32_t i = 0; i < NVOICE; i++) n += t->v[i].active != 0;
+    return n;
+}
+static int borrowed_selection(void)
+{
+    int bad = 0;
+    knob_reset(MK_OFF, MK_ABSOLUTE);
+    for (uint32_t k = 0; k < 3u; k++) set_engine_of(&trk[k], HOST_SYNTH);
+    song.sel = 0; song.g[G_ROUTE] = 1;                  /* ROUT SEL: notes go to the selected track */
+    fm1_in.notes = kb_prev = 0; events_block(CTL);
+    uint32_t s = sel_borrow_begin();
+    song.sel = 2;                                       /* (as Stage's row for track 3 does, mid-frame) */
+    fm1_in.notes = 1u << 7; events_block(CTL);          /* a key pressed while track 3 is borrowed */
+    bad += check("a key pressed while the UI borrows the selection plays the selected track",
+                 voices_on(&trk[0]) && !voices_on(&trk[2]) && kb_trk[7] == 0);
+    route_input(1, 0x90, 72, 100);
+    bad += check("a ROUT SEL note while the selection is borrowed plays the selected track", !voices_on(&trk[2]));
+    sel_borrow_end(s);
+    bad += check("the borrow ends on the real selection", song.sel == 0 && SEL_LIVE == 0 && !sel_borrowed);
+    fm1_in.notes = 0; events_block(CTL); route_input(1, 0x80, 72, 0);
+    bad += check("the key's release reaches the track it played", !trk[0].nheld);
+    return bad;
+}
+
 int main(void)
 {
-    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls() + fixed_controls();
+    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls() + fixed_controls() + borrowed_selection();
     printf("%s\n", bad ? "MIDI KNOB TEST FAILED" : "MIDI knob integration tests passed");
     return bad != 0;
 }

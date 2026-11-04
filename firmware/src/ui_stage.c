@@ -309,10 +309,10 @@ static void stage_shape(void)
 /* track k's sound as a list entry (browse.c cur_entry, which reads the selected track) */
 static void stage_entry(uint32_t k, uint32_t *src, uint32_t *kk)
 {
-    uint8_t s = song.sel;
+    uint32_t s = sel_borrow_begin();                    /* (the keys keep the real selection: core.h) */
     song.sel = (uint8_t)k;
     cur_entry(src, kk);
-    song.sel = s;
+    sel_borrow_end(s);
 }
 /* a name in two lines of w px in face f: the first ends at the last space, '.' or '-' that fits (one long word: cut),
  * the rest below (MIXER's strips) */

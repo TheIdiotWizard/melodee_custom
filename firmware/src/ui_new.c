@@ -64,6 +64,7 @@ static void new_create(void)
     else project_new_blank();
     song.ntrk = NPART;                              /* (every part's place: the roles say which stay) */
     sel = song.sel % NPART;
+    (void)sel_borrow_begin();                       /* (the roles' tracks borrow the selection: core.h) */
     undo_depth++;                                   /* (no undo levels: a new project) */
     for (k = 0; k < NPART; k++) {
         uint32_t src, kk, cs, ck;
@@ -86,7 +87,7 @@ static void new_create(void)
         }
     }
     undo_depth--;
-    song.sel = (uint8_t)sel;
+    sel_borrow_end(sel);
     for (k = NPART; k-- > 0u;) {                    /* the places with no role: the last ones empty, one between moves */
         if (nw.role[k] != NR_NONE || trk_n() < 2u)  /* the tracks after down (one track stays) */
             continue;

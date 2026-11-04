@@ -410,7 +410,7 @@ static uint32_t cap_len(const cap_ev_t *e, uint32_t now)   /* its length (held: 
 }
 static void cap_on(const track_t *t, uint32_t note, uint32_t vel)
 {
-    uint32_t k = trk_index(t), selected = song.sel, hint = midi_hint;
+    uint32_t k = trk_index(t), selected = SEL_LIVE, hint = midi_hint;
     /* MPC pads select their track in the next UI frame. Retain their first
      * onset too, using the pending selection published before MIDI playback. */
     if (trk[0].p[P_QUANT] == Q_MPC && (hint & MIDI_TRACK_FOLLOW))
@@ -842,7 +842,7 @@ static void keyboard_block(void)
         if (!((ch >> k) & 1u))
             continue;
         if ((cur >> k) & 1u) {                    /* the selected track; the key-up goes to the same one */
-            kb_trk[k] = song.sel;
+            kb_trk[k] = (uint8_t)SEL_LIVE;              /* (never a selection the UI borrowed: core.h) */
             if (kb_asleep) { kb_note[k]=KB_SILENT; continue; }
             if ((fm1_in.buttons & punch_panel_mask) || punch_panel_lock) {
                 kb_note[k] = KB_SILENT;
@@ -973,7 +973,7 @@ static void seq_start(void)
     }
     seq_seek_units = 0;
     cap_from = cap_w;                              /* capture and the jam log: this run */
-    cap_track = song.sel;
+    cap_track = SEL_LIVE;
     jam.n = 0;
     song.tick = 0;
     beat_pos = 0; beat_n = 0;                      /* the ARP LED's beat from the top too */
@@ -1291,7 +1291,7 @@ static track_t *midi_track(uint32_t ch)
                 return &trk[k];
     }
     if (route == 1u)
-        return TSEL;
+        return &trk[SEL_LIVE];                      /* (SEL: the player's selection, core.h) */
     return ch - first < trk_n() ? &trk[ch - first] : 0;
 }
 
