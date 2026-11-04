@@ -256,6 +256,13 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define G_WSID G_RESERVED7
 #define G_WDRUM G_RESERVED8
 #define G_SAFETY G_RESERVED9
+/* the shipping engines' weights (MELODEE_FELUCCA_ENGINES): PHASE on CZ-1's id, LOFI on SID's, the rest on spare ones */
+#define G_WPHASE G_RESERVED5
+#define G_WLOFI G_RESERVED7
+#define G_WVOICE G_RESERVED10
+#define G_WTRIO G_RESERVED11
+#define G_WWHEEL G_RESERVED24
+#define G_WPHYS G_RESERVED26
 #define G_DRREV G_RESERVED26
 
 static int param_reserved(uint32_t id)

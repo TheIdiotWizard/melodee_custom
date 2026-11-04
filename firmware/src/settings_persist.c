@@ -34,7 +34,8 @@ static int16_t settings_glo[4];                     /* ext.glo: project.c GLO_KE
 #endif
 #define AUTOSAVE_OFF_TAG 0xA1u                     /* CZ row byte 28: only this tag disables autosave */
 #define WORK_BUDGET_TAG 0x57420000u /* WB: high bits of usb_off; low two bits retain USB mode */
-/* GLO > WEIGHTS in favorites.c row 8 bytes 8..15: 'W', version 1, the five points (0 AUTO, 1..15), bit 0 of the
+/* GLO > WEIGHTS in favorites.c row 8 bytes 8..15: 'W', version 1, the five points (0 AUTO, 1..15) (version 2, the shipping
+ * engines: nine points, a nibble each, in bytes 2..6), bit 0 of the
  * last byte SAFETY OFF. Untagged bytes default to OFF; explicit ON is tagged too. Defaults store zeros. */
 #define VOICE_PREF_ROW 8u
 #define VOICE_PREF_BYTE 8u
@@ -136,10 +137,22 @@ static int settings_import(persist_t *p, int n)
     panel = p->panel.magic == PANEL_MAGIC ? p->panel : PANEL_DEFAULT;
     {
         const uint8_t *w = p->favorites.factory[VOICE_PREF_ROW] + VOICE_PREF_BYTE;
-        uint32_t tagged = w[0] == 'W' && w[1] == 1u;
+        uint32_t tagged = w[0] == 'W' && w[1] == 1u, nib = w[0] == 'W' && w[1] == 2u;
+#if MELODEE_FELUCCA_ENGINES
+        /* version 2: nine points as nibbles in bytes 2..6 (P5 FM6 DRUM PHASE LOFI VOICE TRIO WHEEL PHYS); a version 1
+         * record (P5 CZ-1 FM6 SID DRUM bytes) keeps its P5, FM6 and DRUM */
+        static const uint8_t from_v1[3][2] = {{0, 0}, {1, 2}, {2, 4}};
+        for (uint32_t k = 0; k < VOICE_KINDS; k++)
+            settings_vpoints[k] = (int16_t)(nib ? (w[2u + k / 2u] >> (k & 1u ? 4u : 0u)) & 15u : 0u);
+        if (tagged)
+            for (uint32_t j = 0; j < 3u; j++) settings_vpoints[from_v1[j][0]] = (int16_t)(w[2u + from_v1[j][1]] <= 15u ? w[2u + from_v1[j][1]] : 0u);
+        settings_safety = (int16_t)((tagged || nib) && !(w[7] & 1u));
+#else
+        (void)nib;
         for (uint32_t k = 0; k < VOICE_KINDS; k++)
             settings_vpoints[k] = (int16_t)(tagged && w[2u + k] <= 15u ? w[2u + k] : 0u);
         settings_safety = (int16_t)(tagged && !(w[7] & 1u));
+#endif
     }
     return 1;
 }
@@ -201,9 +214,15 @@ static void settings_export(persist_t *p)
             custom |= settings_vpoints[k] != 0;
         memset(w, 0, 8);
         if (custom) {
+#if MELODEE_FELUCCA_ENGINES
+            w[0] = 'W'; w[1] = 2u; w[7] = (uint8_t)!settings_safety;
+            for (uint32_t k = 0; k < VOICE_KINDS; k++)
+                w[2u + k / 2u] |= (uint8_t)((settings_vpoints[k] & 15) << (k & 1u ? 4u : 0u));
+#else
             w[0] = 'W'; w[1] = 1u; w[7] = (uint8_t)!settings_safety;
             for (uint32_t k = 0; k < VOICE_KINDS; k++)
                 w[2u + k] = (uint8_t)settings_vpoints[k];
+#endif
         }
     }
 }

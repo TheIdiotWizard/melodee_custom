@@ -657,8 +657,8 @@ Thanks to [@aroum](https://github.com/aroum) for the detailed feedback in
   the project's, saved and loaded with it (power-on: the BOOT project's, the template's or 120);
   on GLO > GLOBAL, A4, BUDGET and CLK are the device's and stay when you load a project, while TUNE, and SYSTEM's
   MIDI and ROUT, come back at power-on but follow the project or template you load
-- **GLO > WEIGHTS** sets how many BUDGET points one voice of **P5** (Prophet), **CZ-1**, **FM6** and **SID** costs;
-  **WEIGHTS 2** has **DRUM**, **BUDGET** and **GUARD**. AUTO keeps the built-in cost; 1–15 replaces it, so a
+- **GLO > WEIGHTS** sets how many BUDGET points one voice of **P5** (Prophet), **FM6**, **DRUM** and **PHASE** costs;
+  **WEIGHTS 2** has **LOFI**, **VOICE**, **TRIO** and **WHEEL**; **WEIGHTS 3** has **PHYS**, **BUDGET** and **GUARD**. AUTO keeps the built-in cost; 1–15 replaces it, so a
   heavier weight lets fewer voices of that engine start. **GUARD ON** lets an audio overload cut releasing voices. With
   **OFF** (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and
   restart the FM-1. Device settings, kept across projects

@@ -89,8 +89,20 @@ static int16_t drumch_cell;
 static uint8_t settings_boot;
 static int16_t settings_budget = VOICE_BUDGET_DEFAULT;
 /* GLO > WEIGHTS: budget points per sounding voice of PROPHET, CZ-1, FM6, SID and DRUM (0 AUTO: voice.c's
- * built-in rule) and SAFETY (0: overload never cuts voices, audio.c). Device settings (settings_persist.c). */
-#define VOICE_KINDS 5u
+ * built-in rule) and SAFETY (0: overload never cuts voices, audio.c). Device settings (settings_persist.c).
+ * MELODEE_FELUCCA_ENGINES: PROPHET, FM6, DRUM, PHASE, LOFI, VOICE, TRIO, WHEEL and PHYS (voice.c voice_kind) */
+#define VOICE_KINDS (MELODEE_FELUCCA_ENGINES ? 9u : 5u)
+/* a WEIGHTS page id's kind (settings_vpoints index), -1 none (GUARD: G_SAFETY) */
+static int weight_kind(uint32_t id)
+{
+#if MELODEE_FELUCCA_ENGINES
+    static const uint8_t ids[9] = {G_WP5, G_WFM6, G_WDRUM, G_WPHASE, G_WLOFI, G_WVOICE, G_WTRIO, G_WWHEEL, G_WPHYS};
+    for (int k = 0; k < 9; k++) if (ids[k] == id) return k;
+    return -1;
+#else
+    return id >= G_WP5 && id <= G_WDRUM ? (int)(id - G_WP5) : -1;
+#endif
+}
 static int16_t settings_vpoints[VOICE_KINDS];
 static int16_t settings_safety;
 /* Device recording preferences: defaults preserve existing behavior. */
@@ -701,8 +713,14 @@ static const page_t PAGES[] = {
     {"VOICE 3", FAM_EDIT, SC_TRACK, GR_NONE, {P_SPRD, 0xFF, 0xFF, 0xFF}},
     {"GLOBAL", FAM_GLO, SC_GLOBAL, GR_NONE, {G_A4, G_BUDGET, G_CLOCK, G_TUNE}}, /* device reference/budget; CLK/TUNE kept */
     {"SYSTEM", FAM_GLO, SC_GLOBAL, GR_NONE, {G_MIDI, G_DRUMCH, G_ROUTE, G_INFO}},
+#if MELODEE_FELUCCA_ENGINES
+    {"WEIGHTS", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WP5, G_WFM6, G_WDRUM, G_WPHASE}},   /* budget points per voice */
+    {"WEIGHTS 2", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WLOFI, G_WVOICE, G_WTRIO, G_WWHEEL}},
+    {"WEIGHTS 3", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WPHYS, G_BUDGET, 0xFF, G_SAFETY}},  /* SAFETY: overload voice cuts */
+#else
     {"WEIGHTS", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WP5, G_WCZ, G_WFM6, G_WSID}},        /* budget points per voice */
     {"WEIGHTS 2", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WDRUM, G_BUDGET, 0xFF, G_SAFETY}},  /* SAFETY: overload voice cuts */
+#endif
     {"PRESETS", FAM_SAVE, SC_GLOBAL, GR_BROWSE, {0xFF, 0xFF, 0xFF, 0xFF}},   /* browser: KNOB 1 LIST, 2 / PRESETS the sounds */
     {"USER", FAM_SAVE, SC_GLOBAL, GR_USER, {0xFF, 0xFF, 0xFF, 0xFF}},       /* user presets: SLOT LOAD ERASE SAVE */
     {"PROJECT", FAM_SAVE, SC_GLOBAL, GR_SLOTS, {G_SLOT, G_BOOT, G_LOAD, G_SAVE}},
@@ -872,11 +890,19 @@ static const param_desc_t *page_desc(const page_t *pg, uint32_t slot, int16_t **
         *valp = &TSEL->p[P_RECQ];
         return track_desc(TSEL, P_RECQ);
     }
-    if (pg->scope == SC_GLOBAL && id >= G_WP5 && id <= G_SAFETY) {   /* GLO > WEIGHTS: the device's settings */
+    if (pg->scope == SC_GLOBAL && (weight_kind(id) >= 0 || id == G_SAFETY)) {   /* GLO > WEIGHTS: the device's settings */
+#if MELODEE_FELUCCA_ENGINES
+        static const param_desc_t weights[] = {PE("P5", N_VPOINTS, 0), PE("FM6", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0),
+            PE("PHASE", N_VPOINTS, 0), PE("LOFI", N_VPOINTS, 0), PE("VOICE", N_VPOINTS, 0), PE("TRIO", N_VPOINTS, 0),
+            PE("WHEEL", N_VPOINTS, 0), PE("PHYS", N_VPOINTS, 0)};
+#else
         static const param_desc_t weights[] = {PE("P5", N_VPOINTS, 0), PE("CZ-1", N_VPOINTS, 0), PE("FM6", N_VPOINTS, 0),
-            PE("SID", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0), PE("GUARD", N_ONOFF, 0)};
-        *valp = id == G_SAFETY ? &settings_safety : &settings_vpoints[id - G_WP5];
-        return &weights[id - G_WP5];
+            PE("SID", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0)};
+#endif
+        static const param_desc_t guard = PE("GUARD", N_ONOFF, 0);
+        int k = weight_kind(id);
+        *valp = id == G_SAFETY ? &settings_safety : &settings_vpoints[k];
+        return id == G_SAFETY ? &guard : &weights[k];
     }
     if (pg->scope == SC_GLOBAL && id == G_BOOT) {
         boot_cell = settings_boot;                       /* (a copy: ui_input.c edit_param writes it back) */

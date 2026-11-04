@@ -1,0 +1,70 @@
+/* SPDX-License-Identifier: GPL-3.0-only
+ * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
+/* GLO > WEIGHTS with the shipping engines (MELODEE_FELUCCA_ENGINES): P5 FM6 DRUM PHASE / LOFI VOICE TRIO WHEEL /
+ * PHYS BUDGET - GUARD; each weight reaches its engine's voices only; the version 2 record (nine nibbles) and a
+ * version 1 record's P5, FM6 and DRUM. */
+#define UI_TEST_NO_MAIN 1
+#include "ui_test.c"
+
+static const uint8_t kinds[VOICE_KINDS] = {ENGI_PROPHET, ENGI_FM6, ENGI_DRUM, 2u, 3u, 5u, 6u, 7u, 9u};
+static const char *const names[VOICE_KINDS] = {"P5", "FM6", "DRUM", "PHASE", "LOFI", "VOICE", "TRIO", "WHEEL", "PHYS"};
+static const char *value(const char *title, uint32_t k, int16_t **vp, const char **label)
+{
+    static char v[12]; const char *u;
+    go_title(title);
+    const param_desc_t *d = page_desc(cur_page(), k, vp);
+    if (!d || !*vp) { *label = ""; return ""; }
+    *label = d->label;
+    param_format(d, **vp, v, &u);
+    return v;
+}
+int main(void)
+{
+    int bad = 0, ok = 1;
+    _Static_assert(VOICE_KINDS == 9u, "the shipping engines' weights");
+    ui_power_on(); memset(settings_vpoints, 0, sizeof settings_vpoints);
+    for (uint32_t k = 0; k < VOICE_KINDS; k++) {
+        set_engine_of(&trk[0], kinds[k]); trk[0].engine = trk[0].eng_req;
+        uint32_t autov = voice_units(&trk[0]);
+        settings_vpoints[k] = 7;
+        ok &= voice_units(&trk[0]) == 7u;
+        settings_vpoints[k] = 0; settings_vpoints[(k + 1u) % VOICE_KINDS] = 9;
+        ok &= voice_units(&trk[0]) == autov;                  /* another engine's weight never applies */
+        settings_vpoints[(k + 1u) % VOICE_KINDS] = 0;
+    }
+    bad += check("each of the nine weights reaches its own engine's voices only; AUTO keeps the built-in rule", ok);
+
+    int16_t *vp; const char *label;
+    static const struct { const char *page; uint8_t col, kind; } at[VOICE_KINDS] = {
+        {"WEIGHTS", 0, 0}, {"WEIGHTS", 1, 1}, {"WEIGHTS", 2, 2}, {"WEIGHTS", 3, 3},
+        {"WEIGHTS 2", 0, 4}, {"WEIGHTS 2", 1, 5}, {"WEIGHTS 2", 2, 6}, {"WEIGHTS 2", 3, 7}, {"WEIGHTS 3", 0, 8}};
+    ok = 1;
+    for (uint32_t k = 0; k < VOICE_KINDS; k++)
+        ok &= str_eq(value(at[k].page, at[k].col, &vp, &label), "AUTO") && str_eq(label, names[at[k].kind]) &&
+              vp == &settings_vpoints[at[k].kind];
+    value("WEIGHTS 3", 1, &vp, &label); ok &= str_eq(label, "BUDGET") && vp == &settings_budget;
+    ok &= str_eq(value("WEIGHTS 3", 3, &vp, &label), "OFF") && str_eq(label, "GUARD") && vp == &settings_safety;
+    value("WEIGHTS 2", 2, &vp, &label); turn(EN_K3, 2); ok &= settings_vpoints[6] == 2;   /* TRIO */
+    for (uint32_t i = 0; i < NPAGES; i++)
+        for (uint32_t c = 0; c < 4; c++) if (str_eq(PAGES[i].title, "WEIGHTS") || str_eq(PAGES[i].title, "WEIGHTS 2"))
+            ok &= PAGES[i].id[c] == 0xFF || global_reserved(PAGES[i].id[c]) || PAGES[i].id[c] == G_BUDGET;
+    bad += check("WEIGHTS: P5 FM6 DRUM PHASE; 2: LOFI VOICE TRIO WHEEL; 3: PHYS BUDGET - GUARD; on reserved ids", ok);
+
+    persist_t p; memset(&p, 0, sizeof p);
+    static const int16_t custom[VOICE_KINDS] = {3, 0, 1, 15, 2, 9, 4, 6, 12};
+    memcpy(settings_vpoints, custom, sizeof custom); settings_safety = 0;
+    settings_export(&p);
+    const uint8_t *w = p.favorites.factory[8] + 8;
+    ok = w[0] == 'W' && w[1] == 2u && w[7] == 1u && settings_legacy_valid(&p);
+    memset(settings_vpoints, 0, sizeof settings_vpoints); settings_safety = 1;
+    ok &= settings_import(&p, (int)sizeof p) && !memcmp(settings_vpoints, custom, sizeof custom) && !settings_safety;
+    bad += check("version 2: nine weights as nibbles and GUARD survive export / import", ok);
+
+    persist_t q = p; uint8_t *v1 = q.favorites.factory[8] + 8;
+    memset(v1, 0, 8); v1[0] = 'W'; v1[1] = 1u; v1[2] = 5; v1[3] = 4; v1[4] = 3; v1[5] = 2; v1[6] = 1; v1[7] = 0;
+    ok = settings_import(&q, (int)sizeof q) && settings_vpoints[0] == 5 && settings_vpoints[1] == 3 && settings_vpoints[2] == 1 &&
+         !settings_vpoints[3] && !settings_vpoints[8] && settings_safety == 1;
+    bad += check("a version 1 record (P5 CZ-1 FM6 SID DRUM) keeps P5, FM6 and DRUM; the CZ-1 and SID points go", ok);
+    printf(bad ? "voice weights (shipping): %d FAILED\n" : "GLO > WEIGHTS, shipping engines: nine weights, three pages, v2 record and v1 migration: OK\n", bad);
+    return bad != 0;
+}

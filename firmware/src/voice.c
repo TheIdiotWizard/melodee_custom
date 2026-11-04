@@ -133,7 +133,12 @@ static uint32_t voice_units(const track_t *t)
 {
     const engine_t *e = ENGINES[t->engine];
     /* GLO > WEIGHTS: the player's points per voice replace the built-in rule; AUTO (0) keeps it. */
+#if MELODEE_FELUCCA_ENGINES                            /* (params.c weight_kind's order) */
+    int k = e == &ENG_P5_TEST ? 0 : e == &ENG_FM6 ? 1 : e == &ENG_DRUM ? 2 : e == &ENG_FPHASE ? 3 : e == &ENG_LOFI ? 4 :
+            e == &ENG_FORMANT ? 5 : e == &ENG_TRIO ? 6 : e == &ENG_WHEEL ? 7 : e == &ENG_PHYS ? 8 : -1;
+#else
     int k = e == &ENG_P5_TEST ? 0 : (MELODEE_CZ&&e==&ENG_CZ) ? 1 : e == &ENG_FM6 ? 2 : (MELODEE_SID&&e==&ENG_SID) ? 3 : e == &ENG_DRUM ? 4 : -1;
+#endif
     if (k >= 0 && settings_vpoints[k] > 0)
         return (uint32_t)settings_vpoints[k];
 #if MELODEE_ADMISSION
