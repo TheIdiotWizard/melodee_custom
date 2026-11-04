@@ -3,6 +3,7 @@
  * Portions Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* DSP input fixture, not an application insert path. Exercises shared kernels
  * with historical mono/spread input and pan to retain their PCM oracles. */
+#ifndef FX_HAS_TRACK_INSERTS                      /* (the firmware has them again: fx.c) */
 static __attribute__((noinline,section(".dsp_text"))) void fx_pan(track_t *t,int32_t *b,uint32_t n)
 {
     if(!spread_on){
@@ -29,6 +30,7 @@ static __attribute__((noinline,section(".audio_text"))) void fx_post_pan(track_t
         fx_left[i]=fx_scale(fx_left[i],(uint32_t)gl*16u);fx_right[i]=fx_scale(fx_right[i],(uint32_t)gr*16u);
     }
 }
+#endif
 static int fx_kernel_process(track_t *t,int32_t *b,uint32_t n)
 {
     int active=0;fx_pan(t,b,n);

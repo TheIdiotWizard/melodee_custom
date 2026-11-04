@@ -116,7 +116,8 @@ static void trace(int audio_only)
             }
             fx_bus_start(CTL);fx_bus_join();digest(&fx_bus_result,sizeof fx_bus_result);
             digest(fx_left,sizeof fx_left);digest(fx_right,sizeof fx_right);
-            for(uint32_t si=0;si<FX_STATE_COUNT;si++){
+            /* the frozen PCM trace digests the shared slots only (track inserts never run here) */
+            for(uint32_t si=0;si<(audio_only?FX_SLOTS:FX_STATE_COUNT);si++){
                 /* The PCM/allocation trace also compares different state
                  * layouts; the ordinary trace checks full dormant state. */
                 if(!audio_only){fx_state_t f=fx_state[si];if(f.type==FX_CHORUS)f.echo=0;digest(&f,sizeof f);}

@@ -173,10 +173,11 @@ static int fx_sloop_type(int32_t t){return t>=FX_SOFT && t<=FX_PEDAL_CHORUS;}
 static int fx_sloop_swept(int32_t t){return t>=FX_FLANGER && t<=FX_PEDAL_CHORUS;}
 static int fx_third_control(int32_t t){return fx_sloop_swept(t) || t==FX_ROOM || t==FX_REVERB;}
 static int fx_is_midi(int32_t type) { return type == FX_MIDIVERB || type == FX_MIDIDELAY; }
-#define FX_CHAIN_COUNT 1u /* the shared rack only; tracks retain note-effect controls */
+#define FX_CHAIN_COUNT (NPART+1u) /* the shared rack (states 0..2), then each track's three inserts */
+#define FX_TRACK_SI(ti, slot) (FX_SLOTS * (1u + (ti)) + (slot))
 #define FX_STATE_COUNT (FX_CHAIN_COUNT*FX_SLOTS)
 #define FX_TONE_MAX 63
-static int fx_track_type(int32_t type) { return fx_is_midi(type) ? type : FX_OFF; }
+static int fx_track_type(int32_t type) { return fx_retired(type) ? FX_OFF : type; }   /* (a track's inserts: any effect) */
 static void track_fx_normalize(int16_t *p)
 {
     for(uint32_t slot=0;slot<FX_SLOTS;slot++)p[P_FXTYPE+slot*FX_PARAMS]=(int16_t)fx_track_type(p[P_FXTYPE+slot*FX_PARAMS]);

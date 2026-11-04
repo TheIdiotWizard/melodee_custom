@@ -45,7 +45,7 @@ static int check(const char *what, int ok)
  * values) in these slots. Only the note processors survive preset loading. */
 static int16_t mapped_value(uint32_t id, int16_t value)
 {
-    if(id==P_FXTYPE || id==P_FX2TYPE || id==P_FX3TYPE)return FX_OFF;
+    if((id==P_FXTYPE || id==P_FX2TYPE || id==P_FX3TYPE) && fx_retired(value))return FX_OFF;
     return value;
 }
 
@@ -289,7 +289,7 @@ int main(void)
     bad += check("np == P_COUNT: as stored", ok);
     up_set_value(&r,P_FXTYPE,FX_MIDIVERB);up_set_value(&r,P_FX2TYPE,FX_MIDIDELAY);up_set_value(&r,P_FX3TYPE,FX_CHORUS);
     up_params(&r,v,def);
-    bad += check("note FX survive, historical audio insert loads OFF",v[P_FXTYPE]==FX_MIDIVERB && v[P_FX2TYPE]==FX_MIDIDELAY && v[P_FX3TYPE]==FX_OFF);
+    bad += check("note FX and audio inserts survive",v[P_FXTYPE]==FX_MIDIVERB && v[P_FX2TYPE]==FX_MIDIDELAY && v[P_FX3TYPE]==FX_CHORUS);
 
     {   /* steps -> pattern (UP_STORE) */
         step_t st[NSTEP];

@@ -170,7 +170,7 @@ static void original_recording(void)
 static void ui_storage(void)
 {
     reset(); go_title("FX"); fx_rack_row[0] = 0;
-    edit_param(0, 1); assert(TSEL->p[P_FXTYPE] == FX_MIDIVERB && TSEL->p[P_FXMIX] == 64);
+    edit_param(0, 15); assert(TSEL->p[P_FXTYPE] == FX_MIDIVERB && TSEL->p[P_FXMIX] == 64);  /* NOTE TAIL: last in the list */
     int16_t *vp;
     const page_t *slot = &PAGES[page_titled("FX 1")];
     assert(str_eq(page_desc(slot, 0, &vp)->label, "REL"));
@@ -178,7 +178,7 @@ static void ui_storage(void)
     assert(!page_visible(page_titled("FX 1")));
     press(B_OCTUP); assert(cur_page()->graph == GR_FXRACK);  /* NOTE TAIL edits REL in its row */
     edit_param(3, 1); assert(TSEL->p[P_FXMIX] > 64);
-    edit_param(0, 1); assert(TSEL->p[P_FXTYPE] == FX_MIDIDELAY && TSEL->p[P_FXRATE] == 1);
+    edit_param(0, -1); assert(TSEL->p[P_FXTYPE] == FX_MIDIDELAY && TSEL->p[P_FXRATE] == 1);
     assert(page_visible(page_titled("FX 1")));
     assert(str_eq(page_desc(slot, 0, &vp)->label, "LEVEL"));
     assert(page_desc(slot, 1, &vp)->fmt == F_ENUM && page_desc(slot, 1, &vp)->max == 9);
@@ -189,8 +189,8 @@ static void ui_storage(void)
     for (uint32_t k = P_FXTYPE; k <= P_FX3CHAR; k++) assert(proj_scratch.t[0].p[k] == TSEL->p[k]);
     template_save(); memset(TSEL->p + P_FXTYPE, 0, FX_SLOTS * FX_PARAMS * sizeof(int16_t)); template_load();
     assert(TSEL->p[P_FXTYPE] == FX_MIDIDELAY && TSEL->p[P_FX2TYPE] == FX_MIDIDELAY && TSEL->p[P_FX3TYPE] == FX_MIDIVERB);
-    assert(FX_STATE_COUNT==FX_SLOTS); /* note processors have no audio insert state */
-    for (uint32_t k = 0; k < FX_SLOTS; k++) assert(!resource[RES_FX0+k].size);
+    /* note processors have no audio insert state */
+    for (uint32_t k = 0; k < FX_SLOTS; k++) assert(!resource[RES_FX0+k].size && !resource[RES_FX0+FX_TRACK_SI(0,k)].size);
     puts("MIDI inserts: rack controls, shared exclusion, project/template round trips and no DSP allocation passed");
 }
 int main(void) { timing(); ownership(); verb(); fm6_release_rates(); original_recording(); ui_storage(); printf("MIDI insert state: %zu bytes\n", sizeof midi_insert + sizeof midi_verb); return 0; }

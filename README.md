@@ -888,19 +888,21 @@ replaces that event. **RECORDING FULL** leaves existing recordings intact; clear
 recorded steps makes space for new takes. Notes held longer than 128
 nominal steps are capped at that duration.
 
-Each track has **three note-effect slots** for **Note tail** (envelope release) and
-**Note echo** (note repeats with tempo divisions and velocity decay), followed by a
-**Shared** row. Audio processors run in the shared rack. Press **FX** for the track's
+Each track has **three insert slots**, run in series on the track, followed by a
+**Shared** row. A slot holds any audio effect of the shared rack, or a note effect:
+**Note tail** (envelope release) or **Note echo** (note repeats with tempo divisions and
+velocity decay). Press **FX** for the track's
 rack; KNOB 2 selects its row, KNOB 1 the effect, and KNOB 4 its amount. OCT+ opens the
 selected slot, its effect picker if empty, or the shared rack; SELECT visits the racks
 and occupied slots. Note tail has its single REL control on the rack; Note echo has
 LEVEL, TIME and DECAY on its page.
 
-The shared rack's audio choices are **Phaser, Width, Formant, Tape, Spit, Room, Reverb,
-Chorus, Drive, Crush, Flanger, Pedal phaser and Pedal chorus**, grouped into Space,
-Motion, Dirt and Colour. OCT+ on an empty shared slot opens the effect browser: KNOB 1
-selects a family, KNOB 2 an effect, and OCT+ confirms. Audio processors in older projects' track
-slots load OFF; recreate them in the shared rack and set the track's send.
+The audio choices, in the track's slots and the shared rack, are **Phaser, Width, Formant,
+Tape, Spit, Room, Reverb, Chorus, Drive, Crush, Flanger, Pedal phaser and Pedal chorus**,
+grouped into Space, Motion, Dirt and Colour (a track's slots add Notes). OCT+ on an empty
+slot opens the effect browser: KNOB 1 selects a family, KNOB 2 an effect, and OCT+
+confirms. Older projects' per-track audio effects load again. A track's inserts take their
+buffers from the on-demand memory arena; a silent track's tails ring on.
 
 Phaser sweeps all-pass sections, Width processes the left side with the right
 dry, Formant makes vowel shapes, Tape drifts smooth crossover filters, and Spit
@@ -913,8 +915,8 @@ slot dry and shows MEMORY FULL; switch it off and on to retry.
 
 **Shared** opens three shared audio slots, with CHAIN or SPLIT routing and a
 RETURN level. In CHAIN, each track's SEND feeds the three slots in series. In
-SPLIT, each shared slot has its own track send. Only one shared REVERB can be
-active. Effects, routing and send levels save with projects and templates; sound
+SPLIT, each shared slot has its own track send. Only one REVERB can be active, in a
+track's slots or the shared rack: choosing it turns it off where it was. Effects, routing and send levels save with projects and templates; sound
 changes preserve them. Four mono USB stems are taken after each track's effects
 and level, before the shared rack; the stereo master includes the shared return.
 

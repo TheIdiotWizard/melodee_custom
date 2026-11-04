@@ -209,7 +209,7 @@ int main(void)
     struct result insert = stereo_render(1, 0, 4096);
     struct result wet = stereo_render(1, 1, 4096);
     assert(dry.energy && dry.monitor && insert.energy && wet.energy);
-    assert(dry.hash == insert.hash && insert.hash != wet.hash); /* historical track audio FX are inert */
+    assert(dry.hash != insert.hash && insert.hash != wet.hash); /* track audio inserts process the stems */
     struct result muted = stereo_render(1, 1, 0), half = stereo_render(1, 1, 2048);
     assert(muted.energy == 0 && half.energy < wet.energy);    /* MASTER sets the output, */
     assert(muted.taken == wet.taken && half.taken == wet.taken);   /* never the recording (#103) */

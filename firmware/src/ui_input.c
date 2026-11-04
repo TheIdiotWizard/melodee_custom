@@ -1030,6 +1030,20 @@ static void native_motion(const uint8_t *old)
     if (!designer_on() && !momentary.active && motion_native_edited(TSEL, old))
         motion_unplayed();
 }
+/* One REVERB (fx.c: a second tank stays silent): choosing it in a slot (keep) turns it off wherever else it is, every
+ * track's inserts and the shared rack */
+static void fx_reverb_take(const int16_t *keep)
+{
+    for (uint32_t k = 0; k < NPART; k++)
+        for (uint32_t slot = 0; slot < FX_SLOTS; slot++) {
+            int16_t *v = &trk[k].p[P_FXTYPE + slot * FX_PARAMS];
+            if (v != keep && *v == FX_REVERB) *v = FX_OFF;
+        }
+    for (uint32_t slot = 0; slot < FX_SLOTS; slot++) {
+        int16_t *v = &song.g[G_MFXTYPE + slot * FX_PARAMS];
+        if (v != keep && *v == FX_REVERB) *v = FX_OFF;
+    }
+}
 static void edit_param(uint32_t slot, int32_t steps)
 {
     int16_t *vp;
@@ -1151,7 +1165,13 @@ static void edit_param(uint32_t slot, int32_t steps)
     }
     if(pg->scope==SC_GLOBAL && vp>=song.g+G_MFXTYPE && vp<=song.g+G_MFX3TYPE &&
        ((uint32_t)(vp-song.g)-G_MFXTYPE)%FX_PARAMS==0u){
-        uint32_t flags=motion_guard();shared_fx_select(song.g,((uint32_t)(vp-song.g)-G_MFXTYPE)/FX_PARAMS,v);motion_unguard(flags);
+        uint32_t flags=motion_guard();
+        if(v==FX_REVERB && *vp!=v)fx_reverb_take(vp);
+        shared_fx_select(song.g,((uint32_t)(vp-song.g)-G_MFXTYPE)/FX_PARAMS,v);motion_unguard(flags);
+    }else if(pg->scope==SC_TRACK && vp>=TSEL->p+P_FXTYPE && vp<=TSEL->p+P_FX3TYPE && ((uint32_t)(vp-TSEL->p)-P_FXTYPE)%FX_PARAMS==0u){
+        uint32_t flags=motion_guard();
+        if(v==FX_REVERB && *vp!=v)fx_reverb_take(vp);
+        *vp=(int16_t)v;motion_unguard(flags);
     }else *vp = (int16_t)v;
     if(pg->scope==SC_P5){
         uint8_t old[MO_NATIVE_N];uint32_t f=motion_guard();

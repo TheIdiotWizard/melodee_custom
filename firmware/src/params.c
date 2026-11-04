@@ -180,13 +180,13 @@ static void fm6_freq_text(char *val, const char **unit, int coarse)
 }
 
 static const param_desc_t TP[P_COUNT] = {
-    [P_FXTYPE] = PE("NOTE FX", N_NOTE_FX, 0),
+    [P_FXTYPE] = PE("FX", N_FX, 0),
     [P_FXMIX] = PD("MIX", F_PCT, 0, 127, 0),
     [P_FXRATE] = PD("RATE", F_LFOHZ, 0, 127, 60),
     [P_FXCHAR] = PD("CHAR", F_PCT, 0, 127, 64),
-    [P_FX2TYPE] = PE("NOTE FX", N_NOTE_FX, 0), [P_FX2MIX] = PD("MIX", F_PCT, 0, 127, 0),
+    [P_FX2TYPE] = PE("FX", N_FX, 0), [P_FX2MIX] = PD("MIX", F_PCT, 0, 127, 0),
     [P_FX2RATE] = PD("RATE", F_LFOHZ, 0, 127, 60), [P_FX2CHAR] = PD("CHAR", F_PCT, 0, 127, 64),
-    [P_FX3TYPE] = PE("NOTE FX", N_NOTE_FX, 0), [P_FX3MIX] = PD("MIX", F_PCT, 0, 127, 0),
+    [P_FX3TYPE] = PE("FX", N_FX, 0), [P_FX3MIX] = PD("MIX", F_PCT, 0, 127, 0),
     [P_FX3RATE] = PD("RATE", F_LFOHZ, 0, 127, 60), [P_FX3CHAR] = PD("CHAR", F_PCT, 0, 127, 64),
     [P_LN0] = PD("KICK", F_PCT, 0, 127, 127),
     [P_LN1] = PD("SNARE", F_PCT, 0, 127, 127),
