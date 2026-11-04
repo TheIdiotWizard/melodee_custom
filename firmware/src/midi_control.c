@@ -383,11 +383,8 @@ static void __attribute__((noinline)) midi_event(uint32_t st, uint32_t ch, uint3
     /* Panel CCs are consumed once, before modulation, synth controls or MIDI
      * Track forwarding. ROUT admits the channel; the UI edits the selected part. */
     if (st == 0xB0u && t && midi_knob_receive(ch, d1, d2)) return;
-    if (st == 0xB0u && t && midi_fixed_knob_receive(ch, d1, d2)) return;   /* CC 20..23: knobs 1..4 */
-    if (st == 0xB0u && t && d1 - MIDI_CC_LEVEL < (uint32_t)NPART) {       /* CC 24..27: tracks 1..4's LVL */
-        midi_parameter(&trk[d1 - MIDI_CC_LEVEL], 7u, d2);
-        return;
-    }
+    if (st == 0xB0u && t && !midi_track_only(t) && midi_fixed_receive(ch, d1, d2, trk_index(t)))
+        return;                                      /* CC 20..24, 91, 93 (midi_knobs.c) */
     if (st != 0x80u && st != 0x90u) {
         uint32_t targets = midi_targets(ch);
         for (uint32_t tr = 0; tr < trk_n(); tr++)

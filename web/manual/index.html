@@ -1024,15 +1024,17 @@
 
         <section id="midi-cc">
           <h3>Fixed CCs</h3>
-          <p>Eight CCs work whatever MIDI KNOBS is set to, on any channel ROUT admits:</p>
+          <p>These CCs work whatever MIDI KNOBS is set to and whatever the screen shows, on any channel ROUT admits to a synth or drum track. “The channel’s track” is the track that channel plays (ROUT CH1-4: channel 1 plays track 1, and so on; SEL: the selected track).</p>
           <table>
             <thead><tr><th>CC</th><th>Melodee control</th></tr></thead>
             <tbody>
-              <tr><td>20–23</td><td>KNOB1–4: whatever they edit on the screen shown (Stage, an EDIT page, FX), on the selected track</td></tr>
-              <tr><td>24–27</td><td>LVL of tracks 1–4</td></tr>
+              <tr><td>20–23</td><td>The four Stage knobs of the channel’s track (its engine’s main controls, as KNOB1–4 on Stage). Absolute: the value is the control’s place across its range.</td></tr>
+              <tr><td>24</td><td>The channel’s track’s sound, as <kbd>PRESETS</kbd> steps it: every engine’s presets, then the user presets, as LIST shows them. One sound per step of the value; the first value only sets where the knob is. In a relative <strong>MIDI MODE</strong> it follows the encoder’s steps.</td></tr>
+              <tr><td>91</td><td>MIX of the shared rack’s REVERB (or ROOM, if it has no REVERB).</td></tr>
+              <tr><td>93</td><td>MIX of the shared rack’s CHORUS (or PEDAL CHORUS).</td></tr>
             </tbody>
           </table>
-          <p>Values are absolute. For KNOB1–4, the first value only sets where the knob is; after that a parameter takes the value across its full range (0 = minimum, 127 = maximum), and navigation moves by the change. The LVL CCs set the level at once, as CC 7 does for a channel’s own track, and record as motion while recording. A CC bound with MIDI LEARN does what MIDI LEARN gave it instead. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute) and the four faders on CC 24–27.</p>
+          <p>CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
         </section>
 
         <section id="midi-learn">

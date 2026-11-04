@@ -600,11 +600,15 @@ user presets saved by earlier Melodee versions are not imported, and the user sa
 - **MIDI LEARN and controllers:** the HOME menu's **MIDI LEARN** binds up to 16 CCs to any knob of a track's page or
   Stage's knobs: start it, turn a knob, send a CC. Bindings are kept only until power-off. **MIDI KNOBS** (GENERAL or
   MINILAB) operates the eight panel controls from a controller
-- **Fixed CCs, always on:** CC 20–23 turn the FM-1's knobs 1–4, whatever they edit on the screen shown (Stage, an
-  EDIT page, FX), and CC 24–27 set the LVL of tracks 1–4, on any channel the ROUT setting admits. The values are
-  absolute: a value is the knob's place across its range, and a knob's first value only sets where it is. A CC
-  bound with MIDI LEARN does what MIDI LEARN gave it instead. For a MiniLab 3, set four knobs to CC 20–23 (absolute)
-  and the four faders to CC 24–27 in a User template in Arturia's MIDI Control Center
+- **Fixed CCs, always on:** on any channel the ROUT setting admits to a synth or drum track, whatever the screen
+  shows: CC 20–23 set the four Stage knobs of that channel's track (its engine's main controls), absolute across
+  each range; CC 24 steps that track's sound as PRESETS does (all engines, then the user presets, as LIST shows them),
+  one sound per step of the value (or per encoder step in a relative MIDI MODE), its first value only setting where
+  the knob is; CC 91 and CC 93 set the MIX of the shared rack's REVERB (else ROOM) and CHORUS (else PEDAL CHORUS),
+  if the rack has one. A MIDI KNOBS profile's own CCs come first (MINILAB uses CC 93 for its knob 5), then MIDI
+  LEARN's; a MIDI Track's channel passes these CCs on to the external gear. For a MiniLab 3, make a User template in
+  Arturia's MIDI Control Center with four knobs on CC 20–23 (absolute), one on CC 24, and reverb and chorus on
+  CC 91 and 93
 - **Bluetooth MIDI:** one BLE-MIDI connection, in and out, alongside USB and TRS. Hold HOME and choose **BLUETOOTH**.
   **Mode** picks how you connect: **CONNECT OUT** scans for BLE controllers and synths from that page; **VISIBLE**
   advertises as Melodee XXXX so a Mac, iPad or phone can connect. The radio's on/off state, the pairing and the last

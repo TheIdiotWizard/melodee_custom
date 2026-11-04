@@ -188,47 +188,74 @@ static int page_and_local_controls(void)
     return bad;
 }
 
-/* CC 20..23: the FM-1's knobs 1..4, whatever MIDI KNOBS is set to; CC 24..27: tracks 1..4's LVL */
+/* CC 20..23: the Stage knobs of the channel's track; CC 24: its sound, as PRESETS steps it; CC 91 / 93: the shared rack's
+ * REVERB / CHORUS MIX. Whatever MIDI KNOBS is set to and whatever the screen shows; ROUT CH1-4: channel n, track n */
+static void ch_cc(uint32_t ch, uint32_t cc, uint32_t value) { route_input(1, 0xB0u | ch, cc, value); ui_input(); }
 static int fixed_controls(void)
 {
     int bad = 0;
-    const param_desc_t *d;
-    int16_t *vp;
     for (uint32_t profile = MK_OFF; profile <= MK_MINILAB; profile++) {
         knob_reset(profile, MK_ABSOLUTE);
-        set_engine_of(TSEL, ENGI_PROPHET); apply_preset_to(TSEL, 0);
+        song.g[G_ROUTE] = 0;
+        set_engine_of(&trk[0], ENGI_PROPHET); song.sel = 0; apply_preset_to(TSEL, 0);
+        set_engine_of(&trk[1], 3); song.sel = 1; apply_preset_to(TSEL, 0);       /* track 2: LOFI PULSE LD */
+        song.sel = 1; go_page(GR_FXRACK);                                         /* track 2 shown, on FX */
         const uint8_t ids[4] = {P5_CUTOFF,P5_RESONANCE,P5_ENV_FILTER,P5_RELEASE_AMP};
+        int16_t lofi[8]; memcpy(lofi, trk[1].p + P_E0, sizeof lofi);
         for (uint32_t k = 0; k < 4; k++) {
-            knob_cc(1, 20u + k, 64);
-            uint8_t old = p5_patch_of(TSEL)->raw[ids[k]];
-            bad += check("CC 20..23: a knob's first value only sets its place", p5_patch_of(TSEL)->raw[ids[k]] == old);
-            knob_cc(2, 20u + k, 127);   /* (TRS: the same knob, another source) */
-            knob_cc(1, 20u + k, 127);
-            bad += check("CC 20..23 turn knobs 1..4 to their parameter's maximum, any MIDI KNOBS setting",
-                         p5_patch_of(TSEL)->raw[ids[k]] == 127);
-            knob_cc(1, 20u + k, 0);
-            bad += check("CC 20..23 turn knobs 1..4 to their parameter's minimum", !p5_patch_of(TSEL)->raw[ids[k]]);
+            ch_cc(0, 20u + k, 127);
+            bad += check("CC 20..23 on channel 1 set track 1's Stage knobs (Prophet) to their maximum, at once",
+                         p5_patch_of(&trk[0])->raw[ids[k]] == 127);
+            ch_cc(0, 20u + k, 0);
+            bad += check("CC 20..23 on channel 1 set track 1's Stage knobs to their minimum", !p5_patch_of(&trk[0])->raw[ids[k]]);
         }
-        set_engine_of(TSEL, 3); apply_preset_to(TSEL, 0); go_home();   /* Stage: engine 3's knob 1 (LOFI's WAVE) */
+        bad += check("CC 20..23 leave the shown track and screen alone",
+                     song.sel == 1 && !memcmp(lofi, trk[1].p + P_E0, sizeof lofi) && cur_page()->graph == GR_FXRACK);
+        const engine_t *lf = ENGINES[3];
         for (uint32_t k = 0; k < 4; k++) {
-            knob_cc(1, 20u + k, 10); knob_cc(1, 20u + k, 127);
-            d = home_param(k, &vp);
-            bad += check("CC 20..23 follow whatever knobs 1..4 edit on the screen shown (Stage)", d && *vp == d->max);
-            knob_cc(1, 20u + k, 0); d = home_param(k, &vp);
-            bad += check("CC 20..23 reach a Stage parameter's minimum", d && *vp == d->min);
+            uint32_t id = lf->knob[k];
+            const param_desc_t *d = id >= P_E0 ? &lf->edit[id - P_E0] : &TP[id];
+            ch_cc(1, 20u + k, 127);
+            bad += check("CC 20..23 on channel 2 reach track 2's (LOFI) Stage parameters' maximum", trk[1].p[id] == d->max);
+            ch_cc(1, 20u + k, 0);
+            bad += check("CC 20..23 on channel 2 reach track 2's Stage parameters' minimum", trk[1].p[id] == d->min);
         }
-        for (uint32_t tr = 0; tr < NPART; tr++) {
-            knob_cc(1, 24u + tr, 0);
-            bad += check("CC 24..27 set tracks 1..4's LVL to its minimum", trk[tr].p[P_LEVEL] == TP[P_LEVEL].min);
-            knob_cc(1, 24u + tr, 127);
-            bad += check("CC 24..27 set tracks 1..4's LVL to its maximum", trk[tr].p[P_LEVEL] == TP[P_LEVEL].max);
-        }
-        trk[0].p[P_LEVEL] = trk[1].p[P_LEVEL] = 50;
-        knob_cc(1, 25, 127);
-        bad += check("CC 25 sets track 2 alone", trk[1].p[P_LEVEL] == TP[P_LEVEL].max && trk[0].p[P_LEVEL] == 50);
-        mlearn[0] = (mlearn_t){.cc = 24, .track = 0, .page = 0xFF, .slot = 0};
-        trk[0].p[P_LEVEL] = 50; route_input(1, 0xB0, 24, 0);
-        bad += check("a learned CC 24 does what MIDI LEARN gave it, not track 1's LVL", trk[0].p[P_LEVEL] == 50);
+        /* CC 24: track 2's sound steps through its list, the first value only sets where the knob is */
+        song.sel = 0;
+        uint32_t e0 = trk[1].eng_req, p0 = trk[1].preset;
+        ch_cc(1, 24, 64);
+        bad += check("CC 24's first value only sets where the knob is", trk[1].eng_req == e0 && trk[1].preset == p0);
+        ch_cc(1, 24, 65);
+        bad += check("CC 24 steps channel 2's track to its next sound", trk[1].eng_req == e0 && trk[1].preset == p0 + 1u);
+        bad += check("CC 24 keeps the selected track and its sound", song.sel == 0 && trk[0].eng_req == ENGI_PROPHET);
+        ch_cc(1, 24, 64);
+        bad += check("CC 24 steps back", trk[1].eng_req == e0 && trk[1].preset == p0);
+        /* CC 91 / 93: the shared rack's REVERB and CHORUS MIX */
+        song.g[G_MFXTYPE] = FX_CHORUS; song.g[G_MFX2TYPE] = FX_OFF; song.g[G_MFX3TYPE] = FX_REVERB;
+        song.g[G_MFXMIX] = song.g[G_MFX3MIX] = 50;
+        ch_cc(2, 91, 127);
+        bad += check("CC 91 sets the shared REVERB's MIX", song.g[G_MFX3MIX] == 127 && song.g[G_MFXMIX] == 50);
+        ch_cc(2, 91, 0);
+        bad += check("CC 91 at 0: REVERB MIX 0", !song.g[G_MFX3MIX]);
+        ch_cc(3, 93, 127);
+        if (profile == MK_MINILAB)
+            bad += check("MINILAB keeps CC 93 as its knob 5", song.g[G_MFXMIX] == 50);
+        else
+            bad += check("CC 93 sets the shared CHORUS's MIX", song.g[G_MFXMIX] == 127);
+        song.g[G_MFX3TYPE] = FX_ROOM; song.g[G_MFX3MIX] = 50;
+        ch_cc(0, 91, 100);
+        bad += check("CC 91 sets ROOM's MIX when the rack has no REVERB", song.g[G_MFX3MIX] == 100);
+        song.g[G_MFX3TYPE] = FX_OFF; song.g[G_MFX3MIX] = 50;
+        ch_cc(0, 91, 10);
+        bad += check("CC 91 with no reverb in the rack changes nothing", song.g[G_MFX3MIX] == 50);
+        /* a MIDI Track's channel passes them on; MIDI LEARN wins */
+        set_engine_of(&trk[2], ENGI_MIDI); events_block(CTL); usb.config = 1; mo_r = mo_w = 0;
+        ch_cc(2, 20, 99);
+        bad += check("CC 20 on a MIDI Track's channel passes through", mo_r != mo_w && ((midi_out_q[mo_r % MQ] >> 16) & 127u) == 20);
+        p5_patch_of(&trk[0])->raw[P5_CUTOFF] = 40;
+        mlearn[0] = (mlearn_t){.cc = 20, .track = 3, .page = 0xFF, .slot = 0, .eng = 0xFF};
+        ch_cc(0, 20, 127);
+        bad += check("a learned CC 20 does what MIDI LEARN gave it", p5_patch_of(&trk[0])->raw[P5_CUTOFF] == 40);
         memset(mlearn, 0, sizeof mlearn); mlearn_dirty = 0;
     }
     return bad;

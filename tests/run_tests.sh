@@ -375,8 +375,8 @@ if core && [ $TABLES = 1 ]; then
     t "momentary snapshots: parameter IDs and native patch union restore exactly" ui_momentary_test -O1 $FW
     t "USB/TRS clock, bend, sustain, ownership and panic recovery" midi_control_test -O1 $FW
     t "CLK INT as MIDI master: clock, Start and Stop on the output queues, locked to the steps" midi_clock_out_test -O1 $FW
-    t "MIDI panel knobs: profiles, native edits, encoder modes, CC 20..27 and bounded foreground dispatch" midi_knob_test -O1 $FW
-    t "MIDI panel knobs and CC 20..27, shipping engines" midi_knob_felucca:midi_knob_test -O1 $FWS
+    t "MIDI panel knobs: profiles, native edits, encoder modes, CC 20..24, 91, 93 and bounded foreground dispatch" midi_knob_test -O1 $FW
+    t "MIDI panel knobs and CC 20..24, 91, 93, shipping engines" midi_knob_felucca:midi_knob_test -O1 $FWS
     t "MIDI timing: quantized TRS/USB recording, audio timeline, tempo changes and timer wrap" midi_timing_test -O1 $FW
     t "MIDI recording: raw events, quantization at take end, independent releases, banks and capacity" recording_test \
         -O1 $FW
