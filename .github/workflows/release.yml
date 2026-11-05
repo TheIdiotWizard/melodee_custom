@@ -107,7 +107,9 @@ jobs:
         include:
           - runner: windows-2022
             target: windows-x64
-          - runner: macos-15
+          # macos-26 (macos-latest): macos-15's arm64 runners went unassigned for 15 minutes twice, and the
+          # job was cancelled ("not acquired by Runner"). MACOSX_DEPLOYMENT_TARGET keeps the tool on macOS 11.
+          - runner: macos-26
             target: macos-arm64
           - runner: macos-15-intel
             target: macos-x64

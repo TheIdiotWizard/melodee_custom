@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.0.0](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.0.0)**
-([release notes](docs/RELEASE_1.0.0.md)).
+Current release: **[Melodee Custom 1.0.1](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.0.1)**
+([release notes](docs/RELEASE_1.0.1.md); [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
   (desktop, or Android), and press Install. Back up first; the installer offers it.
@@ -24,6 +24,8 @@ Current release: **[Melodee Custom 1.0.0](https://github.com/TheIdiotWizard/melo
   insert code, restored. One REVERB runs across all racks: choosing it in a slot turns it off where it was.
 - **DUSK theme:** CONTRAST with muted purple, pink, yellow and green tracks (GLO > COLOR).
 - **GLO > WEIGHTS:** voice weights for P5, FM6, DRUM, PHASE, LOFI, VOICE, TRIO, WHEEL and PHYS on three pages.
+- **Relative encoders everywhere:** with a relative **MIDI MODE** (HOME menu), CC 20–23, CC 91 / 93 and MIDI
+  LEARN bindings move their values from where they are, like the panel knobs (1.0.1).
 - **Fix:** a key, or a ROUT SEL MIDI note, could play another track's sound while the screen briefly selected
   that track (also fixed upstream).
 
@@ -634,10 +636,10 @@ user presets saved by earlier Melodee versions are not imported, and the user sa
   MINILAB) operates the eight panel controls from a controller
 - **Fixed CCs, always on:** on any channel the ROUT setting admits to a synth or drum track, whatever the screen
   shows: CC 20–23 set the four Stage knobs of that channel's track (its engine's main controls), absolute across
-  each range; CC 24 steps that track's sound as PRESETS does (all engines, then the user presets, as LIST shows them),
+  each range (in a relative MIDI MODE, stepped from where they are); CC 24 steps that track's sound as PRESETS does (all engines, then the user presets, as LIST shows them),
   one sound per step of the value (or per encoder step in a relative MIDI MODE), its first value only setting where
   the knob is; CC 91 and CC 93 set the MIX of the shared rack's REVERB (else ROOM) and CHORUS (else PEDAL CHORUS),
-  if the rack has one. A MIDI KNOBS profile's own CCs come first (MINILAB uses CC 93 for its knob 5), then MIDI
+  if the rack has one (relative: stepped from where it is). A relative MIDI MODE steps learned CCs too. A MIDI KNOBS profile's own CCs come first (MINILAB uses CC 93 for its knob 5), then MIDI
   LEARN's; a MIDI Track's channel passes these CCs on to the external gear. For a MiniLab 3, make a User template in
   Arturia's MIDI Control Center with four knobs on CC 20–23 (absolute), one on CC 24, and reverb and chorus on
   CC 91 and 93
