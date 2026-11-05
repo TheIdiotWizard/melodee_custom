@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.0.1](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.0.1)**
-([release notes](docs/RELEASE_1.0.1.md); [1.0.0](docs/RELEASE_1.0.0.md)).
+Current release: **[Melodee Custom 1.0.3](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.0.3)**
+([release notes](docs/RELEASE_1.0.3.md); [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
   (desktop, or Android), and press Install. Back up first; the installer offers it.
@@ -25,7 +25,7 @@ Current release: **[Melodee Custom 1.0.1](https://github.com/TheIdiotWizard/melo
 - **DUSK theme:** CONTRAST with muted purple, pink, yellow and green tracks (GLO > COLOR).
 - **GLO > WEIGHTS:** voice weights for P5, FM6, DRUM, PHASE, LOFI, VOICE, TRIO, WHEEL and PHYS on three pages.
 - **Relative encoders everywhere:** with a relative **MIDI MODE** (HOME menu), CC 20–23, CC 91 / 93 and MIDI
-  LEARN bindings move their values from where they are, like the panel knobs (1.0.1).
+  LEARN bindings move their values from where they are, like the panel knobs (1.0.3).
 - **Fix:** a key, or a ROUT SEL MIDI note, could play another track's sound while the screen briefly selected
   that track (also fixed upstream).
 

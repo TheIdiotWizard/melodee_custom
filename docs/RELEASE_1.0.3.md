@@ -1,6 +1,7 @@
-# Melodee Custom 1.0.1
+# Melodee Custom 1.0.3
 
-Relative encoders now work with every MIDI control, not only MIDI KNOBS.
+Relative encoders now work with every MIDI control, not only MIDI KNOBS. (The numbers 1.0.1 and 1.0.2
+belong to old Melodee releases in this repository's history, so this release follows 1.0.0 as 1.0.3.)
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/)
   (Chrome or Edge, USB).
@@ -31,5 +32,5 @@ Installing firmware through the web installer does not use these tools.
 
 ## Upgrading
 
-- **From 1.0.0:** install as usual. Projects, presets, settings and backups are unchanged.
+- **From Melodee Custom 1.0.0:** install as usual. Projects, presets, settings and backups are unchanged.
 - **From Melodee 1.6.x:** see Upgrading in the [1.0.0 release notes](RELEASE_1.0.0.md).
