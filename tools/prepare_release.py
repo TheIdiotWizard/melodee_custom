@@ -14,6 +14,9 @@ from fm1pkg_make import release_product, sfc
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ("windows-x64", "macos-arm64", "macos-x64", "linux-x64")
+# Melodee Custom: a release may go out without these (GitHub has left the Apple Silicon job without a runner);
+# when present they are checked like the rest
+OPTIONAL_TARGETS = ("macos-arm64",)
 # Build switches the release workflow sets (release.yml, firmware job); unlisted ones keep their defaults.
 BUILD_FLAGS = {"MELODEE_DUAL_CORE": 1, "MELODEE_CORE1_FALLBACK": 0, "MELODEE_RAM_AUDIO": 1, "MELODEE_CACHE_RAM": 1,
                **{f"MELODEE_{name}": 1 for name in ("MOD_CACHE", "CONTROL_FAST", "MIX_FAST", "FX_DORMANT",
@@ -51,6 +54,9 @@ def main():
     for target in TARGETS:
         name = f"fm1-recover-{VERSION}-{target}.zip"
         prefix = name[:-4] + "/"
+        if target in OPTIONAL_TARGETS and not (out / name).is_file():
+            print(f"Optional recovery tool missing, released without it: {name}")
+            continue
         with zipfile.ZipFile(out / name) as archive:
             info = json.loads(archive.read(prefix + "BUILD_INFO.json"))
             if info["commit"] != commit or info["version"] != VERSION or info["target"] != target or not info["smoke_tests_passed"]:

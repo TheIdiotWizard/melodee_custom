@@ -111,11 +111,13 @@ jobs:
           # job was cancelled ("not acquired by Runner"). MACOSX_DEPLOYMENT_TARGET keeps the tool on macOS 11.
           - runner: macos-26
             target: macos-arm64
+            optional: true   # (tools/prepare_release.py OPTIONAL_TARGETS: the release goes out without it)
           - runner: macos-15-intel
             target: macos-x64
           - runner: ubuntu-22.04
             target: linux-x64
     runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.optional || false }}
     timeout-minutes: 30
     env:
       MACOSX_DEPLOYMENT_TARGET: '11.0'
@@ -139,6 +141,9 @@ jobs:
 
   publish:
     needs: [firmware, recovery]
+    # A failed or never-started optional recovery job must not stop the release; prepare_release.py still
+    # requires every other recovery tool, and the attested firmware.
+    if: ${{ !cancelled() && needs.firmware.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write

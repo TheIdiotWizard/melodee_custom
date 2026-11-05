@@ -22,6 +22,13 @@ MIDI MODE and are unchanged.
 To use it with a MiniLab 3: set its knobs to a relative mode in Arturia's MIDI Control Center, then choose
 the matching MIDI MODE (REL 1: 63/65, REL 2: 127/1, REL 3: 15/17).
 
+## Recovery tools
+
+The direct USB recovery tools (for an FM-1 stuck on a black screen) are attached for Windows, Linux and Intel
+Macs. The Apple Silicon Mac tool may be missing: GitHub has not been assigning Apple Silicon machines to its
+build. On an Apple Silicon Mac, the Intel Mac tool should run through Rosetta, but this has not been tried.
+Installing firmware through the web installer does not use these tools.
+
 ## Upgrading
 
 - **From 1.0.0:** install as usual. Projects, presets, settings and backups are unchanged.

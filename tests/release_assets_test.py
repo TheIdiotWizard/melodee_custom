@@ -91,6 +91,17 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "Wrong or untested"):
             self.prepare()
 
+    def test_optional_apple_silicon_tool_may_be_missing(self):
+        (self.folder / f"fm1-recover-{A.VERSION}-macos-arm64.zip").unlink()
+        self.prepare()
+        info = json.loads((self.folder / "BUILD_INFO.json").read_text())
+        self.assertEqual(len(info["recovery_builds"]), 3)
+
+    def test_required_recovery_tool_may_not_be_missing(self):
+        (self.folder / f"fm1-recover-{A.VERSION}-windows-x64.zip").unlink()
+        with self.assertRaises(FileNotFoundError):
+            self.prepare()
+
     def test_corrupted_archive_is_rejected(self):
         self.write_archive("macos-arm64", damaged=True)
         with self.assertRaisesRegex(RuntimeError, "checksum mismatch"):
