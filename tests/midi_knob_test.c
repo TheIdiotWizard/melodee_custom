@@ -261,6 +261,48 @@ static int fixed_controls(void)
     return bad;
 }
 
+/* a relative MIDI MODE: CC 20..23, 91 / 93 and MIDI LEARN move their values by the encoder's steps from where they are */
+static int relative_fixed_controls(void)
+{
+    int bad = 0;
+    static const uint8_t up[MK_MODES] = {0, 65, 1, 17}, down[MK_MODES] = {0, 63, 127, 15};
+    for (uint32_t mode = MK_REL1; mode < MK_MODES; mode++) {
+        knob_reset(MK_OFF, mode);
+        song.g[G_ROUTE] = 0;
+        set_engine_of(&trk[0], ENGI_PROPHET); song.sel = 0; apply_preset_to(TSEL, 0);
+        song.sel = 1; go_page(GR_FXRACK);
+        p5_patch_of(&trk[0])->raw[P5_CUTOFF] = 40;
+        ch_cc(0, 20, up[mode]); ch_cc(0, 20, up[mode]); ch_cc(0, 20, up[mode]);
+        bad += check("relative CC 20 steps track 1's first Stage knob up from where it is", p5_patch_of(&trk[0])->raw[P5_CUTOFF] == 43);
+        ch_cc(0, 20, down[mode]);
+        bad += check("relative CC 20 steps it down", p5_patch_of(&trk[0])->raw[P5_CUTOFF] == 42);
+        bad += check("relative CC 20 leaves the shown track and screen alone", song.sel == 1 && cur_page()->graph == GR_FXRACK);
+        song.g[G_MFXTYPE] = FX_CHORUS; song.g[G_MFX2TYPE] = FX_OFF; song.g[G_MFX3TYPE] = FX_REVERB;
+        song.g[G_MFXMIX] = song.g[G_MFX3MIX] = 50;
+        ch_cc(2, 91, up[mode]); ch_cc(2, 91, up[mode]);
+        bad += check("relative CC 91 steps the shared REVERB's MIX from where it is", song.g[G_MFX3MIX] == 52 && song.g[G_MFXMIX] == 50);
+        ch_cc(3, 93, down[mode]);
+        bad += check("relative CC 93 steps the shared CHORUS's MIX", song.g[G_MFXMIX] == 49);
+        song.g[G_MFX3MIX] = 127; ch_cc(2, 91, up[mode]);
+        bad += check("relative CC 91 stops at the MIX's maximum", song.g[G_MFX3MIX] == 127);
+        /* MIDI LEARN: steps add up between polls, none lost */
+        song.sel = 0;
+        const page_t *sp = stage_page();
+        mlearn[0] = (mlearn_t){.cc = 30, .track = 0, .page = 0xFF, .slot = 0, .eng = (uint8_t)trk[0].eng_req, .id = sp->id[0]};
+        song.sel = 1;
+        p5_patch_of(&trk[0])->raw[P5_CUTOFF] = 40;
+        for (uint32_t k = 0; k < 3; k++) route_input(1, 0xB0u, 30, up[mode]);
+        ui_input();
+        bad += check("a relative learned CC steps its knob from where it is, every step counted", p5_patch_of(&trk[0])->raw[P5_CUTOFF] == 43);
+        route_input(1, 0xB0u, 30, down[mode]); ui_input();
+        bad += check("a relative learned CC steps down", p5_patch_of(&trk[0])->raw[P5_CUTOFF] == 42);
+        bad += check("a relative learned CC leaves the shown track alone", song.sel == 1);
+        memset(mlearn, 0, sizeof mlearn); mlearn_dirty = 0; memset((void *)mlearn_steps, 0, sizeof mlearn_steps);
+    }
+    knob_reset(MK_OFF, MK_ABSOLUTE);
+    return bad;
+}
+
 /* The UI borrows the selection (Stage's rows, MIDI LEARN, the fixed CCs: core.h sel_borrow_begin): a key or a ROUT SEL
  * note arriving meanwhile plays the player's selected track, never the borrowed one */
 static uint32_t voices_on(const track_t *t)
@@ -292,7 +334,7 @@ static int borrowed_selection(void)
 
 int main(void)
 {
-    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls() + fixed_controls() + borrowed_selection();
+    int bad = panel_controls() + encoder_modes() + isolation_and_overflow() + page_and_local_controls() + fixed_controls() + relative_fixed_controls() + borrowed_selection();
     printf("%s\n", bad ? "MIDI KNOB TEST FAILED" : "MIDI knob integration tests passed");
     return bad != 0;
 }

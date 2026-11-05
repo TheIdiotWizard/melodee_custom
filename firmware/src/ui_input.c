@@ -2154,7 +2154,8 @@ static void mlearn_bind(uint32_t cc)
     mlearn_name(b + str_len(b), sizeof b - str_len(b), mlearn_want.track);
     ui_say(b, "");
 }
-static void mlearn_apply(const mlearn_t *b, uint32_t value)
+/* value: the CC's value (ABSOLUTE); steps: a relative MIDI MODE's encoder steps instead (value -1) */
+static void mlearn_apply(const mlearn_t *b, int32_t value, int32_t steps)
 {
     if (b->track >= trk_n() || trk[b->track].eng_req != b->eng || (b->page != 0xFFu && b->page >= NPAGES))
         return;
@@ -2163,8 +2164,8 @@ static void mlearn_apply(const mlearn_t *b, uint32_t value)
     song.sel = b->track;
     page_over = b->page == 0xFFu ? stage_page() : &PAGES[b->page];
     if (page_over->id[b->slot] == b->id) {
-        midi_edit_value = (int32_t)value;
-        edit_param(b->slot, 0);
+        midi_edit_value = value;
+        edit_param(b->slot, value < 0 ? steps : 0);
         midi_edit_value = -1;
     }
     page_over = over;
@@ -2172,14 +2173,15 @@ static void mlearn_apply(const mlearn_t *b, uint32_t value)
     if (b->track == song.sel) ui.force = 1;
 }
 /* CC 20..23: the Stage knob k of track tr (its engine's, as MIDI LEARN binds Stage's knobs), the value absolute */
-static void midi_stage_knob(uint32_t tr, uint32_t k, uint32_t value)
+/* value: the CC's value (ABSOLUTE); in a relative MIDI MODE value -1 and steps the encoder's steps */
+static void midi_stage_knob(uint32_t tr, uint32_t k, int32_t value, int32_t steps)
 {
     uint32_t sel = sel_borrow_begin();
     const page_t *over = page_over;
     song.sel = (uint8_t)tr;
     page_over = stage_page();
-    midi_edit_value = (int32_t)value;
-    edit_param(k, 0);
+    midi_edit_value = value;
+    edit_param(k, value < 0 ? steps : 0);
     midi_edit_value = -1;
     page_over = over;
     sel_borrow_end(sel);
@@ -2203,7 +2205,8 @@ static void midi_track_preset(uint32_t tr, int32_t s)
     ui.force = 1;
 }
 /* CC 91 / 93: the MIX of the shared rack's slot holding want (else alt), 0..127 over MIX's range */
-static void midi_master_fx_mix(int32_t want, int32_t alt, uint32_t value)
+/* value: the CC's value (ABSOLUTE: the MIX's position); in a relative MIDI MODE value -1, MIX moved by steps */
+static void midi_master_fx_mix(int32_t want, int32_t alt, int32_t value, int32_t steps)
 {
     uint32_t slot, found = FX_SLOTS;
     for (slot = 0; slot < FX_SLOTS && found == FX_SLOTS; slot++)
@@ -2212,29 +2215,34 @@ static void midi_master_fx_mix(int32_t want, int32_t alt, uint32_t value)
         if (song.g[G_MFXTYPE + slot * FX_PARAMS] == alt) found = slot;
     if (found == FX_SLOTS) return;                     /* (no such effect in the rack: nothing to set) */
     const param_desc_t *d = global_desc(G_MFXMIX + found * FX_PARAMS);
-    song.g[G_MFXMIX + found * FX_PARAMS] = (int16_t)(d->min + (int32_t)(value * (uint32_t)(d->max - d->min) / 127u));
+    int16_t *mix = &song.g[G_MFXMIX + found * FX_PARAMS];
+    *mix = (int16_t)(value < 0 ? clamp(*mix + steps, d->min, d->max) : d->min + (int32_t)((uint32_t)value * (uint32_t)(d->max - d->min) / 127u));
     ui.force = 1;
 }
 static void midi_fixed_apply(uint32_t k, uint32_t tr, uint32_t v, uint32_t src, uint32_t ch)
 {
     static uint8_t last[NTRK], seen;                   /* CC 24: the last value per track (ABSOLUTE) */
     if (tr >= trk_n()) return;
-    if (k < 4u) midi_stage_knob(tr, k, v);
+    /* a relative MIDI MODE: every fixed CC moves its value by the encoder's steps from where it is */
+    uint32_t mode = settings_midi_knob_mode;
+    int32_t steps = mode != MK_ABSOLUTE ? midi_knob_relative(v, mode) : 0, value = mode != MK_ABSOLUTE ? -1 : (int32_t)v;
+    if (value < 0 && !steps) return;
+    if (k < 4u) midi_stage_knob(tr, k, value, steps);
     else if (k == MCC_PRESET) {
-        uint32_t mode = settings_midi_knob_mode;
-        int32_t s = mode != MK_ABSOLUTE ? midi_knob_relative(v, mode) : (seen >> tr) & 1u ? (int32_t)v - last[tr] : 0;
+        int32_t s = mode != MK_ABSOLUTE ? steps : (seen >> tr) & 1u ? (int32_t)v - last[tr] : 0;
         last[tr] = (uint8_t)v;
         seen |= (uint8_t)(1u << tr);
         midi_track_preset(tr, s);
-    } else if (k == MCC_REVERB) midi_master_fx_mix(FX_REVERB, FX_ROOM, v);
-    else if (k == MCC_CHORUS) midi_master_fx_mix(FX_CHORUS, FX_PEDAL_CHORUS, v);
+    } else if (k == MCC_REVERB) midi_master_fx_mix(FX_REVERB, FX_ROOM, value, steps);
+    else if (k == MCC_CHORUS) midi_master_fx_mix(FX_CHORUS, FX_PEDAL_CHORUS, value, steps);
     (void)src; (void)ch;
 }
 static void mlearn_poll(void)
 {
     int32_t cc = mlearn_seen;
     uint8_t v[MLEARN_N];
-    uint32_t dirty;
+    int16_t steps[MLEARN_N];
+    uint32_t dirty, rel = settings_midi_knob_mode != MK_ABSOLUTE;
     if (cc >= 0) {
         mlearn_seen = -1;
         if (mlearn_on && mlearn_want.cc) mlearn_bind((uint32_t)cc);
@@ -2244,9 +2252,12 @@ static void mlearn_poll(void)
     dirty = mlearn_dirty;
     mlearn_dirty = 0;
     memcpy(v, (const void *)mlearn_val, sizeof v);
+    memcpy(steps, (const void *)mlearn_steps, sizeof steps);
+    memset((void *)mlearn_steps, 0, sizeof steps);
     fm1_irq_on();
-    for (uint32_t k = 0; k < MLEARN_N; k++)
-        if (((dirty >> k) & 1u) && mlearn[k].cc) mlearn_apply(&mlearn[k], v[k]);
+    for (uint32_t k = 0; k < MLEARN_N; k++)     /* (a relative MIDI MODE: the steps since the last poll, from where it is) */
+        if (((dirty >> k) & 1u) && mlearn[k].cc && (!rel || steps[k]))
+            mlearn_apply(&mlearn[k], rel ? -1 : (int32_t)v[k], steps[k]);
 }
 
 #include "ui_designer_input.c"

@@ -98,6 +98,14 @@ static mlearn_t mlearn[MLEARN_N], mlearn_want;          /* mlearn_want.cc 1: a k
 static volatile uint8_t mlearn_on, mlearn_val[MLEARN_N];   /* mlearn_on: learning (the menu's MIDI LEARN) */
 static volatile uint16_t mlearn_dirty;
 static volatile int16_t mlearn_seen = -1;                /* learning: the last CC sent */
+static volatile int16_t mlearn_steps[MLEARN_N];          /* a relative MIDI MODE: the encoder's steps since the last poll */
+/* a relative MIDI MODE's value as encoder steps (REL 1: 63/65 about 64; REL 2: 127/1 about 0; REL 3: 15/17 about 16) */
+static int32_t midi_knob_relative(uint32_t value, uint32_t mode)
+{
+    if (mode == MK_REL1) return (int32_t)value - 64;
+    if (mode == MK_REL2) return value < 64u ? (int32_t)value : (int32_t)value - 128;
+    return (int32_t)value - 16;                 /* Arturia Relative 3: 15 down, 17 up */
+}
 static int mlearn_ok(uint32_t cc)                          /* not the CCs with a meaning of their own */
 {
     return cc != 0u && cc != 1u && cc != 6u && cc != 11u && cc != 32u && cc != 38u && cc != 64u &&
@@ -108,6 +116,13 @@ static int mlearn_receive(uint32_t cc, uint32_t value)
     if (!mlearn_ok(cc)) return 0;
     if (mlearn_on) { mlearn_seen = (int16_t)cc; return 1; }
     for (uint32_t k = 0; k < MLEARN_N; k++)
-        if (mlearn[k].cc == cc) { mlearn_val[k] = (uint8_t)value; mlearn_dirty |= (uint16_t)(1u << k); return 1; }
+        if (mlearn[k].cc == cc) {
+            mlearn_val[k] = (uint8_t)value; mlearn_dirty |= (uint16_t)(1u << k);
+            if (settings_midi_knob_mode != MK_ABSOLUTE) {   /* (steps add up: none lost between polls) */
+                int32_t s = mlearn_steps[k] + midi_knob_relative(value, settings_midi_knob_mode);
+                mlearn_steps[k] = (int16_t)(s < -1024 ? -1024 : s > 1024 ? 1024 : s);
+            }
+            return 1;
+        }
     return 0;
 }

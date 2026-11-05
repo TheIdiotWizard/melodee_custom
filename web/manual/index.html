@@ -1028,13 +1028,13 @@
           <table>
             <thead><tr><th>CC</th><th>Melodee control</th></tr></thead>
             <tbody>
-              <tr><td>20–23</td><td>The four Stage knobs of the channel’s track (its engine’s main controls, as KNOB1–4 on Stage). Absolute: the value is the control’s place across its range.</td></tr>
+              <tr><td>20–23</td><td>The four Stage knobs of the channel’s track (its engine’s main controls, as KNOB1–4 on Stage). Absolute: the value is the control’s place across its range. In a relative <strong>MIDI MODE</strong> each encoder step moves the control from where it is.</td></tr>
               <tr><td>24</td><td>The channel’s track’s sound, as <kbd>PRESETS</kbd> steps it: every engine’s presets, then the user presets, as LIST shows them. One sound per step of the value; the first value only sets where the knob is. In a relative <strong>MIDI MODE</strong> it follows the encoder’s steps.</td></tr>
               <tr><td>91</td><td>MIX of the shared rack’s REVERB (or ROOM, if it has no REVERB).</td></tr>
               <tr><td>93</td><td>MIX of the shared rack’s CHORUS (or PEDAL CHORUS).</td></tr>
             </tbody>
           </table>
-          <p>CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
+          <p>In a relative <strong>MIDI MODE</strong>, CC 91 and 93 step the MIX from where it is. CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
         </section>
 
         <section id="midi-learn">
@@ -1050,6 +1050,7 @@
             <li>A binding belongs to that track, page and knob, on any MIDI channel, and only works while the track has the engine it was learned on. It works from any page. Lists, slot pages, SONG, PATTERNS and MOTION cannot be learned.</li>
             <li>A learned CC no longer does what the standard map gave it. CCs with a meaning of their own cannot be learned: 0, 1, 6, 11, 32, 38, 64, 96–101 and 120 up.</li>
             <li>A new binding replaces the CC’s or the knob’s old one. <strong>MIDI LEARN FULL</strong> means 16 are in use. Turn <kbd>KNOB 1</kbd> left on the menu row to forget them all.</li>
+            <li>A binding follows <strong>MIDI MODE</strong>: in ABSOLUTE the CC’s value is the knob’s place across its range; in a relative mode each encoder step moves the knob from where it is, like turning it on the panel.</li>
             <li>Bindings are kept only until power-off.</li>
           </ul>
         </section>

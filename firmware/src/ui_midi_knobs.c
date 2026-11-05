@@ -17,12 +17,6 @@ static uint32_t midi_knob_ui_config;
 static uint8_t midi_knob_ui_ble_epoch;
 #endif
 static void midi_fixed_apply(uint32_t k, uint32_t track, uint32_t v, uint32_t src, uint32_t ch);   /* ui_input.c */
-static int32_t midi_knob_relative(uint32_t value, uint32_t mode)
-{
-    if (mode == MK_REL1) return (int32_t)value - 64;
-    if (mode == MK_REL2) return value < 64u ? (int32_t)value : (int32_t)value - 128;
-    return (int32_t)value - 16;                 /* Arturia Relative 3: 15 down, 17 up */
-}
 static void midi_knobs_poll(void)
 {
     static const uint8_t roles[7] = {EN_SELECT,EN_PRESET,EN_ALGO,EN_K1,EN_K2,EN_K3,EN_K4};
