@@ -1,4 +1,6 @@
-# Melodee Custom 1.2.1
+# Melodee Custom 1.2.2
+
+(1.2.1 belongs to an old Melodee release tag in this repository, so this release is 1.2.2.)
 
 A new noise engine from [MONO2K](https://github.com/InigoHernandez/mono2k), and a fix for ENS.
 

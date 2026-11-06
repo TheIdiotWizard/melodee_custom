@@ -85,7 +85,7 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define ENGI_MIDI 21u            /* 20 reserved for the Prophet user-preset namespace */
 #define ENGI_SAW 22u
 #define ENGI_WAV 27u
-#define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.1) */
+#define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.2) */
 #define NENGINES 29               /* append engines without reusing preset namespaces */
 #define USER_NATIVE_FM 17u
 #define USER_NATIVE_CZ 18u
