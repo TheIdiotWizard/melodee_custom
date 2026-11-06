@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
-/* The palettes and the real canvas/text renderer (src/gfx.c): NIGHT DAY CONTRAST with each track's colour as THEME,
+/* The palettes and the real canvas/text renderer (src/gfx.c): MONO with each track's colour as THEME,
  * the test-only GRAY stays gray in every token and blend, every palette's text contrast, the alpha blend, the ramp
  * cache (palette and track), the fonts' metrics (Rubik) and the ellipsis.
  * Optional: a palette sheet (PPM). */
@@ -46,11 +46,7 @@ int main(int argc, char **argv)
     static const uint8_t pd[] = {0x08, 0xf0};
     const aafont_t probe = {1, 1, 'A', 'A', 0, 0, pg, pd, 0, 0, 0};
     double worst = 100;
-    assert(NPALETTES == 9u && !strcmp(UI_PALETTES[0].name, "NIGHT") && !strcmp(UI_PALETTES[1].name, "DAY") &&
-           !strcmp(UI_PALETTES[2].name, "CONTRAST") && !strcmp(UI_PALETTES[3].name, "SUNSET") &&
-           !strcmp(UI_PALETTES[4].name, "OCEAN") && !strcmp(UI_PALETTES[5].name, "NEON") &&
-           !strcmp(UI_PALETTES[6].name, "CANDY") && !strcmp(UI_PALETTES[7].name, "LO-FI") && !strcmp(UI_PALETTES[8].name, "DUSK") &&
-           !strcmp(UI_PALETTES[UI_GRAY_INDEX].name, "GRAY"));
+    assert(UI_NPALETTES == 1u && NPALETTES == 2u && !strcmp(UI_PALETTES[0].name, "MONO") && !strcmp(UI_PALETTES[UI_GRAY_INDEX].name, "GRAY"));
     for (unsigned pt = 0; pt < UI_PAL_ENTRIES * 4u; pt++) {
         unsigned p = pt / 4u, t = pt % 4u;
         uint16_t *tok = &ux.bg;
@@ -79,7 +75,7 @@ int main(int argc, char **argv)
         if (min < worst) worst = min;
         printf("%-8s T%u text %.1f:1, labels %.1f:1, track %.1f:1, selection %.1f:1\n", UI_PALETTES[p].name, t + 1,
                contrast(T_TEXT, T_BG), contrast(T_MID, T_BG), contrast(T_THEME, T_BG), contrast(T_INK, T_SEL));
-        assert((p == 1u || p == 6u) == ux.light);              /* DAY and CANDY are the light ones */
+        assert(!ux.light);                                     /* (MONO and GRAY: both dark) */
         assert(T_REC == (p == UI_GRAY_INDEX ? T_ACCENT : ux.light ? UI_REC_LIGHT : UI_REC_DARK));
         /* the blend: transparent, solid and an edge between the two, on two backgrounds */
         for (unsigned b = 0; b < 2; b++) {
@@ -129,15 +125,18 @@ int main(int argc, char **argv)
     }
     /* the ramp cache follows the palette (a stale ramp would blend toward the old background) */
     palette_set(0);
-    cv_begin(3, 1, T_BG); cv_text(0, 0, &probe, "A", T_THEME);
+    cv_begin(3, 1, T_SURF); cv_text(0, 0, &probe, "A", T_THEME);
     uint16_t night = swap16(cv_px[1]);
-    palette_set(1);
-    cv_begin(3, 1, T_BG); cv_text(0, 0, &probe, "A", T_THEME);
+    palette_set(UI_GRAY_INDEX);
+    cv_begin(3, 1, T_SURF); cv_text(0, 0, &probe, "A", T_THEME);
     assert(swap16(cv_px[1]) != night);
+    palette_set(0);
+    cv_begin(3, 1, T_BG); cv_text(0, 0, &probe, "A", T_THEME);
+    night = swap16(cv_px[1]);
     palette_set(0);
     assert(palette_track(1) && !palette_track(1));             /* (and so does the track: once) */
     cv_begin(3, 1, T_BG); cv_text(0, 0, &probe, "A", T_THEME);
-    assert(swap16(cv_px[1]) != night);
+    assert(swap16(cv_px[1]) == night);                         /* (MONO: every track white, the same ramp) */
     /* fonts (docs/design README "Large type"): Rubik 500 LB 16, TX 20, VL 28, HR 48 px; Melodee Pixel's faces on the
      * same line heights and baselines; tabular digits; the ellipsis; HR small letters too */
     assert(AF_LB.h == 19 && AF_LB.asc == 15 && AF_TX.h == 24 && AF_TX.asc == 19 && AF_VL.h == 34 && AF_VL.asc == 27 &&

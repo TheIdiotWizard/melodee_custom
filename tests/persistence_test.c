@@ -3,6 +3,7 @@
  * Portions Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* Firmware save flows against NOR flash: deferred settings, retries, and failed-save rollback. */
 #define main hostsim_main
+#define UI_TEST_PALETTE 1   /* (GRAY: the second palette to change to, MONO being the only real one) */
 #include "hostsim.c"
 #undef main
 
@@ -147,14 +148,14 @@ int main(void)
     reset();
     settings_init();
     {
-        const uint8_t amber[] = {0, 2};
+        const uint8_t amber[] = {0, 1};
         song.playing = 1;
         bad += check("editor display change while playing is applied and reports deferred saving",
-                      ed_ui_set(amber, sizeof amber) == 4 && settings.palette == 2u && persist_pending == 1 && !erases);
+                      ed_ui_set(amber, sizeof amber) == 4 && settings.palette == 1u && persist_pending == 1 && !erases);
         song.playing = 0;
         settings_poll();
         bad += check("STOP commits the deferred palette setting",
-                      !persist_pending && erases == 1 && persist_saved.palette == palette_to_stored(2));
+                      !persist_pending && erases == 1 && persist_saved.palette == palette_to_stored(1));
         before = erases;
         bad += check("repeating an unchanged editor preference succeeds without erasing",
                       ed_ui_set(amber, sizeof amber) == 0 && erases == before);
@@ -162,7 +163,7 @@ int main(void)
         const uint8_t mono[] = {0, 0};
         bad += check("editor reports failed saving while preserving the previous flash setting",
                       ed_ui_set(mono, sizeof mono) == 3 && settings.palette == 0u && persist_pending == 2 &&
-                      persist_saved.palette == palette_to_stored(2));
+                      persist_saved.palette == palette_to_stored(1));
         erase_error = 0;
         fm1_ms += 1000;
         settings_poll();
@@ -191,10 +192,10 @@ int main(void)
     settings_poll();
     bad += check("pending SONG: settings still queued, no erase", persist_pending && !erases);
     chain.armed = 0;
-    settings.palette = 2;
+    settings.palette = 0;
     settings_poll();
     bad += check("STOP: latest settings saved and request cleared", !persist_pending && erases == 1u &&
-                  st_load(OBJ_SETTINGS, &p, sizeof p) == (int)sizeof p && p.palette == palette_to_stored(2) &&
+                  st_load(OBJ_SETTINGS, &p, sizeof p) == (int)sizeof p && p.palette == palette_to_stored(0) &&
                   p.lowcut == 0u && p.zoom == 1u && p.bold == 1u &&
                   p.favorites.factory[8][0] == 1 && p.favorites.user == (1u << 31) &&
                   !memcmp(&p.panel, &panel, sizeof panel));
@@ -209,7 +210,7 @@ int main(void)
     fm1_ms += 999u;
     settings_poll();
     bad += check("failed settings retry waits through clock wrap", persist_pending && erases == before &&
-                  persist_saved.palette == palette_to_stored(2) && settings.palette == 1u);
+                  persist_saved.palette == palette_to_stored(0) && settings.palette == 1u);
     erase_error = 0;
     fm1_ms++;
     settings_poll();

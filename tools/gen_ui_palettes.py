@@ -6,8 +6,8 @@
 
   gen_ui_palettes.py OUT.h [--report]
 
-Melodee's palettes: NIGHT (the default: warm ink), DAY (light), CONTRAST (black and white) and the others below; DUSK is
-CONTRAST with muted track colours (purple, pink, yellow, green). A palette is BG
+Melodee Custom has one palette, MONO: white on black, no colour (Melodee's NIGHT, DAY, CONTRAST and the rest
+retired; a stored id of theirs reads as MONO). A palette is BG
 (background), SURF (surface: cards, dialogs, menu rows), TEXT, ACCENT (the one active thing: hot knob, cursor,
 playhead) and four track colours: the selected track's is THEME (values, curves, gauges, selection), so the screen
 takes the colour of the track ALGORITHM picks (src/gfx.c palette_track). The firmware derives the rest with fixed
@@ -32,24 +32,8 @@ from pathlib import Path
 
 # name, bg, surf, text, accent, (track 1, 2, 3, 4) (8-bit RGB; stored as RGB565)
 PALETTES = [
-    ("NIGHT",    (23, 20, 31),    (36, 32, 46),    (243, 238, 248), (255, 255, 255),
-     ((255, 122, 92), (255, 193, 69), (70, 217, 176), (157, 140, 255))),
-    ("DAY",      (246, 242, 234), (231, 224, 212), (30, 26, 38),    (20, 16, 28),
-     ((160, 42, 22), (116, 68, 0), (0, 92, 72), (78, 56, 184))),
-    ("CONTRAST", (0, 0, 0),       (34, 34, 34),    (255, 255, 255), (255, 255, 255),
-     ((255, 128, 96), (255, 214, 0), (0, 236, 188), (176, 160, 255))),
-    ("SUNSET",   (34, 16, 34),    (54, 28, 52),    (255, 236, 240), (255, 255, 255),
-     ((255, 96, 160), (255, 150, 64), (255, 214, 92), (186, 132, 255))),
-    ("OCEAN",    (12, 22, 40),    (24, 40, 64),    (232, 244, 255), (255, 255, 255),
-     ((255, 128, 150), (255, 206, 104), (64, 214, 230), (140, 156, 255))),
-    ("NEON",     (10, 8, 20),     (28, 24, 46),    (244, 242, 255), (255, 255, 255),
-     ((255, 72, 200), (0, 228, 255), (170, 255, 64), (255, 230, 0))),
-    ("CANDY",    (255, 241, 246), (247, 224, 236), (44, 24, 48),    (30, 14, 34),
-     ((150, 20, 102), (32, 64, 178), (0, 88, 90), (138, 54, 0))),
-    ("LO-FI",    (32, 28, 26),    (48, 42, 38),    (236, 226, 208), (250, 244, 232),
-     ((218, 140, 128), (214, 182, 104), (146, 184, 142), (142, 164, 206))),
-    ("DUSK",     (0, 0, 0),       (34, 34, 34),    (255, 255, 255), (255, 255, 255),   # CONTRAST, muted tracks:
-     ((178, 156, 226), (226, 156, 192), (220, 204, 132), (156, 204, 150))),           # purple, pink, yellow, green
+    ("MONO",     (0, 0, 0),       (0, 0, 0),       (255, 255, 255), (255, 255, 255),   # Melodee Custom: black and white
+     ((255, 255, 255), (255, 255, 255), (255, 255, 255), (255, 255, 255))),          # only, tracks told apart by text
 ]
 TEST_GRAY = ("GRAY", (14, 14, 14), (36, 36, 36), (204, 204, 204), (255, 255, 255),
              ((232, 232, 232), (220, 220, 220), (208, 208, 208), (244, 244, 244)))
@@ -198,7 +182,7 @@ def main():
     ap.add_argument("--report", action="store_true")
     a = ap.parse_args()
     fails = []
-    assert PALETTES[0][0] == "NIGHT" and len(PALETTES) <= 31
+    assert PALETTES[0][0] == "MONO" and len(PALETTES) <= 31
     rows = [derive(p, t) for p in PALETTES + [TEST_GRAY] for t in range(4)]
     for name, d in rows:
         if name.startswith("GRAY"):

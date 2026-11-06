@@ -5,14 +5,24 @@
 int main(void)
 {
     int bad=0; reset(); up_boot();
-    bad+=check("engine and native collection IDs remain unchanged",NENGINES==22 && ENGI_MIDI==21 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
+    bad+=check("engine and native collection IDs remain unchanged",NENGINES==28 && ENGI_MIDI==21 && ENGI_SAW==22 && ENGI_WAV==27 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
 #if MELODEE_FELUCCA_ENGINES
     /* Felucca's PHASE (2), LOFI (3), VOICE (5), TRIO (6) and PHYS (9) restored at their original numbers; CZ-1 (15)
      * retired (its stored tracks keep the number, play silent); SID's engine 3 plays as LOFI */
+#if MELODEE_M2K_ENGINES
+    /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's six at 22..27 */
+    const uint8_t retired[]={2,11,12,15,19};
+#else
     const uint8_t retired[]={11,15};
+#endif
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
-            {2, 6, "PHASE"}, {3, 5, "LOFI"}, {5, 4, "VOICE"}, {6, 5, "TRIO"}, {7, 5, "WHEEL"}, {9, 9, "PHYS"}};
+#if MELODEE_M2K_ENGINES
+            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 4, "STAT"}, {25, 4, "PAR"}, {26, 4, "DYN"}, {27, 5, "WAV"},
+#else
+            {2, 6, "PHASE"},
+#endif
+            {3, 5, "LOFI"}, {5, 4, "VOICE"}, {6, 5, "TRIO"}, {7, 5, "WHEEL"}, {9, 9, "PHYS"}};
         for (uint32_t j = 0; j < NELEM(back); j++) {
             uint32_t e = back[j].e, shown = 0;
             for (uint32_t k = 0; k < NENG_SHOWN; k++) shown |= eng_vis(k) == e;
@@ -27,6 +37,13 @@ int main(void)
         bad+=check("PHYS keeps its part state; PHASE, LOFI, VOICE and TRIO need none",
                    eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && !eng_state_size(5) && !eng_state_size(6));
         bad+=check("track 3 powers on with LOFI PULSE LD", trk_def_engine(2)==3u && trk_def_preset(2)==0u);
+#if MELODEE_M2K_ENGINES
+        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and STAT FM BASS",
+                   trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==0u && trk_def_engine(1)==ENGI_SAW+2u && trk_def_preset(1)==1u);
+        bad+=check("the six keep their voices as part state; ENS also its chorus",
+                   eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(24)==eng_state_size(22) &&
+                   eng_state_size(27)==eng_state_size(22));
+#endif
     }
 #elif MELODEE_WHEEL
     const uint8_t retired[]={2,5,6,9,11};

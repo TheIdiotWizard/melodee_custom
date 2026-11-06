@@ -140,11 +140,13 @@ static struct {
 #define T_QUIET ux.quiet         /* a lane not selected (BG -> SURF 25 %) */
 #define T_LIFT ux.lift           /* the selected lane (SURF -> TEXT 3 %) */
 #define T_SEC ux.sec             /* secondary names (BG -> TEXT 80 %) */
-#define NPALETTES UI_NPALETTES
 #ifdef UI_TEST_PALETTE
 #define UI_PAL_ENTRIES (UI_NPALETTES + 1u)   /* + GRAY (host tests: every screen must stay gray in it) */
+#define NPALETTES UI_PAL_ENTRIES             /* (and selectable there: with MONO alone, COLOR, the saved id and the
+                                                editor's UI_SET still have a second palette to change to) */
 #else
 #define UI_PAL_ENTRIES UI_NPALETTES
+#define NPALETTES UI_NPALETTES
 #endif
 #define T_TRK(k) UI_PALETTES[ux.pal].trk[(k) & 3u]   /* track k's colour (the mixer, lanes, track chips) */
 /* knob k's colour on the selected track's pages (its label, its curve segment, a row, a lane, a slot): a shade of the

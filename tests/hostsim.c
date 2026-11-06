@@ -182,13 +182,19 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
  * BASS, a CZ-1 lead), kept so the sound regressions hear the same song */
 static void host_power_on_sound(track_t *t, uint32_t k)
 {
+#if MELODEE_M2K_ENGINES
+    static const uint8_t DEMO[2][2] = {{ENGI_SAW, 0}, {ENGI_SAW + 2u, 1}};   /* (the power-on SUPERSAW, FM BASS) */
+#else
     static const uint8_t DEMO[2][2] = {{ENGI_PROPHET, 4}, {ENGI_FM6, 4}};
+#endif
     host_preset(t, DEMO[k % 2u][0], DEMO[k % 2u][1]);
 }
 
 /* the plain synth a test plays when the engine is not what it tests (ANALOG's place until 2.0 retired it): CZ-1,
  * on the generic voice path (NPOLY voices, no cap of its own) as ANALOG was */
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
+#define HOST_SYNTH 3u            /* (PHASE retired with MONO2K's six: LOFI, the same generic voice path) */
+#elif MELODEE_FELUCCA_ENGINES
 #define HOST_SYNTH 2u            /* (Felucca's engines, no CZ-1: PHASE; the suite's fixtures run the CZ-1 build) */
 #else
 #define HOST_SYNTH ENGI_CZ

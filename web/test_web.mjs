@@ -490,6 +490,11 @@ function mockTables() {
     m0.stop();
     ok([11, 15].every((i) => m0.tables.ENG[i].name === "-" && !m0.tables.ENG[i].presets.length),
        "editor: NOISE and CZ-1 retired with their original IDs reserved");
+    const m1 = E.makeMockDevice({ auto: false, m2k: true });
+    m1.stop();
+    ok([2, 12, 19].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
+       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,STAT4,PAR4,DYN4,WAV5",
+       "editor: shipping firmware: PROPHET, FM6 and PHASE retired (2, 12, 19 reserved), MONO2K's SAW ENS STAT PAR DYN WAV at 22..27");
     ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 9]].every(([i, n, k]) =>
        m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),
        "editor: Felucca's PHASE, LOFI, VOICE, TRIO and PHYS restored with their original IDs");
@@ -504,7 +509,7 @@ function mockTables() {
   const dj = join(HERE, "../build/host/desc.json");
   if (!existsSync(dj)) { console.log("editor: mock tables == firmware (no build/host/desc.json)        skip"); return; }
   const fw = JSON.parse(readFileSync(dj, "utf8"));
-  const m = E.makeMockDevice({ auto: false }), T = m.tables;
+  const m = E.makeMockDevice({ auto: false, m2k: true }), T = m.tables;   /* (the shipping firmware: MONO2K's six) */
   m.stop();
   const norm = (d) => ({ label: d.label, fmt: d.fmt, min: d.min, max: d.max, def: d.def, names: d.names || null, unit: d.unit || "" });
   const diffs = [];
@@ -527,7 +532,7 @@ function mockTables() {
       if (mp) cmp(`${fe.name} ${p.name}`, { e: mp.e, env: mp.env, mono: mp.mono }, { e: p.e, env: p.env, mono: p.mono });
     });
   });
-  const m2 = E.makeMockDevice({ auto: false });   /* the mock's power-on sounds: its parts 1..4 */
+  const m2 = E.makeMockDevice({ auto: false, m2k: true });   /* the mock's power-on sounds: its parts 1..4 */
   cmp("power-on sounds", m2.state.tracks.map((t) => [t.engine, t.preset]), fw.TRK_DEF);
   m2.stop();
   cmp("firmware: G_ENGSEL names == engine names", fw.GP[fw.G_ENGSEL].names, fw.ENG.map((e) => e.name));

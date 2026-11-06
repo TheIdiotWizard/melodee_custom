@@ -7,6 +7,7 @@
 static unsigned char host_samples[3][0x14000];
 #define SMP_USER_XIP(k) host_samples[k]
 #define main hostsim_main
+#define UI_TEST_PALETTE 1   /* (GRAY: the second palette to change to, MONO being the only real one) */
 #include "hostsim.c"
 #undef main
 
@@ -318,14 +319,14 @@ int main(void)
     memset(&ps, 0, sizeof ps);
     settings_export(&ps);
     ps.lowcut = 2;                                       /* SPEAKER BASS+ */
-    ps.palette = palette_to_stored(2);
+    ps.palette = palette_to_stored(1);
     bad += check("settings with SPEAKER BASS+ restore", put_all(1, &ps, sizeof ps, st_crc32(&ps, sizeof ps)) == 0 &&
-                 settings.lowcut == 0u && settings.palette == 2u);
+                 settings.lowcut == 0u && settings.palette == 1u);
     before = erases;
     ps.palette = 13;                                     /* an untagged id (before 1.0; 1.2 rewrote them) */
     bad += check("settings with an untagged palette id are refused, nothing written",
-                 put_all(1, &ps, sizeof ps, st_crc32(&ps, sizeof ps)) == 2u && erases == before && settings.palette == 2u);
-    ps.palette = palette_to_stored(2);
+                 put_all(1, &ps, sizeof ps, st_crc32(&ps, sizeof ps)) == 2u && erases == before && settings.palette == 1u);
+    ps.palette = palette_to_stored(1);
     settings_click = 1; settings_countin = 2;
     settings_export(&ps);                                /* (the record prefs, tagged in the zoom word) */
     settings_click = settings_countin = 0;

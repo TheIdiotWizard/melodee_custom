@@ -268,6 +268,11 @@ static void job_song(const job_t *j)
     host_power_on_sound(t2, 1);
     host_preset(t3, 3, 0);
     host_808_kit(td);
+#if MELODEE_M2K_ENGINES
+    /* the 808 pattern alone peaks at about 30150 through the limiter (1.0.3 too); PROPHET and FM6's louder bed held it
+     * under, SUPERSAW and FM BASS do not: the kit a little down keeps this a check of the mix, not of the kit's transients */
+    td->p[P_LEVEL] = 100;
+#endif
     for (i = 0; i < 16u; i++) {
         uint8_t n = ACID[i];
         put_step(t1, i, n ? 1u : 0u, &n, n ? ST_NOTE : ST_REST, ACIDF[i]);

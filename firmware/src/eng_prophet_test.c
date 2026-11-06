@@ -6,7 +6,11 @@
  * MELODEE_PROPHET_PROTOTYPE additionally aliases ID 0 for measurement rigs. */
 #include "x0x/fastmath.h"
 #include "prophet_patch.c"
+#if MELODEE_PROPHET
 #include "melodee_prophet_factory.h"   /* Sequential's 200 v1.03 programs (tools/gen_prophet_factory.py) */
+#else
+#define P5_FACTORY_N 0u                 /* (no Prophet: no factory programs) */
+#endif
 #if MELODEE_DUAL_CORE
 #define P5_POLY 8u
 #else
@@ -47,6 +51,16 @@ static p5_patch_t *p5_patch_of(const track_t *t)
     if (!p5_ready[k]) { p5_patch_init(&p5_patch[k]); p5_ready[k] = 1; }
     return &p5_patch[k];
 }
+#if !MELODEE_PROPHET
+/* MELODEE_M2K_ENGINES: the Prophet retired. Its stored patches still load and save with their tracks (project.c,
+ * upreset.c: p5_patch), and its tracks play silent (engines.c eng_extra_retired) */
+static void p5_track_accept(track_t *t) { (void)t; }
+static void p5_factory(uint32_t k, p5_patch_t *p) { (void)k; p5_patch_init(p); }
+static void p5_preset_loaded(track_t *t, uint32_t pi) { (void)pi; p5_patch_init(p5_patch_of(t)); }
+static int32_t p5_env_source(track_t *t, voice_t *v) { (void)t; (void)v; return 0; }
+static uint32_t p5_cap(const track_t *t) { (void)t; return 1u; }
+#define ENG_P5_TEST ENG_RETIRED
+#else
 static inline __attribute__((always_inline)) p5_voice_t *p5_voice(track_t *t, voice_t *v)
 {
     p5_part_t *part = p5_part((uint32_t)(t - trk));
@@ -608,3 +622,4 @@ static const engine_t ENG_P5_TEST = {
     .post=p5_post,
     .knob={P_E0,P_E1,P_RESERVED34,P_RESERVED36}
 };
+#endif

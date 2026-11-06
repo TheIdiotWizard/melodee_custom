@@ -164,7 +164,9 @@ static int page_and_local_controls(void)
     bad += check("simultaneous physical input wins without inheriting the MIDI absolute value", p5_patch_of(TSEL)->raw[P5_CUTOFF] == cutoff + 1);
     song.rec = 1; seq_start(); seq_tick(TSEL, CTL);
     knob_cc(1, 93, 0);
+#if MELODEE_PROPHET
     bad += check("MIDI native edits record through the existing motion path", motion.count && motion.event[0].param == MO_NATIVE + P5_CUTOFF);
+#endif
     seq_stop();
     knob_reset(MK_MINILAB, MK_ABSOLUTE);
     go_page(GR_FXRACK);

@@ -18,7 +18,7 @@ static uint64_t render(uint32_t blocks, int note)
 {
     int32_t out[CTL * 2];
     uint64_t e = 0;
-    set_engine_of(&trk[0], ENGI_FM6); apply_preset_to(&trk[0], 8);
+    set_engine_of(&trk[0], 3u); apply_preset_to(&trk[0], 0);   /* LOFI PULSE LD */
     for (uint32_t k = 0; k < 40; k++) mix_block(out, CTL);   /* (the engine switch done) */
     if (note) trk_note_on(&trk[0], 60, 100);
     for (uint32_t k = 0; k < blocks; k++) { mix_block(out, CTL); for (uint32_t i = 0; i < CTL * 2u; i++) e += (uint32_t)abs(out[i]); }

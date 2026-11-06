@@ -228,8 +228,8 @@ if [ "$UI" = renders ]; then
         cat "$LOG/$n.fail"
         exit 1
     fi
-    if [ ! -f build/ui_new/NIGHT/home.png ]; then
-        echo "UI renders produced no NIGHT screenshots" >&2
+    if [ ! -f build/ui_new/MONO/home.png ]; then
+        echo "UI renders produced no MONO screenshots" >&2
         exit 1
     fi
     echo "UI RENDERS PASSED in $(($(date +%s) - start)) s"
@@ -416,7 +416,7 @@ if core && [ $TABLES = 1 ]; then
     t "boot audio: codec waits for settled silent DMA and shuts down before I2S" audio_boot_test -w
     t "audio: overload protection, bounded fades and DMA diagnostics" audio_test $FW
     t "GLO > WEIGHTS: per-engine budget points, SAFETY, device persistence and pages" voice_weights_test $FW
-    t "GLO > WEIGHTS, shipping engines: nine weights, three pages, v2 record, v1 migration" voice_weights_felucca_test $FWS
+    t "GLO > WEIGHTS, shipping engines: ten weights, three pages, v3 record, v2 and v1 migration" voice_weights_felucca_test $FWS
     t "FX inserts: any audio effect in a track's slots through the mixer, one REVERB across the racks" fx_inserts_test -O1 $FWS
     t "audio: silent bench keeps synthesis running and silences physical output" audio_silent_test:audio_test \
         -DMELODEE_BENCH_SILENT=1 $FW

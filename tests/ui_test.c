@@ -1734,20 +1734,15 @@ static int test_display_preferences(void)
     memcpy(sounds, trk, sizeof sounds);
     hold(B_HOME);
     ui.menu_sel = MI_COLOR;
-    ui.force = 1; ui_draw();
-    memcpy(before, host_screen, sizeof before);
     settings.palette = 0; palette_set(0);
+    ui.force = 1; ui_draw();                       /* (in MONO: the suite draws in GRAY, the palette OCT+ goes to) */
+    memcpy(before, host_screen, sizeof before);
     press(B_OCTUP);
-    bad += check("COLOR OCT+ previews the next palette (DAY, light) without closing the menu",
-                 settings.palette == 1 && T_BG == UI_PALETTES[1].bg && ux.light && ui.menu == 1 && !song.octave &&
+    bad += check("COLOR OCT+ previews the next palette (MONO, then the test GRAY) without closing the menu",
+                 settings.palette == 1 && T_BG == UI_PALETTES[1].bg && !ux.light && ui.menu == 1 && !song.octave &&
                  memcmp(before, host_screen, sizeof before) && !memcmp(sounds, trk, sizeof sounds));
     turn(EN_K1, 1);
-    {
-        int steps_ok = settings.palette == 2;
-        for (uint32_t k = 3; k < NPALETTES; k++) { turn(EN_K1, 1); steps_ok &= settings.palette == k; }
-        bad += check("COLOR KNOB 1 steps on through SUNSET .. DUSK, then wraps to NIGHT",
-                     steps_ok && (turn(EN_K1, 1), settings.palette == UI_DEFAULT_INDEX));
-    }
+    bad += check("COLOR KNOB 1 wraps back to MONO", settings.palette == UI_DEFAULT_INDEX && NPALETTES == 2u);
     press(B_OCTDN);
     bad += check("OCT- leaves display preferences without changing musical state",
                  !ui.menu && settings.palette == UI_DEFAULT_INDEX && !memcmp(sounds, trk, sizeof sounds));
@@ -4649,6 +4644,7 @@ static int test_bughunt_ui2(void)
             a[k][0] = text_in(BOX_X + PV_MIX_BAR_X, Y + ly, BOX_X + PV_MIX_BAR_X + PV_MIX_BAR_W, Y + ly + 5);   /* the bar */
             a[k][1] = text_in(BOX_X + 180, Y + ly - 8, BOX_X + 230, Y + ly + 16);   /* the pan, or Mute */
         }
+        for (k = 0; k < 4u; k++) a[k][0] = a[k][0] > 4u, a[k][1] = a[k][1] > 4u;   /* (a stray anti-aliased pixel in GRAY) */
         ok = a[0][0] && !a[0][1] && !a[1][0] && a[1][1] && !a[2][0] && !a[2][1] && !a[3][0] && a[3][1];
         bad += check("MIXER: K1 lights the level's bar, K2 the pan, K4 Mute, K3 nothing", ok);
     }

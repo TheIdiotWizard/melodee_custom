@@ -16,6 +16,7 @@
  *   row 0 bytes 2..27 hold all 201 Prophet factory stars, tagged in bytes 28..31;
  *         bytes 0..1 held retired ANALOG's stars.
  *   row 1 bytes 24..27 hold tagged CLICK LEVEL (CK + version 1 + percent; FX RATE's FQ until 1.2); 28..31 mark validated Melodee settings (MDS + version 1).
+ *   row 11 (NOISE, retired) bytes 0..5: MONO2K's SAW .. WAV factory stars, tagged M2K + 1 in bytes 28..31 (favorite_has)
  * Rows 1 (DIGITAL, retired), 4 (SAMPLE) and 13 (SLICE, built with MELODEE_SLICE) may hold Felucca 1.0's stars; 6, 7, 9 are LEGACY_EXTRAS' engines. Native FM6 slots: row 12 bits 24..87. */
 typedef struct {
     uint8_t factory[16][32]; /* engine 0..15, preset 0..255 */
@@ -51,8 +52,22 @@ static int scale_favorite_set(uint32_t scale, int on)
 }
 static int p5_favorite_has(uint32_t slot,int factory);
 static int p5_favorite_set(uint32_t slot,int on,int factory);
+/* MONO2K's six (MELODEE_M2K_ENGINES, engines 22..27): their factory stars in row 11 (NOISE, retired), a byte each in
+ * bytes 0..5, tagged M2K + version 1 in bytes 28..31 (an untagged row: no stars) */
+#ifndef ENGI_SAW   /* (a test that includes this file without core.h) */
+#define ENGI_SAW 22u
+#define ENGI_WAV 27u
+#endif
+static int m2k_fav_row(uint32_t engine, uint32_t preset) { return engine >= ENGI_SAW && engine <= ENGI_WAV && preset < 8u; }
+static int m2k_fav_valid(void)
+{
+    const uint8_t *r = favorites.factory[11];
+    return r[28] == 'M' && r[29] == '2' && r[30] == 'K' && r[31] == 1u;
+}
 static int favorite_has(uint32_t engine, uint32_t preset)
 {
+    if (m2k_fav_row(engine, preset))
+        return m2k_fav_valid() && ((favorites.factory[11][engine - ENGI_SAW] >> preset) & 1u);
     if(engine==ENGI_PROPHET)return p5_favorite_has(preset,1);
     if(engine==USER_NATIVE_P5 || engine==USER_NATIVE_FM || engine==USER_NATIVE_CZ)engine=USER_GENERAL;
     if (engine == USER_GENERAL)
@@ -63,6 +78,14 @@ static int favorite_has(uint32_t engine, uint32_t preset)
 static int favorite_set(uint32_t engine, uint32_t preset, int on)
 {
     if(engine==ENGI_PROPHET)return p5_favorite_set(preset,on,1);
+    if (m2k_fav_row(engine, preset)) {
+        uint8_t *r = favorites.factory[11];
+        if (favorite_has(engine, preset) == !!on) return 0;
+        if (!m2k_fav_valid()) { memset(r, 0, 32); r[28] = 'M'; r[29] = '2'; r[30] = 'K'; r[31] = 1u; }
+        if (on) r[engine - ENGI_SAW] |= (uint8_t)(1u << preset);
+        else r[engine - ENGI_SAW] &= (uint8_t)~(1u << preset);
+        return 1;
+    }
     if(engine==USER_NATIVE_P5 || engine==USER_NATIVE_FM || engine==USER_NATIVE_CZ)engine=USER_GENERAL;
     if (engine >= NENGINES || (engine == USER_GENERAL ? preset >= UP_SLOTS : engine >= 16u || preset >= 256u))
         return 0;

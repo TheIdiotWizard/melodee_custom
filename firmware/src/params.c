@@ -91,11 +91,15 @@ static int16_t settings_budget = VOICE_BUDGET_DEFAULT;
 /* GLO > WEIGHTS: budget points per sounding voice of PROPHET, CZ-1, FM6, SID and DRUM (0 AUTO: voice.c's
  * built-in rule) and SAFETY (0: overload never cuts voices, audio.c). Device settings (settings_persist.c).
  * MELODEE_FELUCCA_ENGINES: PROPHET, FM6, DRUM, PHASE, LOFI, VOICE, TRIO, WHEEL and PHYS (voice.c voice_kind) */
-#define VOICE_KINDS (MELODEE_FELUCCA_ENGINES ? 9u : 5u)
+#define VOICE_KINDS (MELODEE_M2K_ENGINES ? 10u : MELODEE_FELUCCA_ENGINES ? 9u : 5u)
 /* a WEIGHTS page id's kind (settings_vpoints index), -1 none (GUARD: G_SAFETY) */
 static int weight_kind(uint32_t id)
 {
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_M2K_ENGINES                    /* (voice.c voice_units' order) */
+    static const uint8_t ids[10] = {G_WSAW, G_WENS, G_WFMP, G_WWAV, G_WDRUM, G_WLOFI, G_WVOICE, G_WTRIO, G_WWHEEL, G_WPHYS};
+    for (int k = 0; k < 10; k++) if (ids[k] == id) return k;
+    return -1;
+#elif MELODEE_FELUCCA_ENGINES
     static const uint8_t ids[9] = {G_WP5, G_WFM6, G_WDRUM, G_WPHASE, G_WLOFI, G_WVOICE, G_WTRIO, G_WWHEEL, G_WPHYS};
     for (int k = 0; k < 9; k++) if (ids[k] == id) return k;
     return -1;
@@ -114,8 +118,11 @@ static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", 
 static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "", "", "", "", "RATE",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH"};
 #define ENGNAME_F(n) (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES ? n : "-")   /* Felucca's restored engines */
-static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_F("PHASE"), MELODEE_SID ? "SID" : "LOFI", "-", ENGNAME_F("VOICE"), ENGNAME_F("TRIO"), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
-                                             "DRUM", MELODEE_LEGACY_EXTRAS ? "NOISE" : "-", "FM6", MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", "PROPHET", "-", "MIDI Track"};
+#define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6 and PHASE: retired by MONO2K's six */
+static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", ENGNAME_F("VOICE"), ENGNAME_F("TRIO"), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
+                                             "DRUM", MELODEE_LEGACY_EXTRAS ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
+                                             "SAW", "ENS", "STAT", "PAR", "DYN", "WAV"};
+_Static_assert(NELEM(N_ENGNAME) == NENGINES, "an engine name each");
 
 #define PD(l, f, mn, mx, df) {l, f, mn, mx, df, 0, 0}
 #define PE(l, n, df) {l, F_ENUM, 0, (int16_t)(sizeof(n) / sizeof(n[0]) - 1), df, n, 0}
@@ -713,7 +720,11 @@ static const page_t PAGES[] = {
     {"VOICE 3", FAM_EDIT, SC_TRACK, GR_NONE, {P_SPRD, 0xFF, 0xFF, 0xFF}},
     {"GLOBAL", FAM_GLO, SC_GLOBAL, GR_NONE, {G_A4, G_BUDGET, G_CLOCK, G_TUNE}}, /* device reference/budget; CLK/TUNE kept */
     {"SYSTEM", FAM_GLO, SC_GLOBAL, GR_NONE, {G_MIDI, G_DRUMCH, G_ROUTE, G_INFO}},
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_M2K_ENGINES
+    {"WEIGHTS", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WSAW, G_WENS, G_WFMP, G_WWAV}},     /* budget points per voice */
+    {"WEIGHTS 2", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WDRUM, G_WLOFI, G_WVOICE, G_WTRIO}},
+    {"WEIGHTS 3", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WWHEEL, G_WPHYS, G_BUDGET, G_SAFETY}},   /* SAFETY: overload voice cuts */
+#elif MELODEE_FELUCCA_ENGINES
     {"WEIGHTS", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WP5, G_WFM6, G_WDRUM, G_WPHASE}},   /* budget points per voice */
     {"WEIGHTS 2", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WLOFI, G_WVOICE, G_WTRIO, G_WWHEEL}},
     {"WEIGHTS 3", FAM_GLO, SC_GLOBAL, GR_NONE, {G_WPHYS, G_BUDGET, 0xFF, G_SAFETY}},  /* SAFETY: overload voice cuts */
@@ -891,7 +902,11 @@ static const param_desc_t *page_desc(const page_t *pg, uint32_t slot, int16_t **
         return track_desc(TSEL, P_RECQ);
     }
     if (pg->scope == SC_GLOBAL && (weight_kind(id) >= 0 || id == G_SAFETY)) {   /* GLO > WEIGHTS: the device's settings */
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_M2K_ENGINES
+        static const param_desc_t weights[] = {PE("SAW", N_VPOINTS, 0), PE("ENS", N_VPOINTS, 0), PE("FM+", N_VPOINTS, 0),
+            PE("WAV", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0), PE("LOFI", N_VPOINTS, 0), PE("VOICE", N_VPOINTS, 0),
+            PE("TRIO", N_VPOINTS, 0), PE("WHEEL", N_VPOINTS, 0), PE("PHYS", N_VPOINTS, 0)};
+#elif MELODEE_FELUCCA_ENGINES
         static const param_desc_t weights[] = {PE("P5", N_VPOINTS, 0), PE("FM6", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0),
             PE("PHASE", N_VPOINTS, 0), PE("LOFI", N_VPOINTS, 0), PE("VOICE", N_VPOINTS, 0), PE("TRIO", N_VPOINTS, 0),
             PE("WHEEL", N_VPOINTS, 0), PE("PHYS", N_VPOINTS, 0)};

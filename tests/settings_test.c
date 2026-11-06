@@ -94,9 +94,9 @@ int main(void)
         persist_t q = original;
         for (uint32_t i = 0; i < NPALETTES; i++) assert(palette_from_stored(palette_to_stored(i)) == i);
         for (uint32_t i = 0; i < 72u; i++) assert(palette_from_stored(i) == UI_DEFAULT_INDEX && !palette_stored_ok(i));
-        assert(palette_stored_ok(palette_to_stored(3)));
-        q.palette = palette_to_stored(2);
-        assert(settings_import(&q, sizeof q) == 1 && settings.palette == 2u);
+        assert(palette_stored_ok(palette_to_stored(NPALETTES - 1u)));
+        q.palette = palette_to_stored(NPALETTES - 1u); settings.palette = 99u;
+        assert(settings_import(&q, sizeof q) == 1 && settings.palette == NPALETTES - 1u);
         p = original; assert(settings_import(&p, sizeof p) == 1); settings_init();
     }
 #ifdef MELODEE_FAVORITES

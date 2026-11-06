@@ -77,13 +77,15 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #ifndef MELODEE_WHEEL
 #define MELODEE_WHEEL 1 /* WHEEL (engine 7): Felucca's tonewheel organ, restored as a shipping engine. 0: retired again */
 #endif
-#define MELODEE_PROPHET 1
+#define MELODEE_PROPHET (!MELODEE_M2K_ENGINES)   /* Prophet-5 (engine 19); 0: its stored sounds keep their number and play silent */
 #define ENGI_FM6 12u
 #define ENGI_PROPHET 19u /* 16..18 reserved: historical preset namespaces */
 #define USER_GENERAL 16u
 #define USER_NATIVE_P5 20u
 #define ENGI_MIDI 21u            /* 20 reserved for the Prophet user-preset namespace */
-#define NENGINES 22               /* append engines without reusing preset namespaces */
+#define ENGI_SAW 22u
+#define ENGI_WAV 27u
+#define NENGINES 28               /* append engines without reusing preset namespaces */
 #define USER_NATIVE_FM 17u
 #define USER_NATIVE_CZ 18u
 #define USER_NONE 65535u
@@ -93,9 +95,17 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define MELODEE_FELUCCA_ENGINES 1 /* Felucca's PHASE (2), LOFI (3), VOICE (5), TRIO (6) and PHYS (9) in place of CZ-1 (15)
                                    * and SID (3); 0: the CZ-1 and SID firmware. DRUM's KIT SID keeps its own 6581 */
 #endif
+#ifndef MELODEE_M2K_ENGINES
+#define MELODEE_M2K_ENGINES MELODEE_FELUCCA_ENGINES   /* MONO2K's SAW ENS STAT PAR DYN WAV (22..27, eng_m2k.c) in place of
+                                * PROPHET, FM6 and PHASE, whose stored sounds keep their numbers and play silent; the
+                                * CZ-1 and SID fixture build (MELODEE_FELUCCA_ENGINES 0) keeps them */
+#endif
 #define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
 #define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
+#define NENG_SHOWN (12u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
+                                                /* SAW ENS STAT PAR DYN WAV LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
+#elif MELODEE_FELUCCA_ENGINES
 #define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
                                                 /* PROPHET FM6 PHASE LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
 #else
@@ -256,6 +266,19 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define G_WSID G_RESERVED7
 #define G_WDRUM G_RESERVED8
 #define G_SAFETY G_RESERVED9
+#if MELODEE_M2K_ENGINES
+/* the shipping engines' weights (MELODEE_M2K_ENGINES): SAW ENS FM+ (STAT PAR DYN) WAV DRUM LOFI VOICE TRIO WHEEL PHYS,
+ * WHEEL on DRLVL's id (a project's before 1.0, never on a GLO page) */
+#define G_WSAW G_RESERVED4
+#define G_WENS G_RESERVED5
+#define G_WFMP G_RESERVED6
+#define G_WWAV G_RESERVED7
+#define G_WLOFI G_RESERVED10
+#define G_WVOICE G_RESERVED11
+#define G_WTRIO G_RESERVED24
+#define G_WWHEEL G_RESERVED25
+#define G_WPHYS G_RESERVED26
+#else
 /* the shipping engines' weights (MELODEE_FELUCCA_ENGINES): PHASE on CZ-1's id, LOFI on SID's, the rest on spare ones */
 #define G_WPHASE G_RESERVED5
 #define G_WLOFI G_RESERVED7
@@ -263,6 +286,7 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define G_WTRIO G_RESERVED11
 #define G_WWHEEL G_RESERVED24
 #define G_WPHYS G_RESERVED26
+#endif
 #define G_DRREV G_RESERVED26
 
 static int param_reserved(uint32_t id)

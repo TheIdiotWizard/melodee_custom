@@ -35,7 +35,7 @@ static int defaults(void)
 }
 static void stale_ram(void)
 {
-    settings.magic = SETTINGS_MAGIC; settings.palette = 2; settings.zoom = 1;
+    settings.magic = SETTINGS_MAGIC; settings.palette = 1; settings.zoom = 1;
     panel = PANEL_DEFAULT; panel.dir[0] = -1;
     settings_boot = 4; settings_drumch = 0; settings_hold = 3; settings_lights = 0;
     tuning_a4 = 432; settings_autosave = 0; settings_screen = 7;
@@ -93,7 +93,7 @@ static int test_empty_and_garbage(void)
 static int test_legacy_and_owned(void)
 {
     int bad = 0; fixture(); settings_init();
-    settings.palette = 2; settings.zoom = 1; settings_boot = 3;
+    settings.palette = 1; settings.zoom = 1; settings_boot = 3;
     settings_drumch = 0; settings_autosave = 0; tuning_a4 = 432;
     settings_hold = 3; ua_off = ua_off_want = 3; ua_tracks = ua_tracks_want = 1;
     panel.dir[0] = -1; favorites.factory[8][0] = 1;
@@ -107,9 +107,9 @@ static int test_legacy_and_owned(void)
     st_save(OBJ_SETTINGS, blob, (uint32_t)n);
     uint32_t before = erases, crc = music_crc();
     persist_boot();
-    bad += check("legacy Melodee settings and template survive one ownership write", !template_old() && settings_owned(&persist_saved) && erases == before + 1 && template_used() && st_crc32(&tmpl, sizeof tmpl) == template_crc && music_crc() == crc && settings.palette == 2 && settings.zoom == 1 && settings_boot == 3 && settings_drumch == 0 && !settings_autosave && tuning_a4 == 432 && settings_hold == 3 && ua_off == 3 && ua_tracks == 1 && panel.dir[0] == -1 && favorites.factory[8][0] == 1 && settings_glo[1] == 17);
+    bad += check("legacy Melodee settings and template survive one ownership write", !template_old() && settings_owned(&persist_saved) && erases == before + 1 && template_used() && st_crc32(&tmpl, sizeof tmpl) == template_crc && music_crc() == crc && settings.palette == 1 && settings.zoom == 1 && settings_boot == 3 && settings_drumch == 0 && !settings_autosave && tuning_a4 == 432 && settings_hold == 3 && ua_off == 3 && ua_tracks == 1 && panel.dir[0] == -1 && favorites.factory[8][0] == 1 && settings_glo[1] == 17);
     before = erases; persist_boot();
-    bad += check("owned Melodee settings retain deliberate USB OFF and need no rewrite", erases == before && ua_off == 3 && settings.palette == 2 && template_used());
+    bad += check("owned Melodee settings retain deliberate USB OFF and need no rewrite", erases == before && ua_off == 3 && settings.palette == 1 && template_used());
     p = &persist_saved; p->ext.usb_off = 0xFFFFFFFFu; p->ext.boot = 99;
     p->ext.glo[0] = 30000; p->zoom = 255; p->panel.enc[0] = 255;
     st_save(OBJ_SETTINGS, p, sizeof *p); before = erases;
@@ -185,7 +185,7 @@ static int test_incompatible_templates(void)
 {
     int bad = 0; static uint8_t blob[sizeof set_rec], saved[sizeof set_rec];
     for (uint32_t legacy = 0; legacy < 2u; legacy++) {
-        fixture(); settings_init(); settings.palette = 2; template_save();
+        fixture(); settings_init(); settings.palette = 1; template_save();
         int n = st_load(OBJ_SETTINGS, blob, sizeof blob);
         persist_t *p = (persist_t *)blob;
         if (legacy) memset(p->favorites.factory[1] + 28, 0, 4);
@@ -193,7 +193,7 @@ static int test_incompatible_templates(void)
         blob[sizeof *p + 2u*PROJ_GLOBALS + 2u] = 255;
         st_save(OBJ_SETTINGS, blob, (uint32_t)n); uint32_t before = erases;
         persist_boot(); trk[0].p[P_LEVEL] = 71; bootguard.failed = 0; project_boot();
-        bad += check("alien template engine cannot boot; valid settings and raw template survive", tmpl_old && !template_used() && settings.palette == 2 && trk[0].p[P_LEVEL] == 71 && erases == before && st_load(OBJ_SETTINGS, saved, sizeof saved) == n && !memcmp(blob, saved, (uint32_t)n));
+        bad += check("alien template engine cannot boot; valid settings and raw template survive", tmpl_old && !template_used() && settings.palette == 1 && trk[0].p[P_LEVEL] == 71 && erases == before && st_load(OBJ_SETTINGS, saved, sizeof saved) == n && !memcmp(blob, saved, (uint32_t)n));
     }
     return bad;
 }

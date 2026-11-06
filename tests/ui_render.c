@@ -1681,7 +1681,7 @@ static void sweep_mpc_octaves(const char *out)
             uint32_t seen = 0;
             for (uint32_t i = 0; i < nscr; i++) seen |= !strcmp(scr[i].s, want) && scr[i].y0 >= 0 && scr[i].y1 <= H_HEAD;
             if (oct[k] && !seen) { fprintf(rep, "MISSING %s: selected bank octave\n", name); nfind++; }
-            if (!p && k == 1u) write_ppm(out, face ? "PIXEL" : "NIGHT", "mpc_octave");
+            if (!p && k == 1u) write_ppm(out, face ? "PIXEL" : "MONO", "mpc_octave");
         }
         TSEL->p[P_QUANT] = Q_OFF;
         nscr = npend = 0; ui_draw(); memcpy(screen, host_screen, sizeof screen);
@@ -1716,7 +1716,7 @@ static void sweep_waiting_headers(const char *out)
         for (uint32_t i = 0; i < nscr; i++)
             seen |= !strcmp(scr[i].s, "WAIT LOOP") && scr[i].y0 >= 0 && scr[i].y1 <= H_HEAD;
         if (!seen || toast_shown) { fprintf(rep, "MISSING %s: waiting in header without a toast\n", name); nfind++; }
-        if (!s && !p) write_ppm(out, face ? "PIXEL" : "NIGHT", "wait_loop");
+        if (!s && !p) write_ppm(out, face ? "PIXEL" : "MONO", "wait_loop");
         for (uint32_t end = 0; end < 3u; end++) {
             song.rec = song.rec_wait = 1u << song.sel;
             ui_draw();
@@ -1982,7 +1982,7 @@ static void roll_frames(const char *dir)
             }
             for (k = 0; k < 8u; k++) ui_draw();
         }
-        if (dir && (!strcmp(UI_PALETTES[p].name, "NIGHT") || !strcmp(UI_PALETTES[p].name, "GRAY"))) {
+        if (dir && (!strcmp(UI_PALETTES[p].name, "MONO") || !strcmp(UI_PALETTES[p].name, "GRAY"))) {
             roll_film_save(dir, UI_PALETTES[p].name, "bpm_roll", bimg, biw, bih);
             roll_film_save(dir, UI_PALETTES[p].name, "card_roll", cimg, ciw, cih);
         }
@@ -2192,7 +2192,7 @@ static void fx_redesign_sweep(const char *out)
             cur_name = name;draw(-1);lint();if (p == UI_GRAY_INDEX) mono_check();
             if (p == 0 && mode == 1) {
                 snprintf(file, sizeof file, "punch_key_%02u", fx);
-                write_ppm(out, render_pixel ? "PIXEL" : "NIGHT", file);
+                write_ppm(out, render_pixel ? "PIXEL" : "MONO", file);
             }
         }
         for (uint32_t i = 1; i < NELEM(FX_ORDER); i++) {
@@ -2201,7 +2201,7 @@ static void fx_redesign_sweep(const char *out)
             cur_name = name;draw(-1);lint();if (p == UI_GRAY_INDEX) mono_check();
             if (p == 0) {
                 snprintf(file, sizeof file, "fx_browser_%02u", i);
-                write_ppm(out, render_pixel ? "PIXEL" : "NIGHT", file);
+                write_ppm(out, render_pixel ? "PIXEL" : "MONO", file);
             }
         }
         for (uint32_t type = FX_REVERB; type < FX_COUNT; type++) {
@@ -2223,11 +2223,11 @@ static void designer_sweep(const char *out)
 {
     char name[96],file[64];
     for(uint32_t palid=0;palid<UI_PAL_ENTRIES;palid++)for(uint32_t eng=0;eng<NENG_SHOWN;eng++){
-        int night=str_eq(UI_PALETTES[palid].name,"NIGHT");
+        int night=str_eq(UI_PALETTES[palid].name,"MONO");
         state();sound_init_of(TSEL,eng_vis(eng));pal(palid);designer_open();
         snprintf(name,sizeof name,"%s/designer %s START",UI_PALETTES[palid].name,ENGINES[TSEL->eng_req]->name);cur_name=name;
         nscr=npend=0;ui.force=1;ui_draw();lint();if(palid==UI_GRAY_INDEX)mono_check();
-        if(TSEL->eng_req==ENGI_PROPHET && night)write_ppm(out,"NIGHT","designer_start");
+        if(!eng && night)write_ppm(out,"MONO","designer_start");
         ds.expert=1;designer_begin();
         for(uint32_t i=0;i<ds.n;i++){
             ds.at=(uint8_t)i;designer_page();
@@ -2239,7 +2239,7 @@ static void designer_sweep(const char *out)
                     nscr=npend=0;ui.force=1;ui_draw();lint();if(palid==UI_GRAY_INDEX)mono_check();
                 }
                 ds.row=0;ui.force=1;ui_draw();
-                if(night){snprintf(file,sizeof file,"designer_features_%u",TSEL->eng_req);write_ppm(out,"NIGHT",file);}
+                if(night){snprintf(file,sizeof file,"designer_features_%u",TSEL->eng_req);write_ppm(out,"MONO",file);}
                 continue;
             }
             snprintf(name,sizeof name,"%s/designer %s %s OP%u",UI_PALETTES[palid].name,ENGINES[TSEL->eng_req]->name,cur_page()->title,fm6_opsel+1);cur_name=name;
@@ -2247,7 +2247,7 @@ static void designer_sweep(const char *out)
             if(night && ((TSEL->eng_req==ENGI_PROPHET && str_eq(cur_page()->title,"P5 POLYMOD")) ||
                 (TSEL->eng_req==ENGI_FM6 && str_eq(cur_page()->title,"FREQ") && fm6_opsel==0) ||
                 (TSEL->eng_req==ENGI_CZ && str_eq(cur_page()->title,"CZ1 WAVE")))){
-                snprintf(file,sizeof file,"designer_%u",TSEL->eng_req);write_ppm(out,"NIGHT",file);
+                snprintf(file,sizeof file,"designer_%u",TSEL->eng_req);write_ppm(out,"MONO",file);
             }
         }
         designer_compare();                             /* the original, its chip */
@@ -2257,11 +2257,11 @@ static void designer_sweep(const char *out)
         designer_finish();                              /* its sheet, the question */
         snprintf(name,sizeof name,"%s/designer %s sheet",UI_PALETTES[palid].name,ENGINES[TSEL->eng_req]->name);cur_name=name;
         nscr=npend=0;ui.force=1;ui_draw();lint();if(palid==UI_GRAY_INDEX)mono_check();
-        if(TSEL->eng_req==ENGI_PROPHET && night)write_ppm(out,"NIGHT","designer_sheet");
+        if(TSEL->eng_req==ENGI_PROPHET && night)write_ppm(out,"MONO","designer_sheet");
         pop_close();confirm_open(CF_DISCARD_DESIGN,song.sel);
         snprintf(name,sizeof name,"%s/designer %s discard",UI_PALETTES[palid].name,ENGINES[TSEL->eng_req]->name);cur_name=name;
         nscr=npend=0;ui.force=1;ui_draw();lint();if(palid==UI_GRAY_INDEX)mono_check();
-        if(TSEL->eng_req==ENGI_PROPHET && night)write_ppm(out,"NIGHT","designer_discard");
+        if(TSEL->eng_req==ENGI_PROPHET && night)write_ppm(out,"MONO","designer_discard");
         ui.confirm=0;designer_close(1);
     }
     cur_name=0;
@@ -2290,11 +2290,11 @@ static void library_note_sweep(const char *out)
         }
         snprintf(title,sizeof title,"%s/%s",UI_PALETTES[p].name,names[scene]);cur_name=title;draw(-1);lint();
         if(p==UI_GRAY_INDEX)mono_check();
-        if(p==0u)write_ppm(out,"NIGHT",names[scene]);
+        if(p==0u)write_ppm(out,"MONO",names[scene]);
     }
 }
 #ifndef UI_RENDER_SHOW
-#define UI_RENDER_SHOW 3u
+#define UI_RENDER_SHOW 1   /* MONO (the one palette; GRAY: the lint only) */
 #endif
 /* Every named punch lane and endpoint, in both fonts and all palettes.
  * Include long patterns, triplets, overlaps, repeats, rests and continuations. */
@@ -2324,18 +2324,18 @@ static void song_punch_sweep(const char *out)
         chain_patterns[62][0] = CHAIN_REST;
         cur_name = "song FX/four overlapping lanes"; draw(-1); lint();
         if (p == UI_GRAY_INDEX) mono_check();
-        if (!p) write_ppm(out, face ? "PIXEL" : "NIGHT", "song_punch_four");
+        if (!p) write_ppm(out, face ? "PIXEL" : "MONO", "song_punch_four");
         pop_close(); chain_config.row[62].repeat = 3;
         cur_name = "song FX/repeated vertical spans"; draw(-1); lint();
         if (p == UI_GRAY_INDEX) mono_check();
-        if (!p) write_ppm(out, face ? "PIXEL" : "NIGHT", "song_punch_grid");
+        if (!p) write_ppm(out, face ? "PIXEL" : "MONO", "song_punch_grid");
         chain_patterns[62][0] = CHAIN_HOLD;
         cur_name = "song FX/continued vertical spans"; draw(-1); lint();
         if (p == UI_GRAY_INDEX) mono_check();
         song_punch_open();
         memset(chain_config.fx[62], 0, sizeof chain_config.fx[62]);
         cur_name = "song FX/empty"; draw(-1); lint();
-        if (!p) write_ppm(out, face ? "PIXEL" : "NIGHT", "song_punch_empty");
+        if (!p) write_ppm(out, face ? "PIXEL" : "MONO", "song_punch_empty");
         setup(S_REF_SONG); pal(p);
         chain_config.fx[0][0] = (chain_fx_t){PX_REV + 1, 0, 4};
         chain_config.fx[1][0] = (chain_fx_t){PX_LPF + 1, 4, 4};
@@ -2344,7 +2344,7 @@ static void song_punch_sweep(const char *out)
         chain_config.fx[3][0] = (chain_fx_t){PX_ECHO + 1, 8, 8};
         cur_name = "song FX/rounded vertical spans, overlap and progress"; draw(-1); lint();
         if (p == UI_GRAY_INDEX) mono_check();
-        if (!p) write_ppm(out, face ? "PIXEL" : "NIGHT", "song_punch_bars");
+        if (!p) write_ppm(out, face ? "PIXEL" : "MONO", "song_punch_bars");
     }
     render_pixel = 0; cur_name = 0;
 }
@@ -2354,7 +2354,7 @@ int main(int argc, char **argv)
     const char *out = argc > 1 ? argv[1] : "build/ui_new";
     char path[600];
     uint32_t p, s;
-    static const char *const SHOW[] = {"NIGHT", "DAY", "CONTRAST", "SUNSET", "OCEAN", "NEON", "CANDY", "LO-FI", "DUSK", "GRAY"};
+    static const char *const SHOW[] = {"MONO", "GRAY"};
     snprintf(path, sizeof path, "%s/report.txt", out);
     rep = fopen(path, "w");
     if (!rep) { fprintf(stderr, "cannot write %s\n", path); return 1; }

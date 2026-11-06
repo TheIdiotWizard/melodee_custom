@@ -41,6 +41,14 @@ static const char *const PRESET_CAT[NENGINES] = {
 #else
     [3] = "LBULL",                                      /* LOFI: PULSE LD, WAVE BASS, ARP 8BIT, WAVE LEAD, STEP LEAD */
 #endif
+#if MELODEE_M2K_ENGINES                                 /* MONO2K's six (eng_m2k.c) */
+    [ENGI_SAW] = "LPLLB",                               /* SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS */
+    [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
+    [ENGI_SAW + 2u] = "EBKL",                           /* STAT: FM BELL, FM BASS, E PIANO, FEEDBACK */
+    [ENGI_SAW + 3u] = "KGEB",                           /* PAR: PAR KEYS, PAR ORGN, METALLIC, PAR BASS */
+    [ENGI_SAW + 4u] = "UREB",                           /* DYN: DYN PLUCK, DYN BRASS, DYN BELL, DYN BASS */
+    [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
+#endif
     [10] = "DDDDDD",                                    /* DRUM: the kits (808, 909, SID, SID DIGI, CR78, FM) */
     [12] = "KEBRPEGUKRBEEKGSPLUEWEBEO",                 /* FM6, INIT VOICE */
     [ENGI_CZ] = "ORRRSSSSSUUUBBBBURWSWWWWUKKKKKKKKGGGGGPPPEEEEEDEESSULLLLFDDDEFFFF",   /* INIT TONE, Casio's 64 */

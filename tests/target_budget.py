@@ -18,7 +18,7 @@ import sys
 
 FUNCS = ["phase_render", "sid_render", "cz_native_render", "cz_native_wave", "fph_render_f", "fph_xfade", "lofi_render", "formant_render",
          "trio_render", "trio_pass", "wheel_render", "wheel_block",
-         "phys_render", "drum_render", "dsk_render", "noise_render", "fm6_render", "p5_samples", "p5_mod_samples", "px_modal_block", "px_modal_run", "px_memb_block",
+         "phys_render", "drum_render", "dsk_render", "noise_render", "fm6_render", "m2k_render", "m2k_ens_post", "p5_samples", "p5_mod_samples", "px_modal_block", "px_modal_run", "px_memb_block",
          "px_string_excite", "px_string_run", "px_symp_run",
          "dr_bd", "dr_sd", "dr_tom", "dr_rs", "dr_cl", "dr_cp", "dr_ma", "dr_metal", "dr_cb", "dr_cy", "dr_hat", "dr8_run",   # drum_808.c
          "drum_source", "drum_limit", "drum_color", "dr_metal_tune",
@@ -200,6 +200,7 @@ def main():
                 for key, value in cost(fns[kernel]).items(): res[parent][key] += value
     retired = {"trio_render", "trio_pass", "wheel_render", "wheel_block", "phys_render",
                "phase_render", "formant_render", "noise_render",
+               "fm6_render",                                              # MONO2K's six (default): FM6 retired
                "sid_render", "cz_native_render", "cz_native_wave",      # MELODEE_FELUCCA_ENGINES (default): no SID, CZ-1
                "fph_render_f", "fph_xfade", "lofi_render",               # MELODEE_FELUCCA_ENGINES=0: no Felucca PHASE, LOFI
                "px_modal_block", "px_modal_run", "px_memb_block", "px_string_excite",

@@ -5,9 +5,7 @@
  * sounds at power-on. */
 #include "dsp.c"
 #include "audio_batch.h"
-#if MELODEE_PROPHET
-#include "eng_prophet_test.c"
-#endif
+#include "eng_prophet_test.c"    /* (without MELODEE_PROPHET: its patches alone, the tracks silent) */
 #include "eng_phase.c"
 #include "eng_cz.c"
 #include "eng_sid.c"
@@ -50,6 +48,7 @@ static const engine_t ENG_RETIRED = {         /* 13 without MELODEE_SLICE: reser
 /* Each track owns only its selected engine's working state. Simple engines
  * use voice_t alone. State is released after the old engine's switch fade. */
 #include "resources.c"
+#include "eng_m2k.c"          /* SAW ENS STAT PAR DYN WAV: MONO2K's machines, a copy a voice */
 static uint32_t eng_state_size(uint32_t e)
 {
     switch (e) {
@@ -75,7 +74,12 @@ static uint32_t eng_state_size(uint32_t e)
     case 3: return sizeof(sid_part_t);              /* SID (eng_sid.c) */
 #endif                                              /* (Felucca's PHASE, LOFI, VOICE and TRIO: voice_t alone) */
     case ENGI_DRUM: return sizeof(drum909_part_t);
+#if !MELODEE_M2K_ENGINES                            /* (retired with MONO2K's six: no part state) */
     case ENGI_FM6: return sizeof(fm6_part_t);
+#endif
+    case ENGI_SAW: case ENGI_SAW + 2u: case ENGI_SAW + 3u: case ENGI_SAW + 4u: case ENGI_WAV:
+        return M2K_PART_BYTES(M2K_SAW);
+    case ENGI_SAW + 1u: return M2K_PART_BYTES(M2K_ENS);
 #if MELODEE_SLICE
     case ENGI_SLICE: return sizeof(slc_rb_t);
 #endif
@@ -116,7 +120,9 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,                /* 0: retired ANALOG; stored ID reserved */
 #endif
     &ENG_RETIRED,                /* 1: retired DIGITAL; stored ID reserved */
-#if MELODEE_FELUCCA_ENGINES
+#if MELODEE_M2K_ENGINES
+    &ENG_RETIRED,                /* 2: PHASE, retired again (MELODEE_M2K_ENGINES); stored ID reserved */
+#elif MELODEE_FELUCCA_ENGINES
     &ENG_FPHASE,                 /* 2: PHASE, Felucca's (restored with its original number) */
 #elif MELODEE_LEGACY_EXTRAS
     &ENG_PHASE,                  /* 2 */
@@ -156,7 +162,11 @@ static const engine_t *const ENGINES[NENGINES] = {
 #else
     &ENG_RETIRED,                /* 11: retired NOISE; stored ID reserved */
 #endif
+#if MELODEE_M2K_ENGINES
+    &ENG_RETIRED,                /* 12: FM6, retired (MELODEE_M2K_ENGINES); stored ID reserved */
+#else
     &ENG_FM6,                    /* 12 (ENGI_FM6) */
+#endif
 #if MELODEE_SLICE
     &ENG_SLICE,                  /* 13 (ENGI_SLICE) */
 #else
@@ -172,7 +182,14 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_P5_TEST,                /* 19: Prophet (ANALOG's ID 0 stays reserved) */
     &ENG_RETIRED,                /* 20: Prophet user-preset namespace */
     &ENG_MIDI,                   /* 21: USB MIDI Track */
+    &ENG_M2K_SAW,                /* 22: SAW, MONO2K's SWAV-SAW */
+    &ENG_M2K_ENS,                /* 23: ENS, MONO2K's SWAV-ENS */
+    &ENG_M2K_STAT,               /* 24: STAT, MONO2K's FM+STAT */
+    &ENG_M2K_PAR,                /* 25: PAR, MONO2K's FM+PAR */
+    &ENG_M2K_DYN,                /* 26: DYN, MONO2K's FM+DYN */
+    &ENG_M2K_WAV,                /* 27: WAV, MONO2K's DIGI-WAV */
 };
+static int m2k_kind(const track_t *t) { uint32_t e = t->engine; return e >= ENGI_SAW && e <= ENGI_WAV ? (int)(e - ENGI_SAW) : M2K_SAW; }
 
 /* a track's engine number as an index (the audio paths: a compare, cheaper than % NENGINES; a bad number: 0) */
 static inline uint32_t eng_idx(uint32_t e) { return e < NENGINES ? e : 0u; }
@@ -190,7 +207,11 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
     memset(&made[turn], 0, sizeof made[turn]);
     made_name[turn][0] = 0;
     made[turn].name = made_name[turn];
+#if MELODEE_PROPHET || MELODEE_CZ                 /* (the engines that make their presets) */
     e->preset_make(k, &made[turn], made_name[turn]);
+#else
+    (void)k;
+#endif
     return &made[turn];
 }
 
@@ -198,10 +219,17 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * engine indices, never a retired one. The indices stay as they are (the
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
+#if MELODEE_M2K_ENGINES
+    ENGI_SAW, ENGI_SAW + 1, ENGI_SAW + 2, ENGI_SAW + 3, ENGI_SAW + 4, ENGI_WAV,   /* SAW ENS STAT PAR DYN WAV */
+#else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */
+#endif
 #if MELODEE_FELUCCA_ENGINES
-    2, 3, 5, 6,                  /* PHASE LOFI VOICE TRIO */
+#if !MELODEE_M2K_ENGINES
+    2,                           /* PHASE */
+#endif
+    3, 5, 6,                     /* LOFI VOICE TRIO */
 #if MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS
     7,                           /* WHEEL */
 #endif
@@ -234,6 +262,7 @@ static int eng_extra_retired(uint32_t e)
     if (e == ENGI_ANALOG) return 1;
 #endif
     if (!MELODEE_CZ && e == ENGI_CZ) return 1;
+    if (MELODEE_M2K_ENGINES && (e == ENGI_PROPHET || e == ENGI_FM6 || e == 2u)) return 1;   /* their sounds: silent */
     if (MELODEE_FELUCCA_ENGINES && (e == 2u || e == 5u || e == 6u || e == 9u)) return 0;
     return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
 }
@@ -245,14 +274,14 @@ static int eng_ok(uint32_t e)
 }
 static uint32_t eng_sound_idx(uint32_t e)
 {
-    return eng_extra_retired(e) || eng_ok(e) ? e : ENGI_FM6;
+    return eng_extra_retired(e) || eng_ok(e) ? e : MELODEE_M2K_ENGINES ? ENGI_SAW : ENGI_FM6;
 }
 static uint32_t eng_vis(uint32_t n) { return ENGINE_ORDER[n % NENG_SHOWN]; }
 static uint32_t eng_rank(uint32_t e)
 {
     uint32_t n;
     if (!eng_ok(e))
-        e = ENGI_FM6;                            /* (a retired or reserved engine: FM6's place) */
+        e = MELODEE_M2K_ENGINES ? ENGI_SAW : ENGI_FM6;   /* (a retired or reserved engine: the first's place) */
     for (n = 0; n < NENG_SHOWN && ENGINE_ORDER[n] != e; n++)
         ;
     return n < NENG_SHOWN ? n : 0u;
@@ -265,7 +294,9 @@ static uint32_t eng_step(uint32_t e, int32_t dir)
 /* the parts at power-on and in a new song (engine, preset; the steps empty): poly, bass, lead, drums. IT'S A
  * PROPHET 5, FM6 SOLID BASS, CZ-1 SYNTH.LEAD 1, 808 KIT (until 2026-10-16: PROPHET FUNK BASS II, FM6 PAD, SID INIT
  * SID, 808 KIT) */
-#if MELODEE_CZ
+#if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, STAT FM BASS, LOFI PULSE LD, 808 KIT */
+static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_SAW + 2, 1}, {3, 0}, {ENGI_DRUM, 0}};
+#elif MELODEE_CZ
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {ENGI_CZ, 52}, {ENGI_DRUM, 0}};
 #else                                            /* (without the CZ-1: LOFI PULSE LD, Melodee 1.0's lead) */
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {3, 0}, {ENGI_DRUM, 0}};
