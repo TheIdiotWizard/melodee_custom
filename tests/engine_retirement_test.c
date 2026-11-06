@@ -43,6 +43,23 @@ int main(void)
         bad+=check("the six keep their voices as part state; ENS also its chorus",
                    eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(24)==eng_state_size(22) &&
                    eng_state_size(27)==eng_state_size(22));
+        {   /* SAVE > USER with each of MONO2K's seven: the slot holds it, LOAD brings it back */
+            int ok=1;
+            for(uint32_t e=ENGI_SAW;e<=ENGI_NOIS;e++){
+                uint32_t k=UP_SLOTS-1u-(e-ENGI_SAW);
+                set_engine_of(TSEL,(uint8_t)e);apply_preset_to(TSEL,1);
+                for(uint32_t i=0;i<3;i++)TSEL->p[P_E0+i]=(int16_t)(e==ENGI_NOIS&&i==2u?1:5+i+e-ENGI_SAW);
+                int16_t want[8];memcpy(want,TSEL->p+P_E0,sizeof want);
+                int st=up_store(k,"M2K USER");
+                int used=up_used(k), eng=up_engine(k)==e;
+                set_engine_of(TSEL,3u);apply_preset_to(TSEL,0);
+                int ld=up_load(k);
+                if(st||!used||!eng||ld||TSEL->eng_req!=e||memcmp(TSEL->p+P_E0,want,sizeof want)){
+                    printf("persist: MONO2K user preset, engine %u: store %d used %d engine %d load %d now %u\n",e,st,used,eng,ld,TSEL->eng_req);ok=0;}
+                up_put(k,0);
+            }
+            bad+=check("SAVE > USER keeps a sound of each of MONO2K's seven; LOAD brings it back",ok);
+        }
 #endif
     }
 #elif MELODEE_WHEEL
