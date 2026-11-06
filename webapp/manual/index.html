@@ -3,7 +3,7 @@
      Copyright (C) 2026 Kerem Kilic (Ellic Studio)
      Copyright (C) 2026 Relyt29 (@relyt29), Signals Intelligence Sound (https://sigintsound.com/) -->
 <!-- Melodee user manual. English only. Screenshots are generated beside this file
-     (NIGHT UI renders, tools/manual_shots.py) and are not committed. -->
+     (MONO UI renders, tools/manual_shots.py) and are not committed. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -81,8 +81,8 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.0.3</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
-  <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the NIGHT theme; your colors depend on the MENU Settings page (long hold HOME button) → COLOR. Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.2.0</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
     <nav class="toc" id="toc" aria-label="Contents">
@@ -98,9 +98,7 @@
       <a href="#saving">Saving</a>
       <a href="#projects">Projects</a>
       <a href="#engines">Engines</a>
-      <a class="sub" href="#prophet">Prophet</a>
-      <a class="sub" href="#fm6">FM6</a>
-      <a class="sub" href="#phase">Phase</a>
+      <a class="sub" href="#m2k">SAW, ENS, STAT, PAR, DYN, WAV</a>
       <a class="sub" href="#lofi">LoFi</a>
       <a class="sub" href="#formant">Voice (formant)</a>
       <a class="sub" href="#trio">Trio</a>
@@ -138,7 +136,7 @@
       <section id="about">
         <h2>About</h2>
         <p>Melodee is multi-engine synthesizer and sequencer firmware for the M-VAVE FM-1. After you install it, the unit runs Melodee instead of the official firmware: up to eight tracks (four that play an instrument, four more for external MIDI gear), a 64-step sequencer with patterns and songs, effects, USB MIDI and audio, Bluetooth MIDI and USB Host.</p>
-        <p>The selectable engines are <strong>Prophet</strong>, <strong>FM6</strong>, Felucca’s <strong>Phase</strong>, <strong>LoFi</strong>, <strong>Voice</strong>, <strong>Trio</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
+        <p>The selectable engines are <strong>SAW</strong>, <strong>ENS</strong>, <strong>STAT</strong>, <strong>PAR</strong>, <strong>DYN</strong> and <strong>WAV</strong> from MONO2K, Felucca’s <strong>LoFi</strong>, <strong>Voice</strong>, <strong>Trio</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
       </section>
 
       <section id="before">
@@ -159,7 +157,7 @@
         <p>Factory sounds, the Rubik font and the Bluetooth radio program live in their own flash region, apart from the application. The update package carries them, and one web install writes everything. If they are missing, the FM-1 starts with <strong>Setup unfinished</strong> and <strong>Factory sounds missing</strong>; your own sounds stay. <kbd>OCT+</kbd> (<strong>CONTINUE</strong>) starts without them: Melodee Pixel instead of Rubik, only the INIT sounds, and no Bluetooth. To fix it, open the installer and press <strong>Finish setup</strong>, which writes only those files. Stop playback and switch Bluetooth off first.</p>
         <figure class="shot"><img src="boot_setup.png" alt="Startup screen saying setup is unfinished" width="240" height="240"><figcaption>Factory sounds are missing: install again or press Finish setup.</figcaption></figure>
         <p>Updating from 1.5.1 or earlier with something other than the web installer, such as Firmware Hub? Install twice. Older firmware kept preset banks where this region now lives. The first install leaves them alone, the new firmware moves them into the storage pool at startup and shows Setup unfinished, and the second install writes the factory sounds.</p>
-        <p>Current builds use <strong>both cores</strong>; Prophet can play up to eight voices per track. Single-core builds have been retired. If an update leaves the unit in the loader, install a working package again using the recovery steps below.</p>
+        <p>Current builds use <strong>both cores</strong>. Single-core builds have been retired. If an update leaves the unit in the loader, install a working package again using the recovery steps below.</p>
         <p>From a terminal you can also run <code>tools/fm1_install.py</code> (see the project README).</p>
       </section>
 
@@ -224,9 +222,12 @@
         <table>
           <thead><tr><th>Engine</th><th><kbd>KNOB 1</kbd></th><th><kbd>KNOB 2</kbd></th><th><kbd>KNOB 3</kbd></th><th><kbd>KNOB 4</kbd></th></tr></thead>
           <tbody>
-            <tr><td>Prophet</td><td>CUTOFF</td><td>RES</td><td>filter env amount</td><td>amp release</td></tr>
-            <tr><td>FM6</td><td>MLVL</td><td>MRAT</td><td>MEG</td><td>DTUN</td></tr>
-            <tr><td>Phase</td><td>DCW</td><td>ENV</td><td>DTN</td><td>release</td></tr>
+            <tr><td>SAW</td><td>UNIL</td><td>UNIW</td><td>SUB1</td><td>release</td></tr>
+            <tr><td>ENS</td><td>WAVE</td><td>PW</td><td>CHRL</td><td>release</td></tr>
+            <tr><td>STAT</td><td>1FRQ</td><td>1ENV</td><td>TONE</td><td>release</td></tr>
+            <tr><td>PAR</td><td>1ENV</td><td>2ENV</td><td>TONE</td><td>release</td></tr>
+            <tr><td>DYN</td><td>1FEN</td><td>1VOL</td><td>2ENV</td><td>release</td></tr>
+            <tr><td>WAV</td><td>WAVE</td><td>SCAN</td><td>SYNC</td><td>release</td></tr>
             <tr><td>LoFi</td><td>WAVE</td><td>DUTY</td><td>CRSH</td><td>release</td></tr>
             <tr><td>Voice</td><td>VOWL</td><td>BUZZ</td><td>BRTH</td><td>TALK</td></tr>
             <tr><td>Trio</td><td>CUT</td><td>RES</td><td>PW</td><td>INT2</td></tr>
@@ -243,14 +244,14 @@
 
       <section id="tracks">
         <h2>Tracks</h2>
-        <p>Up to eight tracks, one instrument and sound each. Tracks 1–4 can use any engine; tracks 5–8 are MIDI-only (see <a href="#midi-track">MIDI Track</a>). A new song starts with the four parts. <kbd>ALGORITHM</kbd> selects among the tracks in use; the screen and its knobs take that track’s color. In <strong>NIGHT</strong> the four tracks are coral, amber, mint and lilac, and tracks 5–8 repeat them. Other themes use their own four. Knob 1 is the track color; the other three knobs are shades of it.</p>
+        <p>Up to eight tracks, one instrument and sound each. Tracks 1–4 can use any engine; tracks 5–8 are MIDI-only (see <a href="#midi-track">MIDI Track</a>). A new song starts with the four parts. <kbd>ALGORITHM</kbd> selects among the tracks in use; the screen and its knobs take that track’s color. In <strong>MONO</strong> every track is white. Knob 1 is the track color; the other three knobs are shades of it.</p>
         <ul>
           <li>On Stage, hold <kbd>OCT+</kbd> and choose <strong>Add track</strong>. The next track (up to eight) starts with its own power-on sound and empty patterns, becomes selected, and opens the sound browser. <kbd>OCT−</kbd> keeps that starting sound. A new track 5–8 opens on its MIDI channel instead. <strong>TRACKS FULL</strong> means eight are already in use.</li>
           <li><strong>Remove track</strong> removes the selected track after a question, and only while stopped (<strong>STOP FIRST</strong> otherwise). The tracks after it move down, taking their sounds, patterns, song sections, motion and recordings with them. The last remaining track cannot be removed.</li>
           <li>Stage, the mixer, PATTERNS, SONG and GLO show four tracks at a time: the selected track’s group, 1–4 or 5–8. Projects and the template keep their own track count.</li>
           <li>Each track carries its own engine, sound, patterns, transpose, effect sends, modulation and voice settings. ROOT, SCL, QNT and MPC degree are shared by the project.</li>
           <li>Mixing and solo live under <kbd>GLO</kbd> — see <a href="#global">Global</a> for MIXER, GLOBAL and SYSTEM.</li>
-          <li>Sounding voices share one <strong>BUDGET</strong> (<kbd>GLO</kbd> → GLOBAL, <kbd>KNOB 2</kbd>): 8–32 points, default 18, remembered with the device. An idle track reserves nothing, and MIDI tracks use none. FM6 uses 1 point per voice (up to 16). Prophet uses 2 per voice (up to eight voices a track). Other engines use 2. <kbd>GLO</kbd> → WEIGHTS can replace those points for each engine. Melodee runs at the boot loader’s 360&nbsp;MHz and does not change the clock. A unit updated while it was still at 320&nbsp;MHz keeps that clock until the next power-off, and the allowance is smaller until then.</li>
+          <li>Sounding voices share one <strong>BUDGET</strong> (<kbd>GLO</kbd> → GLOBAL, <kbd>KNOB 2</kbd>): 8–32 points, default 18, remembered with the device. An idle track reserves nothing, and MIDI tracks use none. ENS uses 3 points per voice. Other engines use 2. <kbd>GLO</kbd> → WEIGHTS can replace those points for each engine. Melodee runs at the boot loader’s 360&nbsp;MHz and does not change the clock. A unit updated while it was still at 320&nbsp;MHz keeps that clock until the next power-off, and the allowance is smaller until then.</li>
         </ul>
       </section>
 
@@ -267,7 +268,7 @@
             <tr><td><kbd>KNOB 1</kbd> LIST</td><td>Choose the list — ALL, FAV, RECENT, or a category (BASS, LEAD, PAD, …). Each track remembers its own list.</td></tr>
             <tr><td><kbd>KNOB 2</kbd> / <kbd>PRESETS</kbd></td><td>Scroll sounds. While the list moves fast, the sound loads when the knob rests.</td></tr>
             <tr><td><kbd>KNOB 3</kbd> FAV</td><td>Mark or unmark the current sound as a favourite (device favourites survive power-off).</td></tr>
-            <tr><td><kbd>KNOB 4</kbd> ENGINE</td><td>Change the engine and start from its <strong>init</strong> sound (dry, nothing changed): INIT PROPHET, FM6 INIT VOICE, the 808 kit, or the first preset of an engine without an INIT (PHASE BRASS, LOFI PULSE LD and so on). MIDI Track is one of the choices on tracks 1–4.</td></tr>
+            <tr><td><kbd>KNOB 4</kbd> ENGINE</td><td>Change the engine and start from its <strong>init</strong> sound (dry, nothing changed): the 808 kit, or the first preset of an engine without an INIT (SUPERSAW, LOFI PULSE LD and so on). MIDI Track is one of the choices on tracks 1–4.</td></tr>
             <tr><td><kbd>OCT+</kbd> / <kbd>OCT−</kbd></td><td>Keep the browsed sound / revert to the one you had.</td></tr>
           </tbody>
         </table>
@@ -287,9 +288,9 @@
           </div>
           <p>Stop, tap <kbd>SAVE</kbd>, choose <strong>USER</strong>, pick a slot with <kbd>KNOB 1</kbd>/<kbd>KNOB 2</kbd>, press <kbd>OCT+</kbd> for the sheet (Load, Save here, Rename, Erase), choose <strong>Save here</strong>, then <kbd>OCT+</kbd> again. Name it on the NAME screen.</p>
           <ul>
-            <li>Every engine shares one bank, <strong>U001–U384</strong>. A slot can hold a Prophet program, an FM6 voice, a sound of any other engine, a drum kit, or any mix of those. <strong>SAVE → USER</strong>, <strong>FM6 → STORE</strong> and <strong>P5 STORE</strong> are that same bank. PRESETS lists a user sound under its own engine’s factory tones.</li>
+            <li>Every engine shares one bank, <strong>U001–U384</strong>. A slot can hold a sound of any engine, a drum kit, or any mix of those. <strong>SAVE → USER</strong> is that bank. PRESETS lists a user sound under its own engine’s factory tones.</li>
             <li>Saving keeps the native voice and the sound’s envelopes, modulation, voice controls and spread. Loading leaves the track’s mix, effects, scale, arpeggiator and notes alone.</li>
-            <li><strong>Import here:</strong> a DX7, Prophet or Melodee preset sent over USB opens the USER list. Pick the destination with <kbd>KNOB 1</kbd>, press <kbd>OCT+</kbd> and choose <strong>Import here</strong>. A DX7 cartridge needs 32 consecutive slots from there. Occupied slots ask before they are replaced. <strong>Cancel import</strong> leaves the slots unchanged. Playback must be stopped. An import does not load a track.</li>
+            <li><strong>Import here:</strong> a Melodee preset sent over USB opens the USER list. Pick the destination with <kbd>KNOB 1</kbd>, press <kbd>OCT+</kbd> and choose <strong>Import here</strong>. Occupied slots ask before they are replaced. <strong>Cancel import</strong> leaves the slots unchanged. Playback must be stopped. An import does not load a track.</li>
           <li><strong>Bulk presets:</strong> hold <kbd>OCT+</kbd> and turn <kbd>SELECT</kbd>, <kbd>KNOB 1</kbd> or <kbd>KNOB 2</kbd> to select a range of USER or STORE slots. Release, then tap <kbd>OCT+</kbd> for <strong>Send selected</strong> (USB SysEx), <strong>Erase selected</strong> (one confirmation) or <strong>Clear selection</strong>. Empty slots are skipped. A single USER slot can also <strong>Send</strong>.</li>
           </ul>
           <h4>NAME screen</h4>
@@ -300,7 +301,7 @@
               <tr><td>Black keys</td><td>Switch mode: ← , SPACE , → , DEL (and 123 for numbers).</td></tr>
               <tr><td><kbd>KNOB 1</kbd></td><td>Move the cursor.</td></tr>
               <tr><td><kbd>KNOB 2</kbd></td><td>Change the character under the cursor.</td></tr>
-              <tr><td><kbd>OCT+</kbd> / <kbd>OCT−</kbd></td><td>Save the name / cancel. Name length depends on the engine: Prophet 20 characters, FM6 10, others 12.</td></tr>
+              <tr><td><kbd>OCT+</kbd> / <kbd>OCT−</kbd></td><td>Save the name / cancel. Names are up to 12 characters.</td></tr>
             </tbody>
           </table>
         </section>
@@ -328,7 +329,7 @@
           <li><strong>Storage:</strong> projects and user sound banks share one pool. A project takes only what it holds, typically about two 4&nbsp;KB sectors, and an empty slot takes nothing. The selected slot shows the room left in KB. A full pool refuses a save with <strong>STORAGE FULL</strong>; erasing a project frees its space. A save finishes writing before it replaces the old version, so an interrupted save keeps the previous one.</li>
           <li><strong>Limits:</strong> about 1,450 set steps fit across a project’s patterns. An edit past that is refused with <strong>PATTERN STORAGE FULL</strong>, so the music can always be saved. A save that does not fit says <strong>PROJECT FULL</strong> and the saved copy stays. A project saved by earlier firmware keeps its full size until it is saved again.</li>
           <li><strong>New song</strong> opens the wizard, stopped only. Set key, scale and tempo (<kbd>KNOB 1</kbd> ROOT, <kbd>KNOB 2</kbd> SCALE, <kbd>KNOB 3</kbd> TEMPO), then a role on each of the four knobs: <strong>--</strong> (no track), <strong>KEEP</strong>, <strong>DRUMS</strong>, <strong>BASS</strong>, <strong>CHORDS</strong>, <strong>LEAD</strong> or <strong>PAD</strong>. The song keeps the places that have a role, in order, with empty patterns. With no template, all four start as KEEP. A saved template starts KEEP on as many of the four as it has tracks. A role’s first factory sound is used when the template’s sound does not already fit that role. Add MIDI tracks from Stage’s sheet afterwards.</li>
-          <li><strong>Template</strong>: save your current sounds, settings and number of tracks as the template for new projects (empty patterns). With no boot project and no template, power-on is four tracks with the default sounds: It’s a Prophet, FM6 SOLID BASS, LOFI PULSE LD and the 808 kit.</li>
+          <li><strong>Template</strong>: save your current sounds, settings and number of tracks as the template for new projects (empty patterns). With no boot project and no template, power-on is four tracks with the default sounds: SAW SUPERSAW, STAT FM BASS, LOFI PULSE LD and the 808 kit.</li>
           <li>Holding <kbd>SAVE</kbd>, or <kbd>SAVE</kbd>+<kbd>REC</kbd>, writes the project back to its slot (<code>SAVED 02</code>, and so on). If it is playing, the screen says <strong>STOPPING TO SAVE</strong> and the transport stops first. A project with no slot yet opens PROJECT on a free slot (<strong>NEW PROJECT: PICK SLOT</strong>).</li>
           <li><strong>Autosave:</strong> stopped and untouched for five seconds (no key, button, knob or MIDI), a project that already has a slot saves itself when it changed. Hold <kbd>HOME</kbd> and set <strong>AUTOSAVE</strong> to <strong>OFF</strong> to save only by hand. It defaults <strong>ON</strong>, and the choice survives power-off. Manual <kbd>SAVE</kbd> stays available either way.</li>
         </ul>
@@ -336,135 +337,25 @@
 
       <section id="engines">
         <h2>Engines</h2>
-        <p>Selectable instruments: <strong>PROPHET</strong>, <strong>FM6</strong>, <strong>PHASE</strong>, <strong>LOFI</strong>, <strong>VOICE</strong>, <strong>TRIO</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections (and on FM6 picks the operator). On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
+        <p>Selectable instruments: <strong>SAW</strong>, <strong>ENS</strong>, <strong>STAT</strong>, <strong>PAR</strong>, <strong>DYN</strong>, <strong>WAV</strong>, <strong>LOFI</strong>, <strong>VOICE</strong>, <strong>TRIO</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
         <p>Retired engines (ANALOG, DIGITAL, NOISE, CZ-1, and others) stay silent if an old project still names them; a track saved with SID plays as LOFI, which has SID’s engine number; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
 
-        <section id="prophet">
-          <h3>Prophet</h3>
-          <p class="small">Melodee’s own Prophet-5–style engine. Factory programs from Sequential’s Prophet-5/10 SysEx.</p>
-          <p>Sequential Prophet-5 Rev 4–style programs: two oscillators (saw, pulse; B also triangle), hard sync, mixer, SSI or Curtis four-pole filter, separate filter and amp envelopes, Poly-Mod, LFO, wheel, unison, glide and Vintage. PRESETS browses INIT, Sequential’s 200 factory programs, then the shared user slots that hold Prophet programs (<strong>U001–U384</strong>). Navigate between sections/pages with PRESETS knob, Navigate between individual settings per page (e.g. OSC A vs OSC B), with SELECT knob. In the SECTION map, use KNOB 2 for the category, KNOB 1 or SELECT for its page, and OCT+ to open it.</p>
-          <div class="shots">
-            <figure class="shot"><img src="stage_p5.png" alt="Prophet Stage knobs" width="240" height="240"><figcaption>Prophet Stage knobs: cutoff, res, env amount, release.</figcaption></figure>
-            <figure class="shot"><img src="ref_map_p5.png" alt="Prophet section map" width="240" height="240"><figcaption>The section map (tap EDIT on an EDIT page).</figcaption></figure>
-            <figure class="shot"><img src="ref_edit_osc.png" alt="Prophet oscillator page" width="240" height="240"><figcaption>OSC A page.</figcaption></figure>
-          </div>
-          <h4>Oscillators</h4>
+        <section id="m2k">
+          <h3>SAW, ENS, STAT, PAR, DYN and WAV</h3>
+          <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-ENS, FM+STAT, FM+PAR, FM+DYN and DIGI-WAV machines.</p>
+          <p>Six polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and 4–5 presets. The track’s filter and shape modulation move one control of each engine. Each voice counts 2 points of the BUDGET (ENS 3).</p>
           <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
+            <thead><tr><th>Engine</th><th>Page 1</th><th>Page 2</th><th>Presets</th></tr></thead>
             <tbody>
-              <tr><td>OSC A</td><td>FREQ A (pitch, semitones), SAW A (on/off), PULSE A (on/off), WIDTH A (pulse width).</td></tr>
-              <tr><td>OSC B</td><td>FREQ B (semitones), FINE B (fine detune), WIDTH B, KEY B (B tracks the keyboard on/off).</td></tr>
-              <tr><td>B WAVES</td><td>SAW B, TRI B, PULSE B (on/off), LOW B (B becomes an LFO: low frequency oscillator).</td></tr>
+              <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS</td></tr>
+              <tr><td>ENS</td><td>CHORD: PCH2, PCH3, PCH4 (each oscillator’s interval: −12…+12 semitones or a ratio such as 3:2), WAVE</td><td>CHORUS: PW (pulse width), CHRL (chorus level), CHRW (chorus width), TUNE</td><td>MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS</td></tr>
+              <tr><td>STAT</td><td>OP 1: 1FRQ (ratio, 1/64…), 1FIN (fine), 1ENV (envelope depth), 1FB (feedback)</td><td>OP 2: 2FRQ (ratio), 2VOL, TONE, TUNE</td><td>FM BELL, FM BASS, E PIANO, FEEDBACK</td></tr>
+              <tr><td>PAR</td><td>OPS: 1FRQ, 1ENV, 2FRQ, 2ENV (two parallel modulators)</td><td>TONE: 3FRQ, 3ENV (the third), TONE, TUNE</td><td>PAR KEYS, PAR ORGN, METALLIC, PAR BASS</td></tr>
+              <tr><td>DYN</td><td>OP 1: 1FRQ, 1FEN (envelope to ratio), 1VOL, 1VEN (envelope to depth)</td><td>OP 2: 2FRQ, 2ENV, 2FB (feedback), TUNE</td><td>DYN PLUCK, DYN BRASS, DYN BELL, DYN BASS</td></tr>
+              <tr><td>WAV</td><td>WAVE: WAVE (OS01–OS64), SCAN (through the table), STIM (scan time), SYNC</td><td>SHAPE: BITS (reduction), DTUN (second oscillator), MIX2, STEP</td><td>WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS</td></tr>
             </tbody>
           </table>
-          <h4>Mixer and filter</h4>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>MIXER</td><td>OSC A level, OSC B level, NOISE level, SYNC (hard-sync B to A).</td></tr>
-              <tr><td>FILTER</td><td>CUTOFF, RES (resonance), KEY (keyboard tracking OFF / HALF / FULL), MODEL (SSI or CURTIS four-pole).</td></tr>
-            </tbody>
-          </table>
-          <h4>Envelopes</h4>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>FLT ENV</td><td>ATK (attack), DEC (decay), SUS (sustain), REL (release) for the filter envelope.</td></tr>
-              <tr><td>AMP ENV</td><td>ATK, DEC, SUS, REL for the amplifier.</td></tr>
-              <tr><td>ENV MOD</td><td>ENV AMT (the amount to open the filter, following the envelope's shape), VEL FLT (velocity → filter), VEL AMP (velocity → level), RELEASE (release stage of both amplifier and filter envelopes toggle on/off).</td></tr>
-            </tbody>
-          </table>
-          <h4>Poly-Mod, LFO and wheel</h4>
-          <p>Two separate modulation paths. <strong>Poly-Mod</strong> takes the filter envelope and/or Oscillator B as sources and routes them into Osc A’s pitch, pulse width, and the filter. Osc B can do this even when its mixer level is zero, so it works as a pure modulator (audio-rate or low-rate with LOW B). The <strong>LFO / wheel</strong> path is independent: the LFO (and optional noise) is the source; its depth is INITIAL plus the MIDI mod wheel (CC 1), then you choose destinations on the WHEEL pages.</p>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>POLYMOD</td><td>Sources (amounts): ENV AMT (filter envelope), OSC B. Destinations (on/off): FREQ A (Osc A pitch), PW A (Osc A pulse width).</td></tr>
-              <tr><td>MOD FLT</td><td>FILTER (Poly-Mod destination: filter cutoff, on/off). Also VINTAGE (component drift), AT FLT (aftertouch → filter), AT LFO (aftertouch → LFO depth).</td></tr>
-              <tr><td>LFO</td><td>Shapes the wheel-path source: RATE, and waveform SAW / TRI / SQUARE (on/off).</td></tr>
-              <tr><td>WHEEL</td><td>Depth: INITIAL (always-on amount; mod wheel CC 1 adds on top), N MIX (blend noise into the LFO). Destinations (on/off): FREQ A, FREQ B (→ oscillator pitch).</td></tr>
-              <tr><td>WHEEL 2</td><td>More destinations (on/off): PW A, PW B (→ pulse width), FILTER (→ cutoff). GLIDE is portamento time (not a modulation destination).</td></tr>
-            </tbody>
-          </table>
-          <h4>Voice and store</h4>
-          <p>The Voice section has Prophet’s own <strong>UNISON</strong> and <strong>BEND</strong> pages, plus Melodee’s shared <strong>VOICE</strong> list for the track (poly/mono, glide, priority, pan, mute). UNISON is not the VOICE page — VOICE is the list of global engine voice settings. Loading or editing UNISON copies into Melodee’s VCE / PRIO / DTUNE / ALLOC; you can override those afterwards on VOICE. Program glide stays on WHEEL 2; VOICE’s GLD is Melodee’s track portamento.</p>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>UNISON</td><td>UNISON (on/off), VOICES (1–5), DETUNE (0–7), note PRIORITY (LOW / LOW RET (retrigger) / LAST / LAST RET).</td></tr>
-              <tr><td>VOICE</td><td>List (<kbd>KNOB 2</kbd> row, <kbd>KNOB 1</kbd> value): VCE (POLY / MONO / LEG / UNI), GLD (glide time), GLMOD (RATE / TIME), PRIO (LAST / LOW / HIGH), ALLOC (ROT / REUSE), DTUNE, PAN (−100…+100%), MUTE, SPRD (stereo spread). Same shared page as other engines — see <a href="#voice">Voice</a>.</td></tr>
-              <tr><td>BEND</td><td>BEND (pitch-bend range, 1–12 semitones).</td></tr>
-              <tr><td>STORE</td><td>SLOT (U001–U384, the shared bank), STORE, SEND, INIT. Controls whose required waveform or switch is off are drawn dim; they stay editable.</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section id="fm6">
-          <h3>FM6</h3>
-          <p class="small">Uses msfa from <a href="https://github.com/asb2m10/dexed" target="_blank" rel="noopener">Dexed</a> (Google Inc., Pascal Gauthier).</p>
-          <p>Six-operator FM (Dexed / DX7–compatible): 32 algorithms with an on-screen chart, per-operator frequency, levels, envelopes and scaling, pitch envelope, LFO, and controller / portamento settings. On operator pages, <kbd>PRESETS</kbd> picks the operator. FM6 voices live in the shared slots <strong>U001–U384</strong>. DX7 librarians can send a 32-voice bank over USB into any 32 consecutive slots.</p>
-          <div class="shots">
-            <figure class="shot"><img src="ref_map_fm6.png" alt="FM6 section map with operators" width="240" height="240"><figcaption>Section map. Tap EDIT on an EDIT page.</figcaption></figure>
-            <figure class="shot"><img src="fm6_freq.png" alt="FM6 operator frequency page" width="240" height="240"><figcaption>FREQ for the selected operator.</figcaption></figure>
-            <figure class="shot"><img src="fm6_eg.png" alt="FM6 operator envelope page" width="240" height="240"><figcaption>EG RATE: the operator envelope.</figcaption></figure>
-            <figure class="shot"><img src="fm6_alg_01.png" alt="FM6 algorithm chart" width="240" height="240"><figcaption>ALGO: the algorithm chart.</figcaption></figure>
-            <figure class="shot"><img src="fm6_store.png" alt="FM6 store page" width="240" height="240"><figcaption>STORE: save into the shared user bank.</figcaption></figure>
-          </div>
-          <h4>Voice</h4>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>ALGO</td><td>ALG (algorithm 1–32), FB (feedback 0–7), SYNC (oscillator key sync), TRNS (transpose, ±24 semitones).</td></tr>
-              <tr><td>PITCH EG</td><td>R1–R4: pitch envelope rates.</td></tr>
-              <tr><td>PITCH LV</td><td>L1–L4: pitch envelope levels.</td></tr>
-              <tr><td>FM LFO</td><td>WAVE (TRI / SAWDN / SAWUP / SQR / SIN / S&amp;H), SPEED, DELAY, KSYNC (key sync).</td></tr>
-              <tr><td>FM LFO 2</td><td>PMD (pitch mod depth), AMD (how much the LFO wobbles amplitude — global amp-mod depth), PMS (pitch mod sensitivity 0–7).</td></tr>
-            </tbody>
-          </table>
-          <h4>Per operator</h4>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>FREQ</td><td>CRS (coarse ratio, or Hz in FIXED), FINE, DTN (detune ±7), MODE (RATIO / FIXED).</td></tr>
-              <tr><td>OUT</td><td>OUT (output level 0–99), VEL (velocity sensitivity 0–7), AMS (how much this operator follows amp mod, 0–3; see below), ON (operator on/off).</td></tr>
-              <tr><td>EG RATE</td><td>R1–R4: envelope rates (0–99).</td></tr>
-              <tr><td>EG LVL</td><td>L1–L4: envelope levels (0–99).</td></tr>
-              <tr><td>SCALE</td><td>Keyboard level and rate scaling. BRK (break point — at this note, level is unchanged), LDEP / RDEP (how strongly level changes left / right of BRK, 0–99; 0 = off), RSCL (rate scaling 0–7: higher keys run the envelope faster).</td></tr>
-              <tr><td>CURVE</td><td>LCRV / RCRV: shape and direction of level scaling on each side of BRK (−LIN / −EXP lower the operator’s level as you move away; +EXP / +LIN raise it). Depth (LDEP / RDEP) sets how much; the curve’s sign sets which way.</td></tr>
-            </tbody>
-          </table>
-          <p>AMS is not the operator envelope (that’s EG RATE / EG LVL). It’s DX7-style <em>amplitude modulation sensitivity</em>: how strongly this operator’s level follows amp mod from the LFO’s AMD, or from controllers routed to amplitude (wheel / breath / aftertouch with destination A). AMD sets how much amp wobble exists; AMS (0 = ignore, 3 = strongest) sets whether <em>this</em> operator hears it. Use it for tremolo on a carrier, or put AMS on a modulator so the LFO breathes the brightness instead of the overall volume.</p>
-          <p>SCALE and CURVE are DX7-style keyboard level scaling: they raise or lower that operator’s output as you play above or below BRK. Classic use: −LIN or −EXP on the right so high notes get quieter, or so a modulator thins out and the sound gets less bright up the keyboard.</p>
-          <h4>Controllers (per track, saved with the project)</h4>
-          <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
-            <tbody>
-              <tr><td>FM BEND</td><td>BEND+ / BEND− (bend range up / down, 0–12 st), STEP (bend step), DXVEL (DX velocity curve on/off).</td></tr>
-              <tr><td>FM PORTA</td><td>PORTA (PEDAL / ON), TIME, GLISS (glissando on/off), ENGINE (MODERN / MARK&nbsp;I / OPL — algorithms 4 and 6 use longer feedback loops in MARK&nbsp;I).</td></tr>
-              <tr><td>FM WH/FT</td><td>WHEEL range, W.DST (wheel destination: P / A / E combinations), FOOT range, F.DST.</td></tr>
-              <tr><td>FM BR/AT</td><td>BRTH (breath) range and B.DST, AFTER (aftertouch) range and A.DST.</td></tr>
-              <tr><td>STORE</td><td>SLOT (U001–U384, the same bank as SAVE → USER), STORE, SEND, INIT.</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section id="phase">
-          <h3>Phase</h3>
-          <p class="small">Ported from <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> by Leo Kuroshita (Hügelton Instruments), from Felucca-Engines.</p>
-          <p>Phase distortion: a -cos table read through a bent phase. Six presets: BRASS, ORGAN, STRING, RESO, BELL, WIRE. Stage knobs: DCW, ENV, DTN, REL.</p>
-          <table>
-            <thead><tr><th>Page</th><th>Control</th><th>What it means</th></tr></thead>
-            <tbody>
-              <tr><td>PHS</td><td>WAVE</td><td>SAW, SQR, PLS, DSIN, SPLS bend the phase by DCW; RSAW, RTRI, RTRP are a sine windowed by a saw, triangle or trapezoid whose pitch rises with DCW.</td></tr>
-              <tr><td></td><td>WAVE2</td><td>− or a second wave, played every other cycle.</td></tr>
-              <tr><td></td><td>DCW</td><td>How far the phase is bent: 0 is a plain sine.</td></tr>
-              <tr><td></td><td>ENV</td><td>How much the track's envelope moves DCW.</td></tr>
-              <tr><td>LINE</td><td>DTN</td><td>0–127 cents: a second line detuned above the first (0 with LINE MIX: one line).</td></tr>
-              <tr><td></td><td>LINE</td><td>MIX adds the second line; RING multiplies the two.</td></tr>
-              <tr><td></td><td>SUB</td><td>A sine an octave down.</td></tr>
-              <tr><td></td><td>FOLD</td><td>A sine wavefolder: 0 off, then soft saturation up to about four folds. High notes fold less.</td></tr>
-            </tbody>
-          </table>
+          <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
         </section>
         <section id="lofi">
           <h3>LoFi</h3>
@@ -612,7 +503,7 @@
 
         <section id="voice">
           <h3>Voice</h3>
-          <p>All synthesis engines have a VOICE settings page, with the same options regardless of engine. This includes shared voice allocation and tuning for the track, under <kbd>EDIT</kbd> → VOICE (a list; <kbd>KNOB 2</kbd> moves the row, <kbd>KNOB 1</kbd> sets its value). Prophet and FM6 also have their own voicing pages; VOICE still sets poly/mono mode, glide, priority, pan, mute and spread for them.</p>
+          <p>All synthesis engines have a VOICE settings page, with the same options regardless of engine. This includes shared voice allocation and tuning for the track, under <kbd>EDIT</kbd> → VOICE (a list; <kbd>KNOB 2</kbd> moves the row, <kbd>KNOB 1</kbd> sets its value).</p>
           <figure class="shot"><img src="voice.png" alt="Voice list page" width="240" height="240"><figcaption>VOICE list.</figcaption></figure>
           <table>
             <thead><tr><th>Row</th><th>Values</th><th>What it means</th></tr></thead>
@@ -672,7 +563,7 @@
             <tr><td>AMT</td><td>−100…+100%.</td></tr>
           </tbody>
         </table>
-        <p>Edit Prophet and FM6 envelopes on those engines’ EDIT pages (and in the web editor). Hold <kbd>LFO</kbd> while turning sound or effect knobs for temporary changes that restore when you release (or keep with <kbd>OCT+</kbd>).</p>
+        <p>Hold <kbd>LFO</kbd> while turning sound or effect knobs for temporary changes that restore when you release (or keep with <kbd>OCT+</kbd>).</p>
       </section>
 
       <section id="effects">
@@ -880,7 +771,7 @@
 
         <section id="motion">
           <h3>Motion</h3>
-          <p>Knob moves recorded into the pattern: Prophet and other engines’ Stage knobs and sound pages, FM6 operator and voice pages, and other motion-capable sound and effect controls. MOTION lists one lane per automated control on the pattern that is playing.</p>
+          <p>Knob moves recorded into the pattern: each engine’s Stage knobs and sound pages, and other motion-capable sound and effect controls. MOTION lists one lane per automated control on the pattern that is playing.</p>
           <figure class="shot"><img src="ref_motion.png" alt="Motion lanes with a step and value selected" width="240" height="240"><figcaption>MOTION: KNOB 3 picks the step, KNOB 4 sets its value.</figcaption></figure>
           <table>
             <thead><tr><th>Control</th><th>What it does</th></tr></thead>
@@ -932,7 +823,7 @@
             <tr><td>MIXER</td><td><kbd>KNOB 1</kbd> LEVEL, <kbd>KNOB 2</kbd> PAN, <kbd>KNOB 4</kbd> MUTE for the selected track. Sends live on the effect pages.</td></tr>
             <tr><td>GLOBAL</td><td><kbd>KNOB 1</kbd> A4 concert pitch (<strong>400–480&nbsp;Hz</strong>, default 440), <kbd>KNOB 2</kbd> <strong>BUDGET</strong> budget for CPU resources (8–32 points, default 18; see <a href="#tracks">Tracks</a>), <kbd>KNOB 3</kbd> CLK (INT / USB / TRS / BLE; see <a href="#midi-clock">Clock and transport</a>), <kbd>KNOB 4</kbd> TUNE (fine cents, ±50). A4, BUDGET and CLK are device settings: they survive power-off and stay when you load a project. TUNE, and SYSTEM’s MIDI and ROUT, come back at power-on, but a project or template brings its own.</td></tr>
             <tr><td>SYSTEM</td><td>MIDI (the input MIDI tracks listen to: USB, TRS or BLE; instrument tracks accept every input), DRUM channel (OFF or 1–16, default 10), ROUT (<strong>CH1-4</strong>, <strong>SEL</strong>, <strong>CH5-8</strong>, <strong>CH9-12</strong> or <strong>CH13-16</strong>), and CPU info. <kbd>KNOB 1</kbd> also shows receive activity. See <a href="#midi">MIDI</a>.</td></tr>
-            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for P5, FM6, DRUM, PHASE, LOFI, VOICE, TRIO, WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
+            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for SAW, ENS, FM+ (STAT, PAR and DYN), WAV, DRUM, LOFI, VOICE, TRIO, WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
           </tbody>
         </table>
       </section>
@@ -950,7 +841,7 @@
         <table>
           <thead><tr><th>Item</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>COLOR</td><td><strong>NIGHT</strong> (default), <strong>DAY</strong>, <strong>CONTRAST</strong>, <strong>SUNSET</strong>, <strong>OCEAN</strong>, <strong>NEON</strong>, <strong>CANDY</strong>, <strong>LO-FI</strong> or <strong>DUSK</strong> (CONTRAST with muted purple, pink, yellow and green tracks). Knob 1 uses the selected track’s color; the other three knobs are shades of it. Remembered.</td></tr>
+            <tr><td>COLOR</td><td><strong>MONO</strong>: white on black, all tracks in white. Knob 1 uses the selected track’s color; the other three knobs are shades of it. Remembered.</td></tr>
             <tr><td>FONT</td><td><strong>RUBIK</strong> (default) or <strong>PIXEL</strong> (Melodee Pixel, a block face). Pages keep the same layout in either. Remembered.</td></tr>
             <tr><td>HOLD</td><td>The duration of a long hold of a button or knob (0.3–0.6&nbsp;s) to pull up an additional menu or action.</td></tr>
             <tr><td>LIGHTS</td><td>Idle indicator brightness, OFF (only pressed / engaged / selectable) through FULL.</td></tr>
@@ -1105,7 +996,7 @@
       <section id="editor">
         <h2>Web editor</h2>
         <p>Edit the FM-1 from the computer in Chrome or Edge: <a href="../editor/">Open the patch editor</a>.</p>
-        <p>Connect over USB for sound and mixer controls, a 6-operator FM editor, a Prophet panel, sequencer and motion, the shared library of 384 user slots, SysEx import/export, projects, settings (including BUDGET), and complete backup / restore.</p>
+        <p>Connect over USB for sound and mixer controls, sequencer and motion, the shared library of 384 user slots, SysEx import/export, projects, settings (including BUDGET), and complete backup / restore.</p>
         <p>The editor understands rests, continued blocks, 64 sections and Loop song, but some of this version’s features are device-only for now. Its arrangement view has four tracks, its pattern view shows eight patterns, and its project command reaches slots 1–4. Timed punches and song presets are edited on the device, and replacing a whole arrangement from the editor clears them. Backups keep them all.</p>
       </section>
 
