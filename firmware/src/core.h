@@ -85,7 +85,8 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define ENGI_MIDI 21u            /* 20 reserved for the Prophet user-preset namespace */
 #define ENGI_SAW 22u
 #define ENGI_WAV 27u
-#define NENGINES 28               /* append engines without reusing preset namespaces */
+#define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.1) */
+#define NENGINES 29               /* append engines without reusing preset namespaces */
 #define USER_NATIVE_FM 17u
 #define USER_NATIVE_CZ 18u
 #define USER_NONE 65535u
@@ -103,8 +104,8 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
 #define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
 #if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
-#define NENG_SHOWN (12u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
-                                                /* SAW ENS STAT PAR DYN WAV LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
+#define NENG_SHOWN (13u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
+                                                /* SAW ENS STAT PAR DYN WAV NOIS LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
 #elif MELODEE_FELUCCA_ENGINES
 #define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
                                                 /* PROPHET FM6 PHASE LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */

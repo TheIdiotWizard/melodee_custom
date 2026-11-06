@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio)
  * Portions Copyright (C) 2026 Sequencist (InigoHernandez), MONO2K: https://github.com/InigoHernandez/mono2k */
-/* SAW, ENS, STAT, PAR, DYN and WAV: MONO2K's SWAV-SAW, SWAV-ENS, FM+STAT, FM+PAR, FM+DYN and DIGI-WAV machines
+/* SAW, ENS, STAT, PAR, DYN, WAV and NOIS: MONO2K's SWAV-SAW, SWAV-ENS, FM+STAT, FM+PAR, FM+DYN, DIGI-WAV and GND-NOIS machines
  * (MONO2K firmware/src/m2k_dsp.c mach_block, GPL-3.0-only), each voice of a part running its own copy. The machines'
  * sample loops, laws and tables are MONO2K's (m2k_tables.h, extracted unchanged); what changed for Melodee:
  *  - a machine is a voice: Melodee's ADSR, velocity, glide, unison and LFO play it (MONO2K's own track chain, its
@@ -12,9 +12,14 @@
  *  - WAV plays the owner's 64 waves (MONO2K's WAVE bank 64; in the resource region, res.c: silent without it), its
  *    sync master a free phase per voice;
  *  - the FM ratios and ENS's intervals are lists (an index each: the names MONO2K shows);
+ *  - NOIS is the noise alone: MONO2K's chain filter, which follows the note, is Melodee's track filter here (and so
+ *    its TUNE goes); STON's second noise goes across SPREAD's two sides (eng_m2k_post), in the middle without SPREAD
+ *    unheard, as a mono sum of MONO2K's;
  *  - FLT (Melodee's LFO / ENV to the filter) and SHP move one control each, named in the table below.
  * The 32 x 32 -> 64 multiplies sit in out-of-line helpers on the device (M2K_MUL_OUT, as MONO2K's FM-1 build). */
 #include "m2k_tables.h"
+static uint8_t spread_on;             /* (voice.c: SPREAD's part, its left side) */
+static int32_t *spread_buf;
 
 #define M2K_POLY 6u                  /* voices a part (POLY, UNISON) */
 #define M2K_ENS_POLY 3u              /* ENS: up to four saw pairs a voice */
@@ -22,7 +27,8 @@
 #define M2K_ENS_LEN 1024u            /* ENS's chorus line: 46 ms at half rate */
 #define M2K_ENS_GAIN 7119            /* a voice against the others' levels (MONO2K: calibrated, chain_ens20) */
 #define M2K_CLAMP(v, lo, hi) ((v) < (lo) ? (lo) : (v) > (hi) ? (hi) : (v))
-enum { M2K_SAW, M2K_ENS, M2K_STAT, M2K_PAR, M2K_DYN, M2K_WAV };
+enum { M2K_SAW, M2K_ENS, M2K_STAT, M2K_PAR, M2K_DYN, M2K_WAV, M2K_NOIS };
+#define M2K_KINDS 7
 
 #if defined(FM1_IRQ_TARGET)
 #define M2K_MUL_FN static __attribute__((noinline))
@@ -87,11 +93,29 @@ static inline uint32_t m2k_fmd_at(int32_t v8)
     return T_FMDV[i] + (((T_FMDV[i + 1] - T_FMDV[i]) * (uint32_t)(v8 & 255)) >> 8);
 }
 
+/* a plain one-pole, y += G (x - y), G Q24 (MONO2K's op_lp): NOIS's colours */
+typedef struct { int32_t s, G; uint32_t r; } m2k_op_t;
+static inline int32_t m2k_op_lp(m2k_op_t *f, int32_t x)
+{
+    int64_t p = m2k_mul_sh(x - f->s, f->G, 0) + f->r;
+    f->r = (uint32_t)p & ((1u << 24) - 1);
+    f->s += (int32_t)(p >> 24);
+    return f->s;
+}
 /* a voice's machine state, as MONO2K's track's */
 typedef struct {
-    uint32_t ph[7];
-    int32_t ms[6];
-    uint32_t menv[3];                /* Q30 envelopes from the note */
+    union {
+        struct {
+            uint32_t ph[7];
+            int32_t ms[6];
+            uint32_t menv[3];        /* Q30 envelopes from the note */
+        };
+        struct {                     /* NOIS */
+            m2k_op_t gn[2][4];       /* each noise's colours: three one-poles and red's */
+            uint32_t lfsr, lfsr2;    /* the two noises (kept from note to note) */
+            int32_t white;           /* 1: the white path ran, the colours stand */
+        };
+    };
     uint32_t drng;                   /* SAW's drift */
 } m2k_voice_t;
 typedef struct {                     /* ENS: the part's chorus line, after its voices */
@@ -101,9 +125,13 @@ typedef struct {                     /* ENS: the part's chorus line, after its v
 } m2k_chorus_t;
 typedef struct {
     m2k_voice_t v[M2K_POLY];
-    m2k_chorus_t ch;                 /* (ENS only: eng_state_size) */
+    union {                          /* (eng_state_size: ENS's chorus, NOIS's side, the others none) */
+        m2k_chorus_t ch;
+        int32_t side[CTL];           /* NOIS with STON: its voices' second noise, across the stereo */
+    };
 } m2k_part_t;
-#define M2K_PART_BYTES(kind) ((kind) == M2K_ENS ? sizeof(m2k_part_t) : __builtin_offsetof(m2k_part_t, ch))
+#define M2K_PART_BYTES(kind) ((kind) == M2K_ENS ? sizeof(m2k_part_t) : \
+    (kind) == M2K_NOIS ? __builtin_offsetof(m2k_part_t, side) + CTL * sizeof(int32_t) : __builtin_offsetof(m2k_part_t, ch))
 static int m2k_kind(const track_t *t);         /* engines.c: the machine of a track's engine */
 static m2k_part_t *m2k_part_of(const track_t *t) { return resource_get(RES_ENGINE0 + (uint32_t)(t - trk), M2K_PART_BYTES(m2k_kind(t))); }
 
@@ -365,15 +393,61 @@ static void m2k_wav(m2k_voice_t *s, const int32_t *q, uint32_t base, int16_t *o)
     }
 }
 
+/* GND-NOIS (MONO2K mach_block M_GNOI, after the Monomachine's): white noise; RED colours it, white at 0, pink at 64,
+ * red at 127 (white, pink and brown from the same noise, T_RED_W's weights); ST mixes in a second noise coloured
+ * alike, ST / 127 of it, into the middle, or with STON into side (the left hearing the first plus the second, the
+ * right the first less it). 12 dB down out of the machine, as MONO2K's (its gain takes it back) */
+#define M2K_GN_A 23460               /* the white: 0.716 of full scale */
+#define M2K_GN_HR 2
+#define NOIS_GAIN 8192               /* (Q12: 6 dB back of the 12; MONO2K's chain filter takes the lows before its +12, Melodee's
+                                      * comes after the voice: pink at ST 127, its loudest, clips under 1 % of its samples) */
+static __attribute__((noinline)) void m2k_nois(m2k_voice_t *s, const int32_t *q, const int16_t *p, int16_t *o, int16_t *es)
+{
+    int32_t r8 = q[1], rf = r8 & 255, rw[3];
+    for (int k = 0; k < 3; k++) {
+        const int16_t *w = &T_RED_W[3 * (r8 >> 8) + k];
+        rw[k] = rf ? w[0] + (((w[3] - w[0]) * rf) >> 8) : w[0];
+    }
+    int32_t st = (int32_t)((q[0] * 258) >> 8), on = p[P_E2] != 0;       /* st Q15 */
+    if (!st && !rw[1] && !rw[2]) {   /* white, the second unheard: the first alone, the second kept in step */
+        for (uint32_t i = 0; i < M2K_SUB; i++) {
+            int32_t w = (((int32_t)m2k_noise(&s->lfsr) >> 16) * M2K_GN_A) >> 15;
+            (void)m2k_noise(&s->lfsr2);
+            o[i] = (int16_t)m2k_sat16(((w * rw[0]) >> 14) >> M2K_GN_HR);
+            es[i] = 0;
+        }
+        s->white = 1;
+        return;
+    }
+    if (s->white) { memset(s->gn, 0, sizeof s->gn); s->white = 0; }   /* turned up: the colours from rest */
+    for (int k = 0; k < 2; k++) {
+        s->gn[k][0].G = GN_G0; s->gn[k][1].G = GN_G1; s->gn[k][2].G = GN_G2; s->gn[k][3].G = GN_GT;
+    }
+    for (uint32_t i = 0; i < M2K_SUB; i++) {
+        int32_t c[2];
+        for (int k = 0; k < 2; k++) {
+            int32_t w = (((int32_t)m2k_noise(k ? &s->lfsr2 : &s->lfsr) >> 16) * M2K_GN_A) >> 15;
+            int32_t z0 = m2k_op_lp(&s->gn[k][0], w), z1 = m2k_op_lp(&s->gn[k][1], w), z2 = m2k_op_lp(&s->gn[k][2], w);
+            int32_t pk = (w * GN_KW + z0 * GN_K0 + z1 * GN_K1 + z2 * GN_K2) >> 12;
+            int32_t br = (int32_t)m2k_mul_sh(m2k_op_lp(&s->gn[k][3], z0), GN_KB, 12);
+            c[k] = (int32_t)((m2k_mul_sh(pk, rw[1], 0) + m2k_mul_sh(br, rw[2], 0) + (int64_t)w * rw[0]) >> 14);
+        }
+        int32_t n2 = (int32_t)m2k_mul_sh(c[1], st, 15);
+        o[i] = (int16_t)m2k_sat16((on ? c[0] : c[0] + n2) >> M2K_GN_HR);
+        es[i] = (int16_t)m2k_sat16(on ? n2 >> M2K_GN_HR : 0);
+    }
+}
+
 /* each machine's level into the voice (Q12: a voice's peak about 0.9 of full scale, no clip) and the
  * controls FLT and SHP move */
-static const struct { int16_t gain; int8_t flt, shp; } M2K_ROLE[6] = {
+static const struct { int16_t gain; int8_t flt, shp; } M2K_ROLE[M2K_KINDS] = {
     [M2K_SAW] = {10240, 0, 1},       /* FLT UNIL, SHP UNIW */
     [M2K_ENS] = {6144, 3, 4},        /* FLT WAVE, SHP PW */
     [M2K_STAT] = {7400, 6, 5},       /* FLT TONE, SHP 2VOL */
     [M2K_PAR] = {7400, 6, 1},        /* FLT TONE, SHP 1ENV */
     [M2K_DYN] = {7400, 2, 5},        /* FLT 1VOL, SHP 2ENV */
     [M2K_WAV] = {4500, 1, 0},        /* FLT SCAN, SHP WAVE */
+    [M2K_NOIS] = {NOIS_GAIN, 1, 0},  /* FLT RED, SHP ST */
 };
 
 static m2k_voice_t *m2k_voice_of(track_t *t, voice_t *v)
@@ -388,12 +462,23 @@ static void m2k_note_on(track_t *t, voice_t *v)
     m2k_voice_t *s = m2k_voice_of(t, v);
     int kind = m2k_kind(t);
     if (!s) return;
+    if (kind == M2K_NOIS) {          /* the noises run on; the colours from rest; the side starts empty */
+        uint32_t k = (uint32_t)(v - t->v) + 1u, part = (uint32_t)(t - trk);
+        if (!s->lfsr) s->lfsr = 0x1234567u + part * 7919u + k * 104729u;
+        if (!s->lfsr2) s->lfsr2 = 0x9E3779B9u + part * 104729u + k * 7919u;
+        memset(s->gn, 0, sizeof s->gn); s->white = 0;
+        return;
+    }
     uint32_t keep = s->ph[2], drng = s->drng;
     memset(s, 0, sizeof *s);
     s->menv[0] = s->menv[1] = s->menv[2] = 1u << 30;
     if (kind >= M2K_STAT && kind <= M2K_DYN) s->ph[0] = 1u << 31;   /* FM+'s carrier half a cycle on */
     if (kind == M2K_WAV && voice_was == 2u) s->ph[2] = keep;        /* a steal: the sync's master runs on */
     s->drng = drng;
+    if (kind == M2K_ENS) {                       /* the first note after silence: the chorus starts empty */
+        for (uint32_t k = 0; k < NVOICE; k++) if (&t->v[k] != v && t->v[k].active) return;
+        memset(&m2k_part_of(t)->ch, 0, sizeof(m2k_chorus_t));
+    }
 }
 
 static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m)
@@ -401,9 +486,10 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
     m2k_voice_t *s = m2k_voice_of(t, v);
     int kind = m2k_kind(t);
     int32_t q[8];
-    int16_t o[M2K_SUB];
+    int16_t o[M2K_SUB], es[M2K_SUB];
     if (!s) return;
     m2k_params(t, m, q, M2K_ROLE[kind].flt, M2K_ROLE[kind].shp);
+    int32_t *side = kind == M2K_NOIS && spread_on && t->p[P_E2] ? m2k_part_of(t)->side : 0;
     int32_t gain = M2K_ROLE[kind].gain, note = m->pitch16 >> 4;
     for (uint32_t b = 0; b < n; b += M2K_SUB) {
         switch (kind) {
@@ -412,23 +498,34 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
         case M2K_STAT: m2k_stat(s, q, t->p, m->inc, o); break;
         case M2K_PAR: m2k_par(s, q, t->p, m->inc, o); break;
         case M2K_DYN: m2k_dyn(s, q, m->inc, o); break;
-        default: m2k_wav(s, q, m->inc, o); break;
+        case M2K_WAV: m2k_wav(s, q, m->inc, o); break;
+        default: m2k_nois(s, q, t->p, o, es); break;
         }
         for (uint32_t i = 0; i < M2K_SUB && b + i < n; i++)
             out[b + i] += voice_amp(m2k_sat16(((int32_t)o[i] * gain) >> 12), m, b + i);
+        if (side)                    /* NOIS's second noise across the stereo: the voice's own amp on it too */
+            for (uint32_t i = 0; i < M2K_SUB && b + i < n && b + i < CTL; i++)
+                side[b + i] += voice_amp(m2k_sat16(((int32_t)es[i] * gain) >> 12), m, b + i);
     }
 }
 
 /* ENS's chorus over the part (MONO2K's: two taps off a half-rate line, each delayed by a sine at 0.2 Hz swinging
  * +-16.8 c, the second a quarter turn on; CHRL their mix, dry 1 - 0.83 x, wet 0.85 x). With SPREAD its CHRW sets them
  * apart across the two sides as MONO2K's (spread_buf: the left), without it they meet in the middle */
-static uint8_t spread_on;             /* (voice.c: SPREAD's part, its left side) */
-static int32_t *spread_buf;
 static void m2k_ens_post(track_t *t, int32_t *out, uint32_t n, uint32_t nr)
 {
-    (void)nr;
     if (t < &trk[0] || t >= &trk[NPART]) return;
     m2k_chorus_t *c = &m2k_part_of(t)->ch;
+    /* A silent part (nr 0) comes here too, with a buffer the mixer did not clear (its scratch: other audio). The
+     * line takes silence then and the buffer is left alone; taking that scratch into the line played it back,
+     * delayed, as a burst at the first note after a release had ended. */
+    if (!nr) {
+        for (uint32_t i = 0; i < n; i++) {
+            if (i & 1u) { c->line[c->w++ & (M2K_ENS_LEN - 1u)] = c->acc; c->acc = 0; }
+            c->lph += ENS_CINC;
+        }
+        return;
+    }
     int32_t chrl = (int32_t)t->p[P_E5] * 256, chrw = (int32_t)t->p[P_E6] * 256;
     int32_t dry = 32768 - (chrl * 27197) / (127 * 256), wet = (chrl * 27853) / (127 * 256);
     wet = (wet * m2k_tq16(T_ENS_G, chrw)) >> 15;
@@ -455,6 +552,18 @@ static void m2k_ens_post(track_t *t, int32_t *out, uint32_t n, uint32_t nr)
             spread_buf[i] = (int32_t)m2k_mul_sh(spread_buf[i], dry, 15) + (mid >> 1) + side;
         }
     }
+}
+
+/* NOIS with STON: its voices' second noise across the stereo (the left the first plus it, the right the first less
+ * it: SPREAD's left side takes it once more, mix_spread's difference twice) */
+static void m2k_nois_post(track_t *t, int32_t *out, uint32_t n, uint32_t nr)
+{
+    (void)out;
+    if (t < &trk[0] || t >= &trk[NPART]) return;
+    int32_t *side = m2k_part_of(t)->side;
+    if (nr && spread_on && t->p[P_E2])
+        for (uint32_t i = 0; i < n && i < CTL; i++) spread_buf[i] += side[i];
+    memset(side, 0, CTL * sizeof *side);
 }
 
 /* the controls' lists */
@@ -514,6 +623,16 @@ static const preset_t M2K_WAV_PRESETS[] = {
     {"LOFI KEYS", {90, 64, 127, 0, 70, 64, 0, 40}, {0, 70, 40, 50}, 0, 0},
     {"DIGI BASS", {120, 40, 50, 20, 0, 64, 60, 0}, {0, 50, 70, 20}, 0, 1},
 };
+
+static const preset_t M2K_NOIS_PRESETS[] = {         /* MONO2K's GND-NOIS sounds, their envelopes Melodee's */
+    {"WHITE", {0, 0, 0, 0, 0, 0, 0, 0}, {0, 30, 0, 20}, 0, 0},         /* a gated snare noise */
+    {"NOISHAT", {0, 0, 0, 0, 0, 0, 0, 0}, {0, 14, 0, 10}, 0, 0},       /* a tiny tick */
+    {"SHAKER", {0, 20, 0, 0, 0, 0, 0, 0}, {14, 26, 0, 14}, 0, 0},
+    {"WINDPAD", {0, 64, 0, 0, 0, 0, 0, 0}, {72, 100, 127, 90}, 0, 0},  /* pink */
+    {"WHOOSH", {40, 100, 1, 0, 0, 0, 0, 0}, {30, 110, 90, 60}, 0, 0},  /* red, the second across the stereo */
+};
+static const char *const N_M2K_ONOFF[3] = {"OFF", "ON", 0};
+#define M2K_NIL {"-", F_INT, 0, 0, 0, 0, 0}
 
 static const engine_t ENG_M2K_SAW = {
     .name = "SAW",
@@ -576,4 +695,14 @@ static const engine_t ENG_M2K_WAV = {
     .knob = {P_E0, P_E1, P_E3, P_REL},
     .poly = M2K_POLY,
     .note_on = m2k_note_on, .render = m2k_render,
+};
+static const engine_t ENG_M2K_NOIS = {
+    .name = "NOIS",
+    .page_title = {"NOISE", "-"},
+    .edit = {M2K_P("ST"), M2K_P("RED"), {"STON", F_ENUM, 0, 1, 0, N_M2K_ONOFF, 0}, M2K_NIL, M2K_NIL, M2K_NIL, M2K_NIL,
+             M2K_NIL},
+    .presets = M2K_NOIS_PRESETS, .npresets = NELEM(M2K_NOIS_PRESETS),
+    .knob = {P_E0, P_E1, P_E2, P_REL},
+    .poly = M2K_POLY,
+    .note_on = m2k_note_on, .render = m2k_render, .post = m2k_nois_post,
 };

@@ -316,6 +316,7 @@ if core; then
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
     t "Felucca engines: PHASE LOFI VOICE TRIO PHYS restored, CZ-1 retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
+    t "MONO2K engines: every preset sounds; the first note after silence (ENS chorus) as from a fresh part" m2k_test -O2 $FWS
     t "capture gating, derived caches and silent-track clocks" performance_test -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "canvas drawing overlaps DMA without changing pending pixels" lcd_overlap_test -O1 -w -Ibuild/gen
     t "user presets (UP_PUT parser, bank round trip, versions, PHYS DRUM -> DRUM, grid records)" upreset_test

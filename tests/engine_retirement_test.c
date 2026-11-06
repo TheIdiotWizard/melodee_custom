@@ -5,7 +5,7 @@
 int main(void)
 {
     int bad=0; reset(); up_boot();
-    bad+=check("engine and native collection IDs remain unchanged",NENGINES==28 && ENGI_MIDI==21 && ENGI_SAW==22 && ENGI_WAV==27 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
+    bad+=check("engine and native collection IDs remain unchanged",NENGINES==29 && ENGI_MIDI==21 && ENGI_SAW==22 && ENGI_WAV==27 && ENGI_NOIS==28 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
 #if MELODEE_FELUCCA_ENGINES
     /* Felucca's PHASE (2), LOFI (3), VOICE (5), TRIO (6) and PHYS (9) restored at their original numbers; CZ-1 (15)
      * retired (its stored tracks keep the number, play silent); SID's engine 3 plays as LOFI */
@@ -18,7 +18,7 @@ int main(void)
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
-            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 4, "STAT"}, {25, 4, "PAR"}, {26, 4, "DYN"}, {27, 5, "WAV"},
+            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 4, "STAT"}, {25, 4, "PAR"}, {26, 4, "DYN"}, {27, 5, "WAV"}, {28, 5, "NOIS"},
 #else
             {2, 6, "PHASE"},
 #endif

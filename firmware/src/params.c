@@ -121,7 +121,7 @@ static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN",
 #define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6 and PHASE: retired by MONO2K's six */
 static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", ENGNAME_F("VOICE"), ENGNAME_F("TRIO"), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
                                              "DRUM", MELODEE_LEGACY_EXTRAS ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
-                                             "SAW", "ENS", "STAT", "PAR", "DYN", "WAV"};
+                                             "SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "NOIS"};
 _Static_assert(NELEM(N_ENGNAME) == NENGINES, "an engine name each");
 
 #define PD(l, f, mn, mx, df) {l, f, mn, mx, df, 0, 0}
@@ -904,7 +904,7 @@ static const param_desc_t *page_desc(const page_t *pg, uint32_t slot, int16_t **
     if (pg->scope == SC_GLOBAL && (weight_kind(id) >= 0 || id == G_SAFETY)) {   /* GLO > WEIGHTS: the device's settings */
 #if MELODEE_M2K_ENGINES
         static const param_desc_t weights[] = {PE("SAW", N_VPOINTS, 0), PE("ENS", N_VPOINTS, 0), PE("FM+", N_VPOINTS, 0),
-            PE("WAV", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0), PE("LOFI", N_VPOINTS, 0), PE("VOICE", N_VPOINTS, 0),
+            PE("WAV+", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0), PE("LOFI", N_VPOINTS, 0), PE("VOICE", N_VPOINTS, 0),
             PE("TRIO", N_VPOINTS, 0), PE("WHEEL", N_VPOINTS, 0), PE("PHYS", N_VPOINTS, 0)};
 #elif MELODEE_FELUCCA_ENGINES
         static const param_desc_t weights[] = {PE("P5", N_VPOINTS, 0), PE("FM6", N_VPOINTS, 0), PE("DRUM", N_VPOINTS, 0),

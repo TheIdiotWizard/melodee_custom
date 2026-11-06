@@ -88,5 +88,6 @@ mix_extra_sends 94
 fx_bus_kernel 267
 # Full-rate stereo chorus: two integer taps; no sample-loop calls or divides.
 fx_chorus 97
-m2k_render 2169
-m2k_ens_post 186
+m2k_render 1841
+m2k_ens_post 191
+m2k_nois 479

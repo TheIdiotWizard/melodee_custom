@@ -3,8 +3,9 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.2.0](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.2.0)**
-([release notes](docs/RELEASE_1.2.0.md); earlier: [1.0.3](docs/RELEASE_1.0.3.md), [1.0.0](docs/RELEASE_1.0.0.md)).
+Current release: **[Melodee Custom 1.2.1](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.2.1)**
+([release notes](docs/RELEASE_1.2.1.md); earlier: [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+[1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
   (desktop, or Android), and press Install. Back up first; the installer offers it.
@@ -17,7 +18,8 @@ Current release: **[Melodee Custom 1.2.0](https://github.com/TheIdiotWizard/melo
 - **Engines (1.2.0):** [MONO2K](https://github.com/InigoHernandez/mono2k)'s **SAW** (SWAV-SAW), **ENS** (SWAV-ENS),
   **STAT**, **PAR**, **DYN** (FM+STAT, FM+PAR, FM+DYN) and **WAV** (DIGI-WAV, the MONO2K owner's 64 waves), each
   playable polyphonically (six voices; ENS three). **PROPHET**, **FM6** and **PHASE** are retired: tracks saved with
-  them keep their settings but play silent until another engine is picked.
+  them keep their settings but play silent until another engine is picked. **NOIS** (GND-NOIS: white to red noise,
+  a second noise across the stereo) joins them in 1.2.1.
 - **Engines (1.0):** Felucca's **WHEEL** organ and its **LOFI**, **VOICE**, **TRIO** and **PHYS** engines are back, at
   their original engine numbers. **CZ-1** and **SID** are retired (DRUM keeps KIT SID).
 - **MIDI CCs, on the channel's own track:** CC 20–23 the four Stage knobs of the track the channel plays;
@@ -27,7 +29,7 @@ Current release: **[Melodee Custom 1.2.0](https://github.com/TheIdiotWizard/melo
   chorus, room, reverb and so on) as well as NOTE TAIL and NOTE ECHO, alongside the shared sends. Melodee's own
   insert code, restored. One REVERB runs across all racks: choosing it in a slot turns it off where it was.
 - **One palette, MONO:** white on black, no colour (1.2.0; the HOME menu's COLOR shows it alone).
-- **GLO > WEIGHTS:** voice weights for SAW, ENS, FM+ (STAT, PAR, DYN), WAV, DRUM, LOFI, VOICE, TRIO, WHEEL and PHYS
+- **GLO > WEIGHTS:** voice weights for SAW, ENS, FM+ (STAT, PAR, DYN), WAV+ (WAV, NOIS), DRUM, LOFI, VOICE, TRIO, WHEEL and PHYS
   on three pages.
 - **Relative encoders everywhere:** with a relative **MIDI MODE** (HOME menu), CC 20–23, CC 91 / 93 and MIDI
   LEARN bindings move their values from where they are, like the panel knobs (1.0.3).

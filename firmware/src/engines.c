@@ -80,6 +80,7 @@ static uint32_t eng_state_size(uint32_t e)
     case ENGI_SAW: case ENGI_SAW + 2u: case ENGI_SAW + 3u: case ENGI_SAW + 4u: case ENGI_WAV:
         return M2K_PART_BYTES(M2K_SAW);
     case ENGI_SAW + 1u: return M2K_PART_BYTES(M2K_ENS);
+    case ENGI_NOIS: return M2K_PART_BYTES(M2K_NOIS);
 #if MELODEE_SLICE
     case ENGI_SLICE: return sizeof(slc_rb_t);
 #endif
@@ -188,8 +189,9 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_M2K_PAR,                /* 25: PAR, MONO2K's FM+PAR */
     &ENG_M2K_DYN,                /* 26: DYN, MONO2K's FM+DYN */
     &ENG_M2K_WAV,                /* 27: WAV, MONO2K's DIGI-WAV */
+    &ENG_M2K_NOIS,               /* 28: NOIS, MONO2K's GND-NOIS */
 };
-static int m2k_kind(const track_t *t) { uint32_t e = t->engine; return e >= ENGI_SAW && e <= ENGI_WAV ? (int)(e - ENGI_SAW) : M2K_SAW; }
+static int m2k_kind(const track_t *t) { uint32_t e = t->engine; return e >= ENGI_SAW && e <= ENGI_NOIS ? (int)(e - ENGI_SAW) : M2K_SAW; }
 
 /* a track's engine number as an index (the audio paths: a compare, cheaper than % NENGINES; a bad number: 0) */
 static inline uint32_t eng_idx(uint32_t e) { return e < NENGINES ? e : 0u; }
@@ -220,7 +222,7 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if MELODEE_M2K_ENGINES
-    ENGI_SAW, ENGI_SAW + 1, ENGI_SAW + 2, ENGI_SAW + 3, ENGI_SAW + 4, ENGI_WAV,   /* SAW ENS STAT PAR DYN WAV */
+    ENGI_SAW, ENGI_SAW + 1, ENGI_SAW + 2, ENGI_SAW + 3, ENGI_SAW + 4, ENGI_WAV, ENGI_NOIS,   /* SAW ENS STAT PAR DYN WAV NOIS */
 #else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */

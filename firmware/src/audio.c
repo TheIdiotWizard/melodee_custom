@@ -146,7 +146,7 @@ void fm1_alnk0_irq(void)                       /* via isr_alnk0 (hal/fm1_isr.S) 
             if(audio_bench_active())audio_bench_shed_requests++;
             else
 #endif
-            if (settings_safety)                        /* GLO > WEIGHTS 2 SAFETY OFF: overload cuts nothing */
+            if (settings_safety)                        /* GLO > WEIGHTS 3 GUARD OFF: overload cuts nothing */
                 shed_voice();
         }
 #if MELODEE_DUAL_CORE

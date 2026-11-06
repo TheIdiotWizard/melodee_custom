@@ -48,6 +48,7 @@ static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_SAW + 3u] = "KGEB",                           /* PAR: PAR KEYS, PAR ORGN, METALLIC, PAR BASS */
     [ENGI_SAW + 4u] = "UREB",                           /* DYN: DYN PLUCK, DYN BRASS, DYN BELL, DYN BASS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
+    [ENGI_NOIS] = "DDDPF",                              /* NOIS: WHITE, NOISHAT, SHAKER, WINDPAD, WHOOSH */
 #endif
     [10] = "DDDDDD",                                    /* DRUM: the kits (808, 909, SID, SID DIGI, CR78, FM) */
     [12] = "KEBRPEGUKRBEEKGSPLUEWEBEO",                 /* FM6, INIT VOICE */

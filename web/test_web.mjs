@@ -493,8 +493,8 @@ function mockTables() {
     const m1 = E.makeMockDevice({ auto: false, m2k: true });
     m1.stop();
     ok([2, 12, 19].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
-       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,STAT4,PAR4,DYN4,WAV5",
-       "editor: shipping firmware: PROPHET, FM6 and PHASE retired (2, 12, 19 reserved), MONO2K's SAW ENS STAT PAR DYN WAV at 22..27");
+       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,STAT4,PAR4,DYN4,WAV5,NOIS5",
+       "editor: shipping firmware: PROPHET, FM6 and PHASE retired (2, 12, 19 reserved), MONO2K's SAW ENS STAT PAR DYN WAV NOIS at 22..28");
     ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 9]].every(([i, n, k]) =>
        m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),
        "editor: Felucca's PHASE, LOFI, VOICE, TRIO and PHYS restored with their original IDs");

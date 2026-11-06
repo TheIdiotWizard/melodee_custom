@@ -2070,7 +2070,7 @@ function makeMockDevice(opt = {}) {
     D("SLOT", F.INT, 1, 33, 1), E("BOOT", ["OFF", ...Array.from({ length: 32 }, (_, i) => String(i + 1))], 0), E("LOAD", NGO, 0), E("SAVE", NGO, 0),
     E("ENG", ["-", "-", m2k ? "-" : "PHASE", "LOFI", "-", "VOICE", "TRIO", "WHEEL",
       "-", "PHYS", "DRUM", "-", m2k ? "-" : "FM6", "-", "-", opt.cz ? "CZ-1" : "-", "-", "-", "-", m2k ? "-" : "PROPHET", "-", "MIDI Track",
-      "SAW", "ENS", "STAT", "PAR", "DYN", "WAV"], 0), D("A4", F.INT, 400, 480, 440, null, "Hz"),
+      "SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "NOIS"], 0), D("A4", F.INT, 400, 480, 440, null, "Hz"),
     E("CLRSQ", NGO, 0), E("INIT", NGO, 0),
     ...Array.from({length:3},()=>D("",F.INT,0,127,0)),
   ];
@@ -2091,6 +2091,8 @@ function makeMockDevice(opt = {}) {
       presets: [P("DYN PLUCK", [64, 64, 40, 100, 64, 90, 0, 64], [0, 60, 0, 40], 0), P("DYN BRASS", [64, 80, 50, 90, 32, 40, 20, 64], [20, 70, 100, 50], 1), P("DYN BELL", [90, 64, 60, 110, 101, 100, 0, 64], [0, 90, 0, 80], 0), P("DYN BASS", [32, 100, 50, 64, 64, 0, 40, 64], [0, 50, 60, 20], 1)] },
     { name: "WAV", titles: ["WAVE", "SHAPE"], edit: [D("WAVE", F.INT, 0, 127, 26), D("SCAN", F.OFS, 0, 127, 64), D("STIM", F.INT, 0, 127, 60), D("SYNC", F.INT, 0, 127, 0), D("BITS", F.INT, 0, 127, 0), D("DTUN", F.OFS, 0, 127, 64), D("MIX2", F.INT, 0, 127, 0), D("STEP", F.INT, 0, 127, 0)],
       presets: [P("WAVE PAD", [26, 80, 60, 0, 0, 64, 0, 0], [50, 70, 110, 70], 0), P("SCAN LEAD", [60, 110, 40, 0, 0, 70, 40, 0], [0, 60, 100, 40], 1), P("SYNC LEAD", [10, 64, 127, 70, 0, 64, 0, 0], [0, 60, 100, 40], 1), P("LOFI KEYS", [90, 64, 127, 0, 70, 64, 0, 40], [0, 70, 40, 50], 0), P("DIGI BASS", [120, 40, 50, 20, 0, 64, 60, 0], [0, 50, 70, 20], 1)] },
+    { name: "NOIS", titles: ["NOISE", "-"], edit: [D("ST", F.INT, 0, 127, 0), D("RED", F.INT, 0, 127, 0), E("STON", ["OFF", "ON"], 0), NONE, NONE, NONE, NONE, NONE],
+      presets: [P("WHITE", [0, 0, 0, 0, 0, 0, 0, 0], [0, 30, 0, 20], 0), P("NOISHAT", [0, 0, 0, 0, 0, 0, 0, 0], [0, 14, 0, 10], 0), P("SHAKER", [0, 20, 0, 0, 0, 0, 0, 0], [14, 26, 0, 14], 0), P("WINDPAD", [0, 64, 0, 0, 0, 0, 0, 0], [72, 100, 127, 90], 0), P("WHOOSH", [40, 100, 1, 0, 0, 0, 0, 0], [30, 110, 90, 60], 0)] },
   ];
   const ENG = [
     {name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},   /* 0: retired ANALOG; stored ID reserved */
@@ -2185,7 +2187,7 @@ function makeMockDevice(opt = {}) {
   ENG.push({name:"-",titles:["-","-"],edit:Array(8).fill(NONE),presets:[]},
     {name:"MIDI Track",titles:["MIDI Track","-"],edit:[D("CH",F.INT,1,16,1),E("TRS",["OFF","ON"],0),...Array(6).fill(NONE)],
       presets:[P("MIDI Track",[1,0,0,0,0,0,0,0],[0,0,0,0],0)]});
-  if (m2k) ENG.push(...M2K_ENG);   /* the 1.2 firmware: engines 22..27 */
+  if (m2k) ENG.push(...M2K_ENG);   /* the 1.2 firmware: engines 22..27 (1.2.1: NOIS, 28) */
   if (m2k) for (const k of [2, 12, 19]) ENG[k] = { name: "-", titles: ["-", "-"], edit: Array(8).fill(NONE), presets: [] };   /* PHASE FM6 PROPHET: retired */
   const FM6_E = ENG.findIndex((e) => e.name === "FM6"), FM6_BANK = 0;
   /* the mock's demo sequences (the device powers on empty; it has no pattern library): absolute notes, 0 rest;
@@ -2916,7 +2918,7 @@ function enumLabel(d, v) {
 /* the order the device shows its engines in (src/engines.c ENGINE_ORDER): the lists here follow it, the protocol keeps
    the engine numbers. engineOrder(names): the indices of names in that order, "-" (a reserved number) left out; a name
    the list does not know (another firmware) follows in index order */
-const ENGINE_ORDER = ["SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "PROPHET", "ANALOG", "FM6", "DIGITAL", "PHASE", "CZ-1", "SID", "LOFI", "VOICE", "TRIO", "WHEEL",
+const ENGINE_ORDER = ["SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "NOIS", "PROPHET", "ANALOG", "FM6", "DIGITAL", "PHASE", "CZ-1", "SID", "LOFI", "VOICE", "TRIO", "WHEEL",
   "PHYS", "NOISE", "DRUM", "MIDI Track"];
 function engineOrder(names) {
   const rank = (n) => { const k = ENGINE_ORDER.indexOf(n); return k < 0 ? ENGINE_ORDER.length : k; };

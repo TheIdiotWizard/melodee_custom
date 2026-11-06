@@ -52,13 +52,14 @@ static int scale_favorite_set(uint32_t scale, int on)
 }
 static int p5_favorite_has(uint32_t slot,int factory);
 static int p5_favorite_set(uint32_t slot,int on,int factory);
-/* MONO2K's six (MELODEE_M2K_ENGINES, engines 22..27): their factory stars in row 11 (NOISE, retired), a byte each in
- * bytes 0..5, tagged M2K + version 1 in bytes 28..31 (an untagged row: no stars) */
+/* MONO2K's seven (MELODEE_M2K_ENGINES, engines 22..28): their factory stars in row 11 (NOISE, retired), a byte each in
+ * bytes 0..6, tagged M2K + version 1 in bytes 28..31 (an untagged row: no stars) */
 #ifndef ENGI_SAW   /* (a test that includes this file without core.h) */
 #define ENGI_SAW 22u
 #define ENGI_WAV 27u
+#define ENGI_NOIS 28u
 #endif
-static int m2k_fav_row(uint32_t engine, uint32_t preset) { return engine >= ENGI_SAW && engine <= ENGI_WAV && preset < 8u; }
+static int m2k_fav_row(uint32_t engine, uint32_t preset) { return engine >= ENGI_SAW && engine <= ENGI_NOIS && preset < 8u; }
 static int m2k_fav_valid(void)
 {
     const uint8_t *r = favorites.factory[11];

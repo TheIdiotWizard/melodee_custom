@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
-/* GLO > WEIGHTS with the shipping engines (MELODEE_FELUCCA_ENGINES with MONO2K's): SAW ENS FM+ WAV / DRUM LOFI
- * VOICE TRIO / WHEEL PHYS BUDGET GUARD; each weight reaches its engine's voices only (FM+: STAT PAR DYN); the
+/* GLO > WEIGHTS with the shipping engines (MELODEE_FELUCCA_ENGINES with MONO2K's): SAW ENS FM+ WAV+ / DRUM LOFI
+ * VOICE TRIO / WHEEL PHYS BUDGET GUARD; each weight reaches its engine's voices only (FM+: STAT PAR DYN; WAV+: WAV NOIS); the
  * version 3 record (ten nibbles), a version 2 record's DRUM LOFI VOICE TRIO WHEEL PHYS and a version 1 record's DRUM. */
 #define UI_TEST_NO_MAIN 1
 #include "ui_test.c"
 
 static const uint8_t kinds[VOICE_KINDS] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_SAW + 2u, ENGI_WAV, ENGI_DRUM, 3u, 5u, 6u, 7u, 9u};
-static const char *const names[VOICE_KINDS] = {"SAW", "ENS", "FM+", "WAV", "DRUM", "LOFI", "VOICE", "TRIO", "WHEEL", "PHYS"};
+static const char *const names[VOICE_KINDS] = {"SAW", "ENS", "FM+", "WAV+", "DRUM", "LOFI", "VOICE", "TRIO", "WHEEL", "PHYS"};
 static const char *value(const char *title, uint32_t k, int16_t **vp, const char **label)
 {
     static char v[12]; const char *u;
@@ -37,6 +37,8 @@ int main(void)
         settings_vpoints[2] = 5; ok &= voice_units(&trk[0]) == 5u; settings_vpoints[2] = 0;
     }
     set_engine_of(&trk[0], ENGI_SAW + 1u); trk[0].engine = trk[0].eng_req; ok &= voice_units(&trk[0]) == 3u;   /* ENS AUTO */
+    set_engine_of(&trk[0], ENGI_NOIS); trk[0].engine = trk[0].eng_req;   /* WAV+: WAV and NOIS */
+    settings_vpoints[3] = 6; ok &= voice_units(&trk[0]) == 6u; settings_vpoints[3] = 0;
     bad += check("each of the ten weights reaches its own engine's voices only (FM+: STAT PAR DYN); AUTO keeps the built-in rule", ok);
 
     int16_t *vp; const char *label;
