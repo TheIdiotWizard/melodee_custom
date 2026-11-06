@@ -1,10 +1,10 @@
 {
-  "version": "1.2.0",
-  "product": "FM-1_91020",
+  "version": "1.2.2",
+  "product": "FM-1_91022",
   "pkg": {
-    "dual": "../../firmware/melodee-1.2.0.fwsc"
+    "dual": "../../firmware/melodee-1.2.2.fwsc"
   },
   "sha256": {
-    "dual": "7e9f7dea909b89b41b29d6507bbc1969f115e0c85e60febffc14e3e9cceed805"
+    "dual": "cda8a2ee4f39a79672e21de4d7e9e4d9efbb1e52826f41234d717957417467ad"
   }
 }
