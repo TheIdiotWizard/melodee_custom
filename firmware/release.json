@@ -1,10 +1,10 @@
 {
-  "version": "1.2.3",
-  "product": "FM-1_91023",
+  "version": "1.2.4",
+  "product": "FM-1_91024",
   "pkg": {
-    "dual": "../../firmware/melodee-1.2.3.fwsc"
+    "dual": "../../firmware/melodee-1.2.4.fwsc"
   },
   "sha256": {
-    "dual": "674343791a76cc03159c5af9faaae7bdd210d4cef016db66a917a18f9dddadb9"
+    "dual": "b2ab1a63ba97bb2b2d783aca18db8e67041db3d0ad062164bf1b365ecedc3299"
   }
 }

@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.2.3</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.2.4</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -224,8 +224,8 @@
           <tbody>
             <tr><td>SAW</td><td>UNIL</td><td>UNIW</td><td>SUB1</td><td>release</td></tr>
             <tr><td>ENS</td><td>WAVE</td><td>PW</td><td>CHRL</td><td>release</td></tr>
-            <tr><td>STAT</td><td>1FRQ</td><td>1ENV</td><td>TONE</td><td>release</td></tr>
-            <tr><td>PAR</td><td>1ENV</td><td>2ENV</td><td>TONE</td><td>release</td></tr>
+            <tr><td>STAT</td><td>1FRQ</td><td>1ENV</td><td>CUT (FILTER)</td><td>release</td></tr>
+            <tr><td>PAR</td><td>1ENV</td><td>2ENV</td><td>CUT (FILTER)</td><td>release</td></tr>
             <tr><td>DYN</td><td>1FEN</td><td>1VOL</td><td>2ENV</td><td>release</td></tr>
             <tr><td>WAV</td><td>WAVE</td><td>SCAN</td><td>SYNC</td><td>release</td></tr>
             <tr><td>NOIS</td><td>ST</td><td>RED</td><td>STON</td><td>release</td></tr>
@@ -344,19 +344,20 @@
         <section id="m2k">
           <h3>SAW, ENS, STAT, PAR, DYN, WAV and NOIS</h3>
           <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-ENS, FM+STAT, FM+PAR, FM+DYN, DIGI-WAV and GND-NOIS machines.</p>
-          <p>Seven polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (NOIS one page of three) (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and 4–5 presets. The track’s filter and shape modulation move one control of each engine. Each voice counts 2 points of the BUDGET (ENS 3).</p>
+          <p>Seven polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (NOIS one page of three) (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and 4–5 presets, plus a shared <strong>FILTER</strong> page (below). The track’s shape modulation moves one control of each engine; its filter modulation (ENV and LFO → FLT) moves the FILTER’s cutoff when the FILTER is on, and one engine control when it is OFF. Each voice counts 2 points of the BUDGET (ENS 3).</p>
           <table>
             <thead><tr><th>Engine</th><th>Page 1</th><th>Page 2</th><th>Presets</th></tr></thead>
             <tbody>
               <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS</td></tr>
               <tr><td>ENS</td><td>CHORD: PCH2, PCH3, PCH4 (each oscillator’s interval: −12…+12 semitones or a ratio such as 3:2), WAVE</td><td>CHORUS: PW (pulse width), CHRL (chorus level), CHRW (chorus width), TUNE</td><td>MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS</td></tr>
-              <tr><td>STAT</td><td>OP 1: 1FRQ (ratio, 1/64…), 1FIN (fine), 1ENV (envelope depth), 1FB (feedback)</td><td>OP 2: 2FRQ (ratio), 2VOL, TONE, TUNE</td><td>FM BELL, FM BASS, E PIANO, FEEDBACK</td></tr>
-              <tr><td>PAR</td><td>OPS: 1FRQ, 1ENV, 2FRQ, 2ENV (two parallel modulators)</td><td>TONE: 3FRQ, 3ENV (the third), TONE, TUNE</td><td>PAR KEYS, PAR ORGN, METALLIC, PAR BASS</td></tr>
+              <tr><td>STAT</td><td>OP 1: 1FRQ (ratio, 1/64…), 1FIN (fine), 1ENV (envelope depth), 1FB (feedback)</td><td>OP 2: 2FRQ (ratio), 2VOL, —, TUNE</td><td>FM BELL, FM BASS, E PIANO, FEEDBACK</td></tr>
+              <tr><td>PAR</td><td>OPS: 1FRQ, 1ENV, 2FRQ, 2ENV (two parallel modulators)</td><td>TONE: 3FRQ, 3ENV (the third), —, TUNE</td><td>PAR KEYS, PAR ORGN, METALLIC, PAR BASS</td></tr>
               <tr><td>DYN</td><td>OP 1: 1FRQ, 1FEN (envelope to ratio), 1VOL, 1VEN (envelope to depth)</td><td>OP 2: 2FRQ, 2ENV, 2FB (feedback), TUNE</td><td>DYN PLUCK, DYN BRASS, DYN BELL, DYN BASS</td></tr>
               <tr><td>WAV</td><td>WAVE: WAVE (OS01–OS64), SCAN (through the table), STIM (scan time), SYNC</td><td>SHAPE: BITS (reduction), DTUN (second oscillator), MIX2, STEP</td><td>WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS</td></tr>
               <tr><td>NOIS</td><td>NOISE: ST (a second noise mixed in), RED (white at 0, pink at 64, red at 127), STON (ON: the second noise across the stereo; needs SPREAD)</td><td>—</td><td>WHITE, NOISHAT, SHAKER, WINDPAD, WHOOSH</td></tr>
             </tbody>
           </table>
+          <p><strong>FILTER</strong> (an EDIT page on these seven engines only): TRIO’s filter after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. STAT and PAR’s TONE controls were removed in 1.2.4 in its favour; STAT FM BASS, PAR ORGN and PAR BASS start with a low-pass. The engines have no filter of their own: with MODE OFF, NOIS is only its colour (RED).</p>
           <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
         </section>
         <section id="lofi">
@@ -927,7 +928,7 @@
               <tr><td>93</td><td>MIX of the shared rack’s CHORUS (or PEDAL CHORUS).</td></tr>
             </tbody>
           </table>
-          <p>In a relative <strong>MIDI MODE</strong>, CC 91 and 93 step the MIX from where it is. CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
+          <p>A relative <strong>MIDI MODE</strong> applies to every CC that sets a value except CC 7 (LEVEL, left absolute for faders): these CCs, MIDI LEARN bindings, CC 72 / 73 / 75 (release, attack, decay), CC 74 / 71, CC 5 (glide), CC 10 (pan), and CC 1, 2, 4 and 11 (the wheel, breath, foot and expression, which keep a position an encoder moves; CC 121 resets it). Switches and system CCs (64, 65, 0 / 32, 6 / 38, 98–101, 120–127) are not affected. In a relative mode, CC 91 and 93 step the MIX from where it is. CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
         </section>
 
         <section id="midi-learn">
