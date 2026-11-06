@@ -156,6 +156,10 @@ static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset
     cz_factory_loaded(t);
     if(e==ENGI_PROPHET){uint32_t k=(uint32_t)(t-trk)%NPART;p5_ready[k]=1;p5_preset_loaded(t,pi);}   /* (its program, as ui.c) */
     fm6_track_loaded(t);                          /* FM6: the preset's patch (ui.c apply_preset_to) */
+#if MELODEE_M2K_ENGINES
+    t->p[P_FMODE] = TP[P_FMODE].def; t->p[P_FCUT] = TP[P_FCUT].def; t->p[P_FRES] = TP[P_FRES].def;
+    m2k_preset_loaded(t, pi);                     /* (its FILTER, as ui.c apply_preset_to) */
+#endif
 }
 static void host_preset_req(track_t *t, uint32_t e, uint32_t pi)
 {

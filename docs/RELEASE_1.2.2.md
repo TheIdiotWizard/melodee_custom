@@ -10,7 +10,9 @@ A new noise engine from [MONO2K](https://github.com/InigoHernandez/mono2k), and 
 
 ## NOIS
 
-**NOIS** is MONO2K's GND-NOIS: noise that sounds the same on every key, shaped by the track's filter and envelope.
+**NOIS** is MONO2K's GND-NOIS: noise that sounds the same on every key, shaped by its envelope. (Correction: these notes first said
+the track's filter shapes it; Melodee has no filter shared by every engine, so in 1.2.2 NOIS had none. 1.2.4 adds a
+FILTER page; see [its notes](RELEASE_1.2.4.md).)
 It comes after WAV in the engine list and plays six voices, each its own noise.
 
 | Control | What it does |
@@ -22,8 +24,8 @@ It comes after WAV in the engine list and plays six voices, each its own noise.
 The Stage knobs are ST, RED, STON and release. The track's filter modulation moves RED and its shape modulation
 moves ST. Presets: WHITE (a gated snare noise), NOISHAT, SHAKER, WINDPAD (pink) and WHOOSH (red, stereo).
 
-In MONO2K the noise goes through its own key-following filter; here the track's filter does that job (MONO2K's TUNE,
-which moved that filter, is left out). NOIS runs 6 dB under MONO2K's level so the darker colours don't clip before
+In MONO2K the noise goes through its own key-following filter, which is not ported (MONO2K's TUNE, which moved that
+filter, is left out). NOIS runs 6 dB under MONO2K's level so the darker colours don't clip before
 the filter; raise LEVEL if you need it louder.
 
 NOIS shares a weight with WAV: **WEIGHTS** now shows **WAV+** (WAV and NOIS) in WAV's place.

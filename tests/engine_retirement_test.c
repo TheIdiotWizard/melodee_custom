@@ -49,16 +49,28 @@ int main(void)
                 uint32_t k=UP_SLOTS-1u-(e-ENGI_SAW);
                 set_engine_of(TSEL,(uint8_t)e);apply_preset_to(TSEL,1);
                 for(uint32_t i=0;i<3;i++)TSEL->p[P_E0+i]=(int16_t)(e==ENGI_NOIS&&i==2u?1:5+i+e-ENGI_SAW);
+                TSEL->p[P_FMODE]=2;TSEL->p[P_FCUT]=(int16_t)(33+e-ENGI_SAW);TSEL->p[P_FRES]=44;   /* (their FILTER too) */
                 int16_t want[8];memcpy(want,TSEL->p+P_E0,sizeof want);
                 int st=up_store(k,"M2K USER");
                 int used=up_used(k), eng=up_engine(k)==e;
                 set_engine_of(TSEL,3u);apply_preset_to(TSEL,0);
                 int ld=up_load(k);
-                if(st||!used||!eng||ld||TSEL->eng_req!=e||memcmp(TSEL->p+P_E0,want,sizeof want)){
+                if(st||!used||!eng||ld||TSEL->eng_req!=e||memcmp(TSEL->p+P_E0,want,sizeof want)||
+                   TSEL->p[P_FMODE]!=2||TSEL->p[P_FCUT]!=(int16_t)(33+e-ENGI_SAW)||TSEL->p[P_FRES]!=44){
                     printf("persist: MONO2K user preset, engine %u: store %d used %d engine %d load %d now %u\n",e,st,used,eng,ld,TSEL->eng_req);ok=0;}
                 up_put(k,0);
             }
-            bad+=check("SAVE > USER keeps a sound of each of MONO2K's seven; LOAD brings it back",ok);
+            bad+=check("SAVE > USER keeps a sound of each of MONO2K's seven, its FILTER too; LOAD brings it back",ok);
+            set_engine_of(TSEL,ENGI_SAW);apply_preset_to(TSEL,0);
+            TSEL->p[P_FMODE]=3;TSEL->p[P_FCUT]=21;TSEL->p[P_FRES]=99;
+            project_capture(&proj_scratch);
+            static project_t fsaved;fsaved=proj_scratch;
+            TSEL->p[P_FMODE]=0;TSEL->p[P_FCUT]=127;TSEL->p[P_FRES]=0;
+            bad+=check("a project keeps a MONO2K track's FILTER (MODE CUT RES)",
+                       !project_restore_runtime(&fsaved) && TSEL->p[P_FMODE]==3 && TSEL->p[P_FCUT]==21 && TSEL->p[P_FRES]==99);
+            set_engine_of(TSEL,ENGI_SAW+2u);apply_preset_to(TSEL,1);
+            bad+=check("a preset sets its FILTER: STAT FM BASS a low-pass, FM BELL OFF",
+                       TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==72 && (apply_preset_to(TSEL,0),TSEL->p[P_FMODE]==0));
         }
 #endif
     }

@@ -9,7 +9,11 @@
  *    back at the next note (a burst, often a clip).
  * 3. NOIS: RED's colour (the power of an octave at 300 Hz against one at 4.8 kHz: white -12 dB, pink 0, red +12, each
  *    +-3); two voices are two noises (their sum's power twice one's, +-15 %); STON without SPREAD leaves the middle the
- *    first noise alone (sample for sample as ST 0), with SPREAD it adds the second to the left side only. */
+ *    first noise alone (sample for sample as ST 0), with SPREAD it adds the second to the left side only.
+ * 4. the FILTER page (TRIO's filter): OFF changes nothing (as before it, sample for sample); LP at CUT 40 takes 4.8 kHz
+ *    at least 20 dB further down than 300 Hz, HP at CUT 100 300 Hz; ENV -> FLT moves the cutoff, not UNIW, with it on.
+ * 5. MIDI: CC 74 / 71 the FILTER's CUT / RES on these engines; a relative MIDI MODE (REL 1) steps CC 73 ATTACK and
+ *    CC 74 from where they are, CC 7 LEVEL stays absolute (faders). */
 #define main hostsim_main
 #include "hostsim.c"
 #undef main
@@ -87,6 +91,21 @@ static double band(const int32_t *y, uint32_t n, double f0)
 }
 static double power(const int32_t *y, uint32_t n) { double s = 0; for (uint32_t i = 0; i < n; i++) s += (double)y[i] * y[i]; return s / n; }
 
+/* SAW SUPERSAW, one note held, its FILTER mode / cut / res; n samples of the voice */
+static void saw_render(int mode, int cut, int res, int fenv, int32_t *y, uint32_t n)
+{
+    setup(ENGI_SAW, 0);
+    trk[0].p[P_FMODE] = (int16_t)mode; trk[0].p[P_FCUT] = (int16_t)cut; trk[0].p[P_FRES] = (int16_t)res;
+    trk[0].p[P_ED_FLT] = (int16_t)fenv; trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127; trk[0].p[P_E3] = 0;   /* (no drift) */
+    trk_note_on(&trk[0], 48, 110);
+    static int32_t b[CTL];
+    uint32_t warm = FS / 10u / CTL;
+    for (uint32_t i = 0; i < warm + n / CTL; i++) {
+        track_render_audio(&trk[0], b, CTL, 1);
+        if (i >= warm) for (uint32_t k = 0; k < CTL; k++) y[(i - warm) * CTL + k] = b[k];
+    }
+}
+
 int main(void)
 {
     static const char *const NAME[7] = {"SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "NOIS"};
@@ -157,6 +176,46 @@ int main(void)
               !memcmp(y, z, sizeof y) && !memcmp(l0, y, sizeof y) && dd / NS > 0.2 * power(z, NS));
     }
 
-    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS STAT PAR DYN WAV NOIS: presets, the first note after silence, NOIS's colour and stereo: OK\n");
+    {
+        enum { NS = 4096u * 6u };
+        static int32_t off[NS], y[NS];
+        saw_render(0, 127, 0, 0, off, NS);
+        double lo0 = band(off, NS, 300), hi0 = band(off, NS, 4800);
+        saw_render(1, 40, 0, 0, y, NS);
+        double lp = 10 * log10((band(y, NS, 4800) / band(y, NS, 300)) / (hi0 / lo0));
+        saw_render(3, 100, 0, 0, y, NS);
+        double hp = 10 * log10((band(y, NS, 300) / band(y, NS, 4800)) / (lo0 / hi0));
+        printf("m2k: FILTER on SAW: LP CUT 40 takes 4.8 kHz %.1f dB against 300 Hz, HP CUT 100 300 Hz %.1f dB\n", lp, hp);
+        check("FILTER LP at CUT 40: 4.8 kHz 20 dB or more under 300 Hz (against OFF); HP at CUT 100 the reverse", lp <= -20 && hp <= -20);
+        saw_render(0, 40, 90, 0, y, NS);
+        check("FILTER OFF: the sound as without it (CUT and RES ignored), sample for sample", !memcmp(off, y, sizeof y));
+        saw_render(1, 30, 0, 0, y, NS); double still = band(y, NS, 4800);
+        saw_render(1, 30, 0, 127, y, NS); double moved = band(y, NS, 4800);
+        check("FILTER on: ENV -> FLT opens the cutoff (4.8 kHz up 10 dB or more)", 10 * log10(moved / still) >= 10);
+    }
+    {
+        setup(ENGI_SAW, 0);
+        uint8_t keep = settings_midi_knob_mode;
+        settings_midi_knob_mode = MK_ABSOLUTE;
+        midi_parameter(&trk[0], 74, 32); midi_parameter(&trk[0], 71, 127);
+        ok = trk[0].p[P_FCUT] == 32 && trk[0].p[P_FRES] == 127;
+        setup(ENGI_SAW + 2u, 0); midi_parameter(&trk[0], 74, 10);
+        ok &= trk[0].p[P_FCUT] == 10;
+        check("CC 74 / 71: the FILTER's CUT / RES on MONO2K's engines", ok);
+        setup(ENGI_SAW, 0);
+        settings_midi_knob_mode = MK_REL1;
+        trk[0].p[P_ATK] = 40; trk[0].p[P_FCUT] = 100; trk[0].p[P_LEVEL] = 50;
+        midi_parameter(&trk[0], 73, 65); midi_parameter(&trk[0], 73, 65); midi_parameter(&trk[0], 73, 63);
+        midi_parameter(&trk[0], 74, 63);
+        midi_parameter(&trk[0], 7, 65);
+        ok = trk[0].p[P_ATK] == 41 && trk[0].p[P_FCUT] == 99 && trk[0].p[P_LEVEL] == TP[P_LEVEL].min + 65 * (TP[P_LEVEL].max - TP[P_LEVEL].min) / 127;
+        trk[0].p[P_ATK] = 0; midi_parameter(&trk[0], 73, 60);
+        ok &= trk[0].p[P_ATK] == 0;
+        printf("m2k: REL 1: ATK %d CUT %d LEVEL %d\n", trk[0].p[P_ATK], trk[0].p[P_FCUT], trk[0].p[P_LEVEL]);
+        check("REL 1: CC 73 and 74 step from where they are (63 down, 65 up, clamped); CC 7 LEVEL stays absolute", ok);
+        settings_midi_knob_mode = keep;
+    }
+
+    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS STAT PAR DYN WAV NOIS: presets, the first note after silence, NOIS's colour and stereo, the FILTER, CC 74 / 71 and REL 1: OK\n");
     return bad != 0;
 }

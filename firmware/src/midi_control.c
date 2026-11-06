@@ -271,6 +271,29 @@ static int midi_track_held(uint32_t track)
     return 0;
 }
 
+/* A relative MIDI MODE (HOME menu) for the CCs here: every one but CC 7, LEVEL, kept absolute for faders. The switches
+ * and the protocol CCs (64, 65, 0 / 32, 6 / 38, 98..101, 120..127) are not values and stay as they are */
+static int midi_cc_relative(uint32_t cc)
+{
+    return settings_midi_knob_mode != MK_ABSOLUTE && cc != 7u;
+}
+/* The controllers that are modulation sources (CC 1 the wheel, 2 breath, 4 foot, 11 expression): under a relative
+ * MIDI MODE an encoder's steps move a value kept a channel, from 0 (expression from 127), and that value is what the
+ * tracks see. CC 121 resets them */
+static uint8_t midi_rel_src[16][4];
+static uint8_t midi_rel_src_init;
+static int midi_rel_src_slot(uint32_t cc) { return cc == 1u ? 0 : cc == 2u ? 1 : cc == 4u ? 2 : cc == 11u ? 3 : -1; }
+static void midi_rel_src_reset(uint32_t ch) { midi_rel_src[ch & 15u][0] = midi_rel_src[ch & 15u][1] = midi_rel_src[ch & 15u][2] = 0; midi_rel_src[ch & 15u][3] = 127; }
+static uint32_t midi_rel_source(uint32_t ch, uint32_t cc, uint32_t value)
+{
+    int k = midi_rel_src_slot(cc);
+    if (k < 0 || !midi_cc_relative(cc)) return value;
+    if (!midi_rel_src_init) { for (uint32_t c = 0; c < 16u; c++) midi_rel_src_reset(c); midi_rel_src_init = 1; }
+    int32_t v = midi_rel_src[ch & 15u][k] + midi_knob_relative(value, settings_midi_knob_mode);
+    midi_rel_src[ch & 15u][k] = (uint8_t)(v < 0 ? 0 : v > 127 ? 127 : v);
+    return midi_rel_src[ch & 15u][k];
+}
+
 /* Native envelope loops run only for their CC, outside the audio IRQ's hot loops. */
 static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint32_t value)
 {
@@ -284,6 +307,9 @@ static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint
         static const uint8_t map[NENGINES]={0,0,0x38,0x84,0,0x07,0x67,0,0,0x34,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
 #else
         static const uint8_t map[NENGINES]={0,0,0x30,0x56,0,0x07,0,0,0,0,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
+#endif
+#if MELODEE_M2K_ENGINES
+        if(t->eng_req>=ENGI_SAW && t->eng_req<=ENGI_NOIS){id=cc==74?P_FCUT:P_FRES;break;}   /* their FILTER: CUT / RES */
 #endif
         uint32_t macro=(map[t->eng_req%NENGINES]>>(cc==74?4:0))&15u;
         if(macro)id=P_E0+macro-1u;else if(cc==74 && t->eng_req==ENGI_CZ)id=P_ED_FLT;
@@ -309,8 +335,16 @@ static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint
     if(id>=P_COUNT)return;
     const param_desc_t *d=id<P_E0?&TP[id]:&ENGINES[t->eng_req]->edit[id-P_E0];
     if(d->max==d->min)return;
-    int32_t v=d->min+(int32_t)(value*(uint32_t)(d->max-d->min)/127u);
-    if(id==P_PAN)v=(int32_t)value-64;
+    int32_t v;
+    if(midi_cc_relative(cc)){   /* from where it is: a step a tick (more on wide ranges), as the panel's knobs */
+        int32_t step=(d->max-d->min)/127;if(step<1)step=1;
+        v=t->p[id]+midi_knob_relative(value,settings_midi_knob_mode)*step;
+        v=v<d->min?d->min:v>d->max?d->max:v;
+        if(v==t->p[id])return;
+    }else{
+        v=d->min+(int32_t)(value*(uint32_t)(d->max-d->min)/127u);
+        if(id==P_PAN)v=(int32_t)value-64;
+    }
     t->p[id]=(int16_t)v;motion_capture(t,id,v);
 }
 static void midi_control(uint32_t ch, uint32_t cc, uint32_t value)
@@ -399,8 +433,10 @@ static void __attribute__((noinline)) midi_event(uint32_t st, uint32_t ch, uint3
         midi_channel(ch)->bend = (int16_t)((int32_t)(d1 | (d2 << 7)) - 8192);
         midi_expression_channel(ch);
     } else if (st == 0xB0u) {
-        if (t) mod_midi(t, st, d1, d2);
-        midi_control(ch, d1, d2);
+        uint32_t ds = midi_rel_source(ch, d1, d2);   /* (CC 1, 2, 4, 11 under a relative MIDI MODE) */
+        if (d1 == 121u) midi_rel_src_reset(ch);
+        if (t) mod_midi(t, st, d1, ds);
+        midi_control(ch, d1, ds);
     } else if (st == 0xD0u && t)
         mod_midi(t, st, d1, d2);
 }

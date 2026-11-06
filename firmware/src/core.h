@@ -290,8 +290,13 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #endif
 #define G_DRREV G_RESERVED26
 
+/* MONO2K's seven (MELODEE_M2K_ENGINES): their FILTER page, TRIO's filter, in three of the reserved four (zero in every
+ * older store: MODE OFF). PROPHET's knobs wrote 34 and 36 at run time; with MODE 0 they do nothing */
+#define P_FMODE P_RESERVED33
+#define P_FCUT P_RESERVED34
+#define P_FRES P_RESERVED35
 static int param_reserved(uint32_t id)
-{ return (id>=P_RESERVED33 && id<=P_RESERVED36) || (id>=P_RESERVED45 && id<=P_RESERVED48); }
+{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) || (id>=P_RESERVED45 && id<=P_RESERVED48); }
 static int global_reserved(uint32_t id)
 { return (id>=G_RESERVED4 && id<=G_RESERVED11) || (id>=G_RESERVED24 && id<=G_RESERVED26); }
 

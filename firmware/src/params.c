@@ -114,6 +114,7 @@ static int16_t settings_safety;
 #include "midi_knobs.h"
 static int16_t boot_cell;
 /* modulation matrix (mod.c): sources, destinations (E1..E8 = P_E0..P_E7: shown with the engine's labels) */
+static const char *const N_FMODE[] = {"OFF", "LP", "BP", "HP", "NOT"};   /* the FILTER page's MODE */
 static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", "MODW", "AT", "EXPR", "S&H", "SLEW"};
 static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "", "", "", "", "RATE",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH"};
@@ -252,9 +253,15 @@ static const param_desc_t TP[P_COUNT] = {
     [P_SDIV] = PE("DIV", N_DIV, 2),
     [P_SSWING] = PD("SWG", F_PCT, 0, 100, 0),
     [P_SGATE] = PD("GATE", F_PCT, 1, 127, 64),
+#if MELODEE_M2K_ENGINES                           /* the FILTER page (MONO2K's seven): TRIO's filter */
+    [P_FMODE] = PE("MODE", N_FMODE, 0),
+    [P_FCUT] = PD("CUT", F_CUTOFF, 0, 127, 127),
+    [P_FRES] = PD("RES", F_PCT, 0, 127, 0),
+#else
     [P_RESERVED33] = PD("", F_INT, 0, 127, 0),
     [P_RESERVED34] = PD("", F_INT, 0, 127, 0),
     [P_RESERVED35] = PD("", F_INT, 0, 127, 0),
+#endif
     [P_RESERVED36] = PD("", F_INT, 0, 127, 0),
     [P_VOICE] = PE("VCE", N_VOICE, 0),
     [P_GLIDE] = PD("GLD", F_TIME, 0, 127, 0),
@@ -654,6 +661,9 @@ static const page_t PAGES[] = {
                                                                           * (QNT MPC only), not a page of its own */
     {"EDIT 1", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E0, P_E1, P_E2, P_E3}},
     {"EDIT 2", FAM_EDIT, SC_ENGINE, GR_NONE, {P_E4, P_E5, P_E6, P_E7}},
+#if MELODEE_M2K_ENGINES
+    {"FILTER", FAM_EDIT, SC_TRACK, GR_NONE, {P_FMODE, P_FCUT, P_FRES, P_ED_FLT}},   /* MONO2K's seven (page_visible) */
+#endif
     {"DRUM SOUND",FAM_EDIT,SC_DRUM,GR_NONE,{0,1,2,3}},
     {"DRUM MIX",FAM_EDIT,SC_DRUM,GR_NONE,{0,4,255,255}},
     /* FM6 only (page_visible): the patch as the DX7 has it, its operators (PRESETS picks one), the functions */

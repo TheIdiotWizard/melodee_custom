@@ -312,6 +312,10 @@ static int page_visible(uint32_t i)
     if (PAGES[i].fam == FAM_ENV && native_titles(FAM_ENV))   /* (the track's ADSR, ENV DEST: nothing there) */
         return 0;
     if(PAGES[i].scope==SC_DRUM || PAGES[i].scope==SC_DRUMHIT)return drum_track(TSEL);
+#if MELODEE_M2K_ENGINES
+    if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] == P_FMODE)   /* FILTER: MONO2K's seven only */
+        return TSEL->eng_req >= ENGI_SAW && TSEL->eng_req <= ENGI_NOIS;
+#endif
     if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] >= P_LN0 && PAGES[i].id[0] <= P_LN7)
         return drum_track(TSEL);
     if(TSEL->eng_req==ENGI_CZ && PAGES[i].scope==SC_ENGINE && PAGES[i].fam==FAM_EDIT && (PAGES[i].id[0]==P_E0 || PAGES[i].id[0]==P_E4))return 0;
@@ -1057,6 +1061,9 @@ static void apply_preset_to(track_t *t, uint32_t pi)
     t->p[P_ED_FLT] = pr->fenv;
     t->p[P_VOICE] = pr->mono ? V_LEGATO : V_POLY;   /* mono presets keep the legato feel */
     if(t->eng_req==ENGI_PROPHET)p5_preset_loaded(t,pi);
+#if MELODEE_M2K_ENGINES
+    m2k_preset_loaded(t, pi);                         /* (its FILTER) */
+#endif
     cz_factory_loaded(t);
     cz_track_accept(t);
     fm6_track_loaded(t);                              /* FM6: the preset's patch */
