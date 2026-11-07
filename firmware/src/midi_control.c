@@ -271,19 +271,20 @@ static int midi_track_held(uint32_t track)
     return 0;
 }
 
-/* A relative MIDI MODE (HOME menu) for the CCs here: every one but CC 7, LEVEL, kept absolute for faders. The switches
+/* A relative MIDI MODE (HOME menu) for the CCs here: every one but CC 7, LEVEL, and CC 1, the mod wheel, kept absolute
+ * (faders, a wheel: 1.2.5). The switches
  * and the protocol CCs (64, 65, 0 / 32, 6 / 38, 98..101, 120..127) are not values and stay as they are */
 static int midi_cc_relative(uint32_t cc)
 {
-    return settings_midi_knob_mode != MK_ABSOLUTE && cc != 7u;
+    return settings_midi_knob_mode != MK_ABSOLUTE && cc != 7u && cc != 1u;
 }
-/* The controllers that are modulation sources (CC 1 the wheel, 2 breath, 4 foot, 11 expression): under a relative
- * MIDI MODE an encoder's steps move a value kept a channel, from 0 (expression from 127), and that value is what the
- * tracks see. CC 121 resets them */
-static uint8_t midi_rel_src[16][4];
+/* The controllers that are modulation sources (CC 2 breath, 4 foot, 11 expression; CC 1, the wheel, stays absolute):
+ * under a relative MIDI MODE an encoder's steps move a value kept a channel, from 0 (expression from 127), and that
+ * value is what the tracks see. CC 121 resets them */
+static uint8_t midi_rel_src[16][3];
 static uint8_t midi_rel_src_init;
-static int midi_rel_src_slot(uint32_t cc) { return cc == 1u ? 0 : cc == 2u ? 1 : cc == 4u ? 2 : cc == 11u ? 3 : -1; }
-static void midi_rel_src_reset(uint32_t ch) { midi_rel_src[ch & 15u][0] = midi_rel_src[ch & 15u][1] = midi_rel_src[ch & 15u][2] = 0; midi_rel_src[ch & 15u][3] = 127; }
+static int midi_rel_src_slot(uint32_t cc) { return cc == 2u ? 0 : cc == 4u ? 1 : cc == 11u ? 2 : -1; }
+static void midi_rel_src_reset(uint32_t ch) { midi_rel_src[ch & 15u][0] = midi_rel_src[ch & 15u][1] = 0; midi_rel_src[ch & 15u][2] = 127; }
 static uint32_t midi_rel_source(uint32_t ch, uint32_t cc, uint32_t value)
 {
     int k = midi_rel_src_slot(cc);

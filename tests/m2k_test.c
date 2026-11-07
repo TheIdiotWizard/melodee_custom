@@ -13,7 +13,7 @@
  * 4. the FILTER page (TRIO's filter): OFF changes nothing (as before it, sample for sample); LP at CUT 40 takes 4.8 kHz
  *    at least 20 dB further down than 300 Hz, HP at CUT 100 300 Hz; ENV -> FLT moves the cutoff, not UNIW, with it on.
  * 5. MIDI: CC 74 / 71 the FILTER's CUT / RES on these engines; a relative MIDI MODE (REL 1) steps CC 73 ATTACK and
- *    CC 74 from where they are, CC 7 LEVEL stays absolute (faders). */
+ *    CC 74 from where they are, CC 7 LEVEL and CC 1 (the mod wheel) stay absolute. */
 #define main hostsim_main
 #include "hostsim.c"
 #undef main
@@ -213,6 +213,10 @@ int main(void)
         ok &= trk[0].p[P_ATK] == 0;
         printf("m2k: REL 1: ATK %d CUT %d LEVEL %d\n", trk[0].p[P_ATK], trk[0].p[P_FCUT], trk[0].p[P_LEVEL]);
         check("REL 1: CC 73 and 74 step from where they are (63 down, 65 up, clamped); CC 7 LEVEL stays absolute", ok);
+        midi_rel_src_init = 0;
+        ok = midi_rel_source(0, 1, 65) == 65 && midi_rel_source(0, 1, 20) == 20;          /* the wheel: absolute */
+        ok &= midi_rel_source(0, 11, 63) == 126 && midi_rel_source(0, 2, 65) == 1 && midi_rel_source(0, 2, 65) == 2;
+        check("REL 1: CC 1 (the mod wheel) stays absolute; CC 2 and 11 step a kept position (expression from 127)", ok);
         settings_midi_knob_mode = keep;
     }
 
