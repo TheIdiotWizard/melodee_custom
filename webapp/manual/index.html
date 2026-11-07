@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.2.4</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.2.5</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -928,7 +928,7 @@
               <tr><td>93</td><td>MIX of the shared rack’s CHORUS (or PEDAL CHORUS).</td></tr>
             </tbody>
           </table>
-          <p>A relative <strong>MIDI MODE</strong> applies to every CC that sets a value except CC 7 (LEVEL, left absolute for faders): these CCs, MIDI LEARN bindings, CC 72 / 73 / 75 (release, attack, decay), CC 74 / 71, CC 5 (glide), CC 10 (pan), and CC 1, 2, 4 and 11 (the wheel, breath, foot and expression, which keep a position an encoder moves; CC 121 resets it). Switches and system CCs (64, 65, 0 / 32, 6 / 38, 98–101, 120–127) are not affected. In a relative mode, CC 91 and 93 step the MIX from where it is. CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
+          <p>A relative <strong>MIDI MODE</strong> applies to every CC that sets a value except CC 7 (LEVEL) and CC 1 (the mod wheel), which stay absolute for faders and wheels: these CCs, MIDI LEARN bindings, CC 72 / 73 / 75 (release, attack, decay), CC 74 / 71, CC 5 (glide), CC 10 (pan), and CC 2, 4 and 11 (breath, foot and expression, which keep a position an encoder moves; CC 121 resets it). Switches and system CCs (64, 65, 0 / 32, 6 / 38, 98–101, 120–127) are not affected. In a relative mode, CC 91 and 93 step the MIX from where it is. CC 91 and 93 do nothing when the rack holds no such effect. A MIDI KNOBS profile’s own CCs come first (MINILAB uses CC 93 for its knob 5), then a CC bound with MIDI LEARN. A channel that plays a MIDI Track passes these CCs on to the external gear. For a MiniLab 3, make a User template in Arturia’s MIDI Control Center with four knobs on CC 20–23 (absolute), one knob on CC 24, and reverb and chorus on CC 91 and 93.</p>
         </section>
 
         <section id="midi-learn">
