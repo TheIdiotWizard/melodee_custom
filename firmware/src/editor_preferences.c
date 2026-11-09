@@ -114,7 +114,7 @@ static int ed_ui_handle(uint32_t cmd, const uint8_t *a, uint32_t n)
         return 1;
     case ED_FAV_GET:
 #ifdef MELODEE_FAVORITES
-        if (n == 4u && (a[0] <= USER_NATIVE_P5 || (a[0] >= ENGI_SAW && a[0] <= ENGI_NOIS))) {
+        if (n == 4u && (a[0] <= USER_NATIVE_P5 || (a[0] >= ENGI_SAW && a[0] <= ENGI_ANA4))) {
             int32_t start = ed_rv(a + 1);
             uint32_t limit = (a[0]==USER_NATIVE_FM || a[0]==USER_NATIVE_CZ || a[0]==USER_NATIVE_P5) ? native_limit(a[0]==USER_NATIVE_P5?ENGI_PROPHET:a[0]==USER_NATIVE_FM?ENGI_FM6:ENGI_CZ) : a[0] == USER_GENERAL ? UP_SLOTS : ENGINES[a[0]]->npresets;
             if (start >= 0 && a[3] && a[3] <= 32u && (uint32_t)start + a[3] <= limit) {
@@ -130,7 +130,7 @@ static int ed_ui_handle(uint32_t cmd, const uint8_t *a, uint32_t n)
         return 1;
     case ED_FAV_SET:
 #ifdef MELODEE_FAVORITES
-        if (n == 4u && (a[0] <= USER_NATIVE_P5 || (a[0] >= ENGI_SAW && a[0] <= ENGI_NOIS)) && a[3] <= 1u) {
+        if (n == 4u && (a[0] <= USER_NATIVE_P5 || (a[0] >= ENGI_SAW && a[0] <= ENGI_ANA4)) && a[3] <= 1u) {
             int32_t preset = ed_rv(a + 1);
             uint32_t limit = (a[0]==USER_NATIVE_FM || a[0]==USER_NATIVE_CZ || a[0]==USER_NATIVE_P5) ? native_limit(a[0]==USER_NATIVE_P5?ENGI_PROPHET:a[0]==USER_NATIVE_FM?ENGI_FM6:ENGI_CZ) : a[0] == USER_GENERAL ? UP_SLOTS : ENGINES[a[0]]->npresets;
             if (preset >= 0 && (uint32_t)preset < limit &&

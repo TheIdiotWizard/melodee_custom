@@ -139,17 +139,18 @@ static int settings_import(persist_t *p, int n)
         const uint8_t *w = p->favorites.factory[VOICE_PREF_ROW] + VOICE_PREF_BYTE;
         uint32_t tagged = w[0] == 'W' && w[1] == 1u, nib = w[0] == 'W' && w[1] == 2u;
 #if MELODEE_M2K_ENGINES
-        /* version 3: ten points as nibbles in bytes 2..6 (SAW ENS FM+ WAV DRUM LOFI VOICE TRIO WHEEL PHYS); a version 2
-         * record keeps its DRUM LOFI VOICE TRIO WHEEL PHYS, a version 1 its DRUM */
-        uint32_t v3 = w[0] == 'W' && w[1] == 3u;
-        static const uint8_t from_v2[6][2] = {{4, 2}, {5, 4}, {6, 5}, {7, 6}, {8, 7}, {9, 8}};
+        /* version 4 (1.2.6): ten points as nibbles in bytes 2..6 (SAW ENS FMT WAV+ DRUM LOFI DUAL A4 WHEEL PHYS); a
+         * version 3 record (SAW ENS FM+ WAV DRUM LOFI VOICE TRIO WHEEL PHYS) keeps all but its FM+ VOICE TRIO (retired
+         * engines: the new ones in their slots start AUTO); a version 2 its DRUM LOFI WHEEL PHYS, a version 1 its DRUM */
+        uint32_t v3 = w[0] == 'W' && w[1] == 3u, v4 = w[0] == 'W' && w[1] == 4u;
+        static const uint8_t from_v2[4][2] = {{4, 2}, {5, 4}, {8, 7}, {9, 8}};
         for (uint32_t k = 0; k < VOICE_KINDS; k++)
-            settings_vpoints[k] = (int16_t)(v3 ? (w[2u + k / 2u] >> (k & 1u ? 4u : 0u)) & 15u : 0u);
+            settings_vpoints[k] = (int16_t)((v4 || (v3 && k != 2u && k != 6u && k != 7u)) ? (w[2u + k / 2u] >> (k & 1u ? 4u : 0u)) & 15u : 0u);
         if (nib)
-            for (uint32_t j = 0; j < 6u; j++)
+            for (uint32_t j = 0; j < 4u; j++)
                 settings_vpoints[from_v2[j][0]] = (int16_t)((w[2u + from_v2[j][1] / 2u] >> (from_v2[j][1] & 1u ? 4u : 0u)) & 15u);
         if (tagged) settings_vpoints[4] = (int16_t)(w[2u + 4u] <= 15u ? w[2u + 4u] : 0u);
-        settings_safety = (int16_t)((tagged || nib || v3) && !(w[7] & 1u));
+        settings_safety = (int16_t)((tagged || nib || v3 || v4) && !(w[7] & 1u));
 #elif MELODEE_FELUCCA_ENGINES
         /* version 2: nine points as nibbles in bytes 2..6 (P5 FM6 DRUM PHASE LOFI VOICE TRIO WHEEL PHYS); a version 1
          * record (P5 CZ-1 FM6 SID DRUM bytes) keeps its P5, FM6 and DRUM */
@@ -227,7 +228,7 @@ static void settings_export(persist_t *p)
         memset(w, 0, 8);
         if (custom) {
 #if MELODEE_M2K_ENGINES
-            w[0] = 'W'; w[1] = 3u; w[7] = (uint8_t)!settings_safety;
+            w[0] = 'W'; w[1] = 4u; w[7] = (uint8_t)!settings_safety;
             for (uint32_t k = 0; k < VOICE_KINDS; k++)
                 w[2u + k / 2u] |= (uint8_t)((settings_vpoints[k] & 15) << (k & 1u ? 4u : 0u));
 #elif MELODEE_FELUCCA_ENGINES

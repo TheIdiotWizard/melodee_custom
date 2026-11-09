@@ -113,7 +113,10 @@ int main(void)
     printf("],\n\"TRK_DEF\":[");
     for (k = 0; k < NPART; k++)
         printf("%s[%d,%d]", k ? "," : "", TRK_DEF[k][0], TRK_DEF[k][1]);
-    printf("],\n\"FM6\":{\"bank\":%u,\"init\":", 0u);   /* FM6: the packed patches */
+    printf("]");
+#if MELODEE_RETIRED_CODE
+    printf(",\n\"FM6\":{\"bank\":%u,\"init\":", 0u);   /* FM6: the packed patches (a build with FM6's factory: the
+                                                     shipping build retired FM6, its factory bank went in 1.2.6) */
     for (i = 0; i < FM6_PACKED; i++)
         printf("%s%d", i ? "," : "[", FM6_INIT[i]);
     printf("],\"factory\":[");
@@ -124,6 +127,9 @@ int main(void)
             printf("%s%d%s", i ? "," : k ? ",[" : "[", pk[i], i == FM6_PACKED - 1u ? "]" : "");
     }
     printf("]}");
+#else
+    printf(",\n\"FM6\":null");
+#endif
     printf(",\n\"LANE_NOTE\":[");                    /* the DRUM grid: each lane's GM note, the lane of GM 35..81 */
     for (k = 0; k < NLANE; k++)
         printf("%s%d", k ? "," : "", DRUM_LANE_NOTE[k]);

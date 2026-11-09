@@ -5,24 +5,26 @@
 int main(void)
 {
     int bad=0; reset(); up_boot();
-    bad+=check("engine and native collection IDs remain unchanged",NENGINES==29 && ENGI_MIDI==21 && ENGI_SAW==22 && ENGI_WAV==27 && ENGI_NOIS==28 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
+    bad+=check("engine and native collection IDs remain unchanged",NENGINES==32 && ENGI_MIDI==21 && ENGI_SAW==22 && ENGI_WAV==27 && ENGI_NOIS==28 && ENGI_FMTONE==29 && ENGI_DUAL==30 && ENGI_ANA4==31 && !eng_ok(20) && USER_GENERAL==16 && USER_NATIVE_FM==17 && USER_NATIVE_CZ==18 && ENGI_PROPHET==19 && USER_NATIVE_P5==20);
 #if MELODEE_FELUCCA_ENGINES
     /* Felucca's PHASE (2), LOFI (3), VOICE (5), TRIO (6) and PHYS (9) restored at their original numbers; CZ-1 (15)
      * retired (its stored tracks keep the number, play silent); SID's engine 3 plays as LOFI */
 #if MELODEE_M2K_ENGINES
-    /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's six at 22..27 */
-    const uint8_t retired[]={2,11,12,15,19};
+    /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's engines at 22..28.
+     * 1.2.6: VOICE (5), TRIO (6) and MONO2K's STAT PAR DYN (24..26) retired; Mini-Tone's FMTONE DUALVCO ANALOG4 at 29..31 */
+    const uint8_t retired[]={2,5,6,11,12,15,19,24,25,26};
 #else
     const uint8_t retired[]={11,15};
 #endif
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
-            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 4, "STAT"}, {25, 4, "PAR"}, {26, 4, "DYN"}, {27, 5, "WAV"}, {28, 5, "NOIS"},
+            {22, 5, "SAW"}, {23, 5, "ENS"}, {27, 5, "WAV"}, {28, 5, "NOIS"},
+            {29, 8, "FMTONE"}, {30, 9, "DUALVCO"}, {31, 8, "ANALOG4"},
 #else
-            {2, 6, "PHASE"},
+            {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
 #endif
-            {3, 5, "LOFI"}, {5, 4, "VOICE"}, {6, 5, "TRIO"}, {7, 5, "WHEEL"}, {9, 9, "PHYS"}};
+            {3, 5, "LOFI"}, {7, 5, "WHEEL"}, {9, 9, "PHYS"}};
         for (uint32_t j = 0; j < NELEM(back); j++) {
             uint32_t e = back[j].e, shown = 0;
             for (uint32_t k = 0; k < NENG_SHOWN; k++) shown |= eng_vis(k) == e;
@@ -38,29 +40,32 @@ int main(void)
                    eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && !eng_state_size(5) && !eng_state_size(6));
         bad+=check("track 3 powers on with LOFI PULSE LD", trk_def_engine(2)==3u && trk_def_preset(2)==0u);
 #if MELODEE_M2K_ENGINES
-        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and STAT FM BASS",
-                   trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==0u && trk_def_engine(1)==ENGI_SAW+2u && trk_def_preset(1)==1u);
-        bad+=check("the six keep their voices as part state; ENS also its chorus",
-                   eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(24)==eng_state_size(22) &&
-                   eng_state_size(27)==eng_state_size(22));
+        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and FMTONE FM BASS",
+                   trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==0u && trk_def_engine(1)==ENGI_FMTONE && trk_def_preset(1)==2u);
+        bad+=check("the seven keep their voices as part state; ENS also its chorus",
+                   eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(27)==eng_state_size(22) &&
+                   eng_state_size(ENGI_FMTONE)>0 && eng_state_size(ENGI_DUAL)>0 && eng_state_size(ENGI_ANA4)>0);
         {   /* SAVE > USER with each of MONO2K's seven: the slot holds it, LOAD brings it back */
             int ok=1;
-            for(uint32_t e=ENGI_SAW;e<=ENGI_NOIS;e++){
-                uint32_t k=UP_SLOTS-1u-(e-ENGI_SAW);
+            static const uint8_t m2k7[]={ENGI_SAW,ENGI_SAW+1u,ENGI_WAV,ENGI_NOIS,ENGI_FMTONE,ENGI_DUAL,ENGI_ANA4};
+            for(uint32_t j=0;j<NELEM(m2k7);j++){
+                uint32_t e=m2k7[j], k=UP_SLOTS-1u-j;
                 set_engine_of(TSEL,(uint8_t)e);apply_preset_to(TSEL,1);
-                for(uint32_t i=0;i<3;i++)TSEL->p[P_E0+i]=(int16_t)(e==ENGI_NOIS&&i==2u?1:5+i+e-ENGI_SAW);
-                TSEL->p[P_FMODE]=2;TSEL->p[P_FCUT]=(int16_t)(33+e-ENGI_SAW);TSEL->p[P_FRES]=44;   /* (their FILTER too) */
-                int16_t want[8];memcpy(want,TSEL->p+P_E0,sizeof want);
+                for(uint32_t i=0;i<3;i++){const param_desc_t *d=param_desc_of(e,P_E0+i);   /* (within each control's range) */
+                    TSEL->p[P_E0+i]=(int16_t)(e==ENGI_NOIS&&i==2u?1:d->min+(int32_t)(5u+i+j)%(d->max-d->min+1));}
+                TSEL->p[P_FMODE]=2;TSEL->p[P_FCUT]=(int16_t)(33+j);TSEL->p[P_FRES]=44;   /* (their FILTER too) */
+                if(e==ENGI_FMTONE||e==ENGI_ANA4)TSEL->p[P_FM2_DEC]=(int16_t)(61+j);   /* an operator-slot control */
+                int16_t want[8];memcpy(want,TSEL->p+P_E0,sizeof want);int16_t want2=TSEL->p[P_FM2_DEC];
                 int st=up_store(k,"M2K USER");
                 int used=up_used(k), eng=up_engine(k)==e;
                 set_engine_of(TSEL,3u);apply_preset_to(TSEL,0);
                 int ld=up_load(k);
                 if(st||!used||!eng||ld||TSEL->eng_req!=e||memcmp(TSEL->p+P_E0,want,sizeof want)||
-                   TSEL->p[P_FMODE]!=2||TSEL->p[P_FCUT]!=(int16_t)(33+e-ENGI_SAW)||TSEL->p[P_FRES]!=44){
-                    printf("persist: MONO2K user preset, engine %u: store %d used %d engine %d load %d now %u\n",e,st,used,eng,ld,TSEL->eng_req);ok=0;}
+                   TSEL->p[P_FMODE]!=2||TSEL->p[P_FCUT]!=(int16_t)(33+j)||TSEL->p[P_FRES]!=44||TSEL->p[P_FM2_DEC]!=want2){
+                    printf("persist: MONO2K user preset, engine %u: store %d used %d engine %d load %d now %u fm2dec %d/%d e0 %d/%d e1 %d/%d e2 %d/%d\n",e,st,used,eng,ld,TSEL->eng_req,TSEL->p[P_FM2_DEC],want2,TSEL->p[P_E0],want[0],TSEL->p[P_E1],want[1],TSEL->p[P_E2],want[2]);ok=0;}
                 up_put(k,0);
             }
-            bad+=check("SAVE > USER keeps a sound of each of MONO2K's seven, its FILTER too; LOAD brings it back",ok);
+            bad+=check("SAVE > USER keeps a sound of each of the seven, its FILTER and extra controls too; LOAD brings it back",ok);
             set_engine_of(TSEL,ENGI_SAW);apply_preset_to(TSEL,0);
             TSEL->p[P_FMODE]=3;TSEL->p[P_FCUT]=21;TSEL->p[P_FRES]=99;
             project_capture(&proj_scratch);
@@ -68,9 +73,10 @@ int main(void)
             TSEL->p[P_FMODE]=0;TSEL->p[P_FCUT]=127;TSEL->p[P_FRES]=0;
             bad+=check("a project keeps a MONO2K track's FILTER (MODE CUT RES)",
                        !project_restore_runtime(&fsaved) && TSEL->p[P_FMODE]==3 && TSEL->p[P_FCUT]==21 && TSEL->p[P_FRES]==99);
-            set_engine_of(TSEL,ENGI_SAW+2u);apply_preset_to(TSEL,1);
-            bad+=check("a preset sets its FILTER: STAT FM BASS a low-pass, FM BELL OFF",
-                       TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==72 && (apply_preset_to(TSEL,0),TSEL->p[P_FMODE]==0));
+            set_engine_of(TSEL,ENGI_FMTONE);apply_preset_to(TSEL,6);
+            bad+=check("a preset sets its FILTER: FMTONE RESO PLUCK a low-pass, its preset 0 OFF; ANALOG4 ACID resonant",
+                       TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==60 && TSEL->p[P_FRES]==90 && (apply_preset_to(TSEL,0),TSEL->p[P_FMODE]==0) &&
+                       (set_engine_of(TSEL,ENGI_ANA4),apply_preset_to(TSEL,3),TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==95 && TSEL->p[P_FRES]==110));
         }
 #endif
     }

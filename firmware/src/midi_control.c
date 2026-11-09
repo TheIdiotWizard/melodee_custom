@@ -310,7 +310,7 @@ static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint
         static const uint8_t map[NENGINES]={0,0,0x30,0x56,0,0x07,0,0,0,0,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
 #endif
 #if MELODEE_M2K_ENGINES
-        if(t->eng_req>=ENGI_SAW && t->eng_req<=ENGI_NOIS){id=cc==74?P_FCUT:P_FRES;break;}   /* their FILTER: CUT / RES */
+        if(uflt_engine(t->eng_req)){id=cc==74?P_FCUT:P_FRES;break;}   /* the FILTER page's engines: CUT / RES */
 #endif
         uint32_t macro=(map[t->eng_req%NENGINES]>>(cc==74?4:0))&15u;
         if(macro)id=P_E0+macro-1u;else if(cc==74 && t->eng_req==ENGI_CZ)id=P_ED_FLT;

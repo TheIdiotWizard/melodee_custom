@@ -13,10 +13,12 @@
 #include "eng_fphase.c"         /* PHASE: Felucca's, with FOLD (eng_phase.c is the CZ-1's core) */
 #include "eng_lofi.c"           /* LOFI: Felucca's chip voice */
 #endif
-#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
+#if (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES) && MELODEE_RETIRED_CODE
 #include "eng_formant.c"
 #endif
+#if MELODEE_RETIRED_CODE || MELODEE_LEGACY_EXTRAS
 #include "eng_trio.c"
+#endif
 #include "eng_wheel.c"
 #include "eng_phys.c"           /* PHYS: DaisySP physical models (phys_dsp.c, MIT) */
 #include "eng_drum.c"           /* DRUM: synthesized 808 circuits (drum_808.c), the 909, a C64's SID (drum_sid.c), CR78, FM */
@@ -48,7 +50,9 @@ static const engine_t ENG_RETIRED = {         /* 13 without MELODEE_SLICE: reser
 /* Each track owns only its selected engine's working state. Simple engines
  * use voice_t alone. State is released after the old engine's switch fade. */
 #include "resources.c"
-#include "eng_m2k.c"          /* SAW ENS STAT PAR DYN WAV: MONO2K's machines, a copy a voice */
+#include "eng_uflt.c"         /* the FILTER page: TRIO's filter for MONO2K's and Mini-Tone's engines */
+#include "eng_m2k.c"          /* SAW ENS WAV NOIS: MONO2K's machines, a copy a voice */
+#include "eng_mt.c"           /* FMTONE DUALVCO ANALOG4: Mini-Tone's engines */
 static uint32_t eng_state_size(uint32_t e)
 {
     switch (e) {
@@ -77,8 +81,10 @@ static uint32_t eng_state_size(uint32_t e)
 #if !MELODEE_M2K_ENGINES                            /* (retired with MONO2K's six: no part state) */
     case ENGI_FM6: return sizeof(fm6_part_t);
 #endif
-    case ENGI_SAW: case ENGI_SAW + 2u: case ENGI_SAW + 3u: case ENGI_SAW + 4u: case ENGI_WAV:
+    case ENGI_SAW: case ENGI_WAV:
         return M2K_PART_BYTES(M2K_SAW);
+    case ENGI_FMTONE: case ENGI_DUAL: case ENGI_ANA4:
+        return mt_state_size(e);
     case ENGI_SAW + 1u: return M2K_PART_BYTES(M2K_ENS);
     case ENGI_NOIS: return M2K_PART_BYTES(M2K_NOIS);
 #if MELODEE_SLICE
@@ -136,12 +142,12 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_LOFI,                   /* 3: LOFI, Felucca's (restored; SID's tracks while it shipped play as LOFI) */
 #endif
     &ENG_RETIRED,                /* 4: retired SAMPLE; reserved to preserve stored indices */
-#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
+#if (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES) && MELODEE_RETIRED_CODE
     &ENG_FORMANT,                /* 5 VOICE (eng_formant.c: "voice" is a sounding note in voice.c) */
 #else
     &ENG_RETIRED,                /* 5: retired VOICE; stored ID reserved */
 #endif
-#if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES
+#if (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES) && MELODEE_RETIRED_CODE
     &ENG_TRIO,
 #else
     &ENG_RETIRED,                /* 6: retired TRIO; stored ID reserved */
@@ -185,11 +191,14 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_MIDI,                   /* 21: USB MIDI Track */
     &ENG_M2K_SAW,                /* 22: SAW, MONO2K's SWAV-SAW */
     &ENG_M2K_ENS,                /* 23: ENS, MONO2K's SWAV-ENS */
-    &ENG_M2K_STAT,               /* 24: STAT, MONO2K's FM+STAT */
-    &ENG_M2K_PAR,                /* 25: PAR, MONO2K's FM+PAR */
-    &ENG_M2K_DYN,                /* 26: DYN, MONO2K's FM+DYN */
+    &ENG_RETIRED,                /* 24: STAT (MONO2K's FM+STAT, 1.2.0..1.2.5): retired for FMTONE, its sounds silent */
+    &ENG_RETIRED,                /* 25: PAR (FM+PAR): the same */
+    &ENG_RETIRED,                /* 26: DYN (FM+DYN): the same */
     &ENG_M2K_WAV,                /* 27: WAV, MONO2K's DIGI-WAV */
     &ENG_M2K_NOIS,               /* 28: NOIS, MONO2K's GND-NOIS */
+    &ENG_FMTONE,                 /* 29: FMTONE, Mini-Tone's (eng_mt.c) */
+    &ENG_DUAL,                   /* 30: DUALVCO, Mini-Tone's */
+    &ENG_ANA4,                   /* 31: ANALOG4, Mini-Tone's */
 };
 static int m2k_kind(const track_t *t) { uint32_t e = t->engine; return e >= ENGI_SAW && e <= ENGI_NOIS ? (int)(e - ENGI_SAW) : M2K_SAW; }
 
@@ -222,7 +231,8 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if MELODEE_M2K_ENGINES
-    ENGI_SAW, ENGI_SAW + 1, ENGI_SAW + 2, ENGI_SAW + 3, ENGI_SAW + 4, ENGI_WAV, ENGI_NOIS,   /* SAW ENS STAT PAR DYN WAV NOIS */
+    ENGI_SAW, ENGI_SAW + 1, ENGI_WAV, ENGI_NOIS,   /* SAW ENS WAV NOIS (MONO2K's) */
+    ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4,             /* FMTONE DUALVCO ANALOG4 (Mini-Tone's) */
 #else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */
@@ -231,7 +241,11 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if !MELODEE_M2K_ENGINES
     2,                           /* PHASE */
 #endif
+#if MELODEE_M2K_ENGINES
+    3,                           /* LOFI (VOICE and TRIO retired) */
+#else
     3, 5, 6,                     /* LOFI VOICE TRIO */
+#endif
 #if MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS
     7,                           /* WHEEL */
 #endif
@@ -265,6 +279,10 @@ static int eng_extra_retired(uint32_t e)
 #endif
     if (!MELODEE_CZ && e == ENGI_CZ) return 1;
     if (MELODEE_M2K_ENGINES && (e == ENGI_PROPHET || e == ENGI_FM6 || e == 2u)) return 1;   /* their sounds: silent */
+    if (e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u)
+        return 1;                /* STAT, PAR, DYN (retired for Mini-Tone's three, in every build): silent */
+    if (MELODEE_M2K_ENGINES && (e == 5u || e == 6u))
+        return 1;                /* VOICE, TRIO (the shipping build's; the fixture build still plays them): silent */
     if (MELODEE_FELUCCA_ENGINES && (e == 2u || e == 5u || e == 6u || e == 9u)) return 0;
     return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
 }
@@ -296,8 +314,8 @@ static uint32_t eng_step(uint32_t e, int32_t dir)
 /* the parts at power-on and in a new song (engine, preset; the steps empty): poly, bass, lead, drums. IT'S A
  * PROPHET 5, FM6 SOLID BASS, CZ-1 SYNTH.LEAD 1, 808 KIT (until 2026-10-16: PROPHET FUNK BASS II, FM6 PAD, SID INIT
  * SID, 808 KIT) */
-#if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, STAT FM BASS, LOFI PULSE LD, 808 KIT */
-static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_SAW + 2, 1}, {3, 0}, {ENGI_DRUM, 0}};
+#if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, FMTONE FM BASS (STAT FM BASS until 1.2.5), LOFI PULSE LD, 808 KIT */
+static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_FMTONE, 2}, {3, 0}, {ENGI_DRUM, 0}};   /* FMTONE FM BASS */
 #elif MELODEE_CZ
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {ENGI_CZ, 52}, {ENGI_DRUM, 0}};
 #else                                            /* (without the CZ-1: LOFI PULSE LD, Melodee 1.0's lead) */

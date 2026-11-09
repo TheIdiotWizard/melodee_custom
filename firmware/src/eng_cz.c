@@ -8,6 +8,9 @@
 static void cz_factory(uint32_t k, uint8_t *raw)
 {
     uint8_t b[2u * CZ_BYTES];
+#if !MELODEE_CZ
+    (void)k; (void)b; cz_patch_init(raw); return;   /* (CZ-1 retired: Casio's tones not built in) */
+#endif
     if (!RES_OK()) { cz_patch_init(raw); return; }  /* (res.c: Casio's tones not installed) */
     memcpy(b, CZ_DICT, CZ_BYTES);
     lz_unpack(b + CZ_BYTES, CZ_LZ + CZ_LZ_AT[k % CZ_FACTORY_N], CZ_BYTES);

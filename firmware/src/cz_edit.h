@@ -76,6 +76,9 @@ static __attribute__((noinline)) void cz_ed_decode(uint8_t *p,const uint8_t *d)
  * runs its steps up to END: rates to END's (the release to 0), levels before END's, a SUS before END */
 static int cz_ed_active(const uint8_t *d, uint32_t id)
 {
+#if !MELODEE_CZ
+    (void)d; (void)id; return 0;   /* (CZ-1 retired: no tone panel) */
+#endif
     uint32_t ls = d[0] & 3u, line, k, e, end;
     if (id == LCZ_SIGN)
         return ls && ((d[2] >> 2) || d[3]);
@@ -102,6 +105,9 @@ static const param_desc_t *cz_ed_desc(uint32_t tr,uint32_t id,uint32_t slot,int1
 {
     uint8_t p[LCZ_PACKED];
     *valp=0;
+#if !MELODEE_CZ
+    (void)tr; (void)id; (void)slot; (void)p; return 0;
+#endif
     if(id>=LCZ_NP || !CZ_PD[id].label)return 0;
     cz_ed_decode(p,cz_patch_of(tr)->raw);
     cz_ed_cell[slot&3u]=p[id];*valp=&cz_ed_cell[slot&3u];
@@ -117,6 +123,9 @@ static const param_desc_t *cz_ed_desc(uint32_t tr,uint32_t id,uint32_t slot,int1
 static int cz_ed_put(uint32_t tr,uint32_t id,uint32_t v,uint8_t *raw)
 {
     uint8_t p[LCZ_PACKED],base[CZ_BYTES],next[CZ_BYTES];
+#if !MELODEE_CZ
+    (void)tr; (void)id; (void)v; (void)raw; (void)p; (void)base; (void)next; return 0;
+#endif
     if(id>=LCZ_NP || !CZ_PD[id].label)return 0;
     memcpy(raw,cz_patch_of(tr)->raw,CZ_BYTES);
     cz_ed_decode(p,raw);lcz_sx_encode(p,base,1);

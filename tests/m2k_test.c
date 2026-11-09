@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
-/* MONO2K's seven engines (src/eng_m2k.c) on the host, through hostsim.c.
+/* MONO2K's four engines (src/eng_m2k.c) and Mini-Tone's three (src/eng_mt.c) on the host, through hostsim.c.
  *   build/host/m2k_test
- * 1. every preset of SAW ENS STAT PAR DYN WAV NOIS sounds: one note at velocity 127, its peak short of the voice clip.
+ * 1. every preset of SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4 sounds: one note at velocity 127, its peak short of the voice clip.
  * 2. the first note after silence: a note, its release run out, then idle blocks rendered the way the mixer does
  *    (track_render_audio, clear_idle 0) over a buffer full of other audio; the next note's first 50 ms peak no
  *    higher than the same note's from a fresh part (+25 %). ENS's chorus once took that buffer in and played it
@@ -11,7 +11,8 @@
  *    +-3); two voices are two noises (their sum's power twice one's, +-15 %); STON without SPREAD leaves the middle the
  *    first noise alone (sample for sample as ST 0), with SPREAD it adds the second to the left side only.
  * 4. the FILTER page (TRIO's filter): OFF changes nothing (as before it, sample for sample); LP at CUT 40 takes 4.8 kHz
- *    at least 20 dB further down than 300 Hz, HP at CUT 100 300 Hz; ENV -> FLT moves the cutoff, not UNIW, with it on.
+ *    at least 20 dB further down than 300 Hz, HP at CUT 100 300 Hz; ENV -> FLT moves the cutoff, not UNIW, with it on;
+ *    on FMTONE, DUALVCO and ANALOG4 LP at CUT 30 takes their 4.8 kHz 12 dB or more down against MODE OFF.
  * 5. MIDI: CC 74 / 71 the FILTER's CUT / RES on these engines; a relative MIDI MODE (REL 1) steps CC 73 ATTACK and
  *    CC 74 from where they are, CC 7 LEVEL and CC 1 (the mod wheel) stay absolute. */
 #define main hostsim_main
@@ -106,14 +107,31 @@ static void saw_render(int mode, int cut, int res, int fenv, int32_t *y, uint32_
     }
 }
 
+/* one of Mini-Tone's engines, its preset 0, one note held, its FILTER mode / cut; n samples of the voice */
+static void mt_render(uint32_t e, int mode, int cut, int32_t *y, uint32_t n)
+{
+    setup(e, 0);
+    trk[0].p[P_FMODE] = (int16_t)mode; trk[0].p[P_FCUT] = (int16_t)cut; trk[0].p[P_FRES] = 0;
+    trk[0].p[P_ED_FLT] = 0; trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
+    trk_note_on(&trk[0], 48, 110);
+    static int32_t b[CTL];
+    uint32_t warm = FS / 10u / CTL;
+    for (uint32_t i = 0; i < warm + n / CTL; i++) {
+        track_render_audio(&trk[0], b, CTL, 1);
+        if (i >= warm) for (uint32_t k = 0; k < CTL; k++) y[(i - warm) * CTL + k] = b[k];
+    }
+}
+
 int main(void)
 {
-    static const char *const NAME[7] = {"SAW", "ENS", "STAT", "PAR", "DYN", "WAV", "NOIS"};
+    static const char *const NAME[7] = {"SAW", "ENS", "WAV", "NOIS", "FMTONE", "DUALVCO", "ANALOG4"};
+    static const uint8_t ENG7[7] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_WAV, ENGI_NOIS, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
     int ok = 1;
     for (uint32_t k = 0; k < 7u; k++) {
-        const engine_t *e = ENGINES[ENGI_SAW + k];
+        const engine_t *e = ENGINES[ENG7[k]];
+        ok &= e->npresets > 0 && !strcmp(e->name, NAME[k]);
         for (uint32_t pi = 0; pi < e->npresets; pi++) {
-            setup(ENGI_SAW + k, pi);
+            setup(ENG7[k], pi);
             trk_note_on(&trk[0], 48, 127);
             int32_t pk = render_peak(FS / 2u, 0);
             if (!(pk > 500 && pk < 32000)) { printf("m2k: %s %s peak %d\n", NAME[k], e->presets[pi].name, (int)pk); ok = 0; }
@@ -123,9 +141,9 @@ int main(void)
 
     ok = 1;
     for (uint32_t k = 0; k < 7u; k++) {
-        const engine_t *e = ENGINES[ENGI_SAW + k];
+        const engine_t *e = ENGINES[ENG7[k]];
         for (uint32_t pi = 0; pi < e->npresets; pi++) {
-            setup(ENGI_SAW + k, pi);
+            setup(ENG7[k], pi);
             trk[0].p[P_REL] = 20;
             trk_note_on(&trk[0], 60, 110);
             int32_t fresh = render_peak(FS / 20u, 0);   /* (NOIS: a noise's peak varies, its level does not) */
@@ -138,7 +156,7 @@ int main(void)
             }
             trk_note_on(&trk[0], 60, 110);
             int32_t again = render_peak(FS / 20u, 0);
-            if (!idle || again > fresh + fresh / (k == 6u ? 2 : 4)) {
+            if (!idle || again > fresh + fresh / (ENG7[k] == ENGI_NOIS ? 2 : 4)) {
                 printf("m2k: %s %s first note %d, after silence %d (idle %u)\n", NAME[k], e->presets[pi].name,
                        (int)fresh, (int)again, idle);
                 ok = 0;
@@ -192,6 +210,14 @@ int main(void)
         saw_render(1, 30, 0, 0, y, NS); double still = band(y, NS, 4800);
         saw_render(1, 30, 0, 127, y, NS); double moved = band(y, NS, 4800);
         check("FILTER on: ENV -> FLT opens the cutoff (4.8 kHz up 10 dB or more)", 10 * log10(moved / still) >= 10);
+        ok = 1;
+        for (uint32_t k = 4; k < 7u; k++) {
+            mt_render(ENG7[k], 0, 127, off, NS); double h0 = band(off, NS, 4800);
+            mt_render(ENG7[k], 1, 30, y, NS); double h1 = band(y, NS, 4800);
+            printf("m2k: FILTER on %s: LP CUT 30 takes 4.8 kHz %.1f dB against OFF\n", NAME[k], 10 * log10(h1 / h0));
+            ok &= h0 > 0 && 10 * log10(h1 / h0) <= -12;
+        }
+        check("FILTER on FMTONE, DUALVCO, ANALOG4: LP at CUT 30 takes 4.8 kHz 12 dB or more down (against OFF)", ok);
     }
     {
         setup(ENGI_SAW, 0);
@@ -199,9 +225,12 @@ int main(void)
         settings_midi_knob_mode = MK_ABSOLUTE;
         midi_parameter(&trk[0], 74, 32); midi_parameter(&trk[0], 71, 127);
         ok = trk[0].p[P_FCUT] == 32 && trk[0].p[P_FRES] == 127;
-        setup(ENGI_SAW + 2u, 0); midi_parameter(&trk[0], 74, 10);
-        ok &= trk[0].p[P_FCUT] == 10;
-        check("CC 74 / 71: the FILTER's CUT / RES on MONO2K's engines", ok);
+        static const uint8_t MORE[] = {ENGI_NOIS, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
+        for (uint32_t k = 0; k < NELEM(MORE); k++) {
+            setup(MORE[k], 0); midi_parameter(&trk[0], 74, (uint8_t)(10 + k)); midi_parameter(&trk[0], 71, (uint8_t)(90 + k));
+            ok &= trk[0].p[P_FCUT] == (int16_t)(10 + k) && trk[0].p[P_FRES] == (int16_t)(90 + k);
+        }
+        check("CC 74 / 71: the FILTER's CUT / RES on all seven (Mini-Tone's three too)", ok);
         setup(ENGI_SAW, 0);
         settings_midi_knob_mode = MK_REL1;
         trk[0].p[P_ATK] = 40; trk[0].p[P_FCUT] = 100; trk[0].p[P_LEVEL] = 50;
@@ -220,6 +249,6 @@ int main(void)
         settings_midi_knob_mode = keep;
     }
 
-    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS STAT PAR DYN WAV NOIS: presets, the first note after silence, NOIS's colour and stereo, the FILTER, CC 74 / 71 and REL 1: OK\n");
+    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4: presets, the first note after silence, NOIS's colour and stereo, the FILTER, CC 74 / 71 and REL 1: OK\n");
     return bad != 0;
 }

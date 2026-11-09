@@ -135,8 +135,9 @@ static uint32_t voice_units(const track_t *t)
     /* GLO > WEIGHTS: the player's points per voice replace the built-in rule; AUTO (0) keeps it. */
 #if MELODEE_M2K_ENGINES                                /* (params.c weight_kind's order) */
     uint32_t en = t->engine;
-    int k = en == ENGI_SAW ? 0 : en == ENGI_SAW + 1u ? 1 : en >= ENGI_SAW + 2u && en <= ENGI_SAW + 4u ? 2 : en == ENGI_WAV || en == ENGI_NOIS ? 3 :
-            e == &ENG_DRUM ? 4 : e == &ENG_LOFI ? 5 : e == &ENG_FORMANT ? 6 : e == &ENG_TRIO ? 7 : e == &ENG_WHEEL ? 8 :
+    /* (the weights' slots, 1.2.6: FMT FMTONE where FM+ was, DUAL DUALVCO VOICE's, A4 ANALOG4 TRIO's) */
+    int k = en == ENGI_SAW ? 0 : en == ENGI_SAW + 1u ? 1 : en == ENGI_FMTONE ? 2 : en == ENGI_WAV || en == ENGI_NOIS ? 3 :
+            e == &ENG_DRUM ? 4 : e == &ENG_LOFI ? 5 : en == ENGI_DUAL ? 6 : en == ENGI_ANA4 ? 7 : e == &ENG_WHEEL ? 8 :
             e == &ENG_PHYS ? 9 : -1;
 #elif MELODEE_FELUCCA_ENGINES                          /* (params.c weight_kind's order) */
     int k = e == &ENG_P5_TEST ? 0 : e == &ENG_FM6 ? 1 : e == &ENG_DRUM ? 2 : e == &ENG_FPHASE ? 3 : e == &ENG_LOFI ? 4 :

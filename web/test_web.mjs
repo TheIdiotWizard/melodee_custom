@@ -482,6 +482,31 @@ async function editorMidiTrack() {
   done();
 }
 
+/* 1.2.6: Mini-Tone's FMTONE and ANALOG4 keep controls in the operator slots (P_FM1_ATK 61 .. 80): the mock describes them
+   as the firmware's mt_tdesc, a preset sets them and its FILTER (eng_uflt.c), SET clamps to their ranges */
+async function editorMiniTone() {
+  const { rq, done } = attachMock({ m2k: true });
+  const C = E.CMD, info = E.parse[C.INFO](await rq(E.req.info()));
+  const desc = async (i) => E.parse[C.DESC](await rq(E.req.desc(0, i)));
+  await rq(E.req.preset(29, 6));                 /* FMTONE RESO PLUCK */
+  let d = E.parse[C.DUMP](await rq(E.req.dump()), info);
+  const del = await desc(64), fto = await desc(76);
+  ok(d.engine === 29 && d.preset === 6 && d.p[33] === 1 && d.p[34] === 60 && d.p[35] === 90 && d.p[62] === 55 && d.p[70] === 40 &&
+     del.label === "DEL A" && fto.label === "FT B1" && fto.min === -64 && fto.unit === "ct",
+     "editor: FMTONE RESO PLUCK: its FILTER (LP 60 90) and operator-slot controls (DEL A, FT B1 in cents)");
+  await rq(E.req.preset(31, 3));                 /* ANALOG4 ACID */
+  d = E.parse[C.DUMP](await rq(E.req.dump()), info);
+  const f2 = await desc(77);
+  await rq(E.req.set(0, 77, 9));                 /* F2MD 0..5: clamped */
+  d = E.parse[C.DUMP](await rq(E.req.dump()), info);
+  ok(f2.label === "F2MD" && f2.names.join() === "LP-S,BP-S,HP-S,LP-P,BP-P,HP-P" && d.p[33] === 1 && d.p[35] === 110 && d.p[73] === 90 && d.p[77] === 5,
+     "editor: ANALOG4 ACID: FLT 2's MODE described and clamped, its FILTER and F1EN set");
+  await rq(E.req.preset(22, 0));                 /* SAW: the slots TP's again, the FILTER OFF */
+  d = E.parse[C.DUMP](await rq(E.req.dump()), info);
+  ok((await desc(77)).label !== "F2MD" && d.p[33] === 0 && d.p[34] === 127, "editor: back on SAW the operator slots are TP's, its FILTER OFF");
+  done();
+}
+
 /* the mock's tables == the firmware's (build/host/desc.json from tests/descdump.c, written by run_tests.sh):
    parameter descriptors, engines (titles, EDIT, presets), power-on sounds */
 function mockTables() {
@@ -492,9 +517,9 @@ function mockTables() {
        "editor: NOISE and CZ-1 retired with their original IDs reserved");
     const m1 = E.makeMockDevice({ auto: false, m2k: true });
     m1.stop();
-    ok([2, 12, 19].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
-       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,STAT4,PAR4,DYN4,WAV5,NOIS5",
-       "editor: shipping firmware: PROPHET, FM6 and PHASE retired (2, 12, 19 reserved), MONO2K's SAW ENS STAT PAR DYN WAV NOIS at 22..28");
+    ok([2, 5, 6, 12, 19, 24, 25, 26].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
+       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,-0,-0,-0,WAV5,NOIS5,FMTONE8,DUALVCO9,ANALOG48",
+       "editor: shipping firmware: PROPHET FM6 PHASE VOICE TRIO STAT PAR DYN retired (numbers reserved), SAW ENS WAV NOIS at 22..28, FMTONE DUALVCO ANALOG4 at 29..31");
     ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 9]].every(([i, n, k]) =>
        m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),
        "editor: Felucca's PHASE, LOFI, VOICE, TRIO and PHYS restored with their original IDs");
@@ -536,7 +561,8 @@ function mockTables() {
   cmp("power-on sounds", m2.state.tracks.map((t) => [t.engine, t.preset]), fw.TRK_DEF);
   m2.stop();
   cmp("firmware: G_ENGSEL names == engine names", fw.GP[fw.G_ENGSEL].names, fw.ENG.map((e) => e.name));
-  cmp("FM6 patches (init, factory, bank size)", T.FM6, fw.FM6);
+  if (fw.FM6) cmp("FM6 patches (init, factory, bank size)", T.FM6, fw.FM6);   /* (null: a firmware without FM6's factory bank,
+                                                     the shipping one since 1.2.6) */
   cmp("DRUM grid: the lanes' GM notes", [...E.LANE_NOTE], fw.LANE_NOTE);
   cmp("DRUM grid: the lane of GM 35..81", E.LANE_OF, fw.LANE_OF);
   diffs.slice(0, 20).forEach((d) => console.log("  " + d));
@@ -1790,6 +1816,7 @@ await editorMock();
 await editorMidiTrack();
 await editorSamplePresets();
 mockTables();
+await editorMiniTone();
 await editorLibrarian();
 await trackEffects();
 await editorGrid();

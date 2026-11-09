@@ -315,9 +315,9 @@ if core; then
     run "CPU live takes: native replay comparison, timed input, failure cleanup and guarded restoration" "$PY" tests/audio_cpu_take_test.py
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
-    t "Felucca engines: PHASE LOFI VOICE TRIO PHYS restored, CZ-1 retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
-    t "MONO2K engines: presets, the first note after silence, NOIS, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
-    t "MONO2K engines in the UI: the FILTER page (theirs only), STAT / PAR's Stage knob CUT" m2k_ui_test $FWS
+    t "shipping engines: LOFI WHEEL PHYS, MONO2K's and Mini-Tone's; CZ-1 VOICE TRIO STAT PAR DYN retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
+    t "MONO2K and Mini-Tone engines: presets, the first note after silence, NOIS, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
+    t "MONO2K and Mini-Tone engines in the UI: the FILTER page (theirs only), FMTONE / ANALOG4's own pages" m2k_ui_test $FWS
     t "capture gating, derived caches and silent-track clocks" performance_test -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "canvas drawing overlaps DMA without changing pending pixels" lcd_overlap_test -O1 -w -Ibuild/gen
     t "user presets (UP_PUT parser, bank round trip, versions, PHYS DRUM -> DRUM, grid records)" upreset_test
@@ -418,7 +418,7 @@ if core && [ $TABLES = 1 ]; then
     t "boot audio: codec waits for settled silent DMA and shuts down before I2S" audio_boot_test -w
     t "audio: overload protection, bounded fades and DMA diagnostics" audio_test $FW
     t "GLO > WEIGHTS: per-engine budget points, SAFETY, device persistence and pages" voice_weights_test $FW
-    t "GLO > WEIGHTS, shipping engines: ten weights, three pages, v3 record, v2 and v1 migration" voice_weights_felucca_test $FWS
+    t "GLO > WEIGHTS, shipping engines: ten weights, three pages, v4 record, v3 v2 and v1 migration" voice_weights_felucca_test $FWS
     t "FX inserts: any audio effect in a track's slots through the mixer, one REVERB across the racks" fx_inserts_test -O1 $FWS
     t "audio: silent bench keeps synthesis running and silences physical output" audio_silent_test:audio_test \
         -DMELODEE_BENCH_SILENT=1 $FW

@@ -313,8 +313,10 @@ static int page_visible(uint32_t i)
         return 0;
     if(PAGES[i].scope==SC_DRUM || PAGES[i].scope==SC_DRUMHIT)return drum_track(TSEL);
 #if MELODEE_M2K_ENGINES
-    if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] == P_FMODE)   /* FILTER: MONO2K's seven only */
-        return TSEL->eng_req >= ENGI_SAW && TSEL->eng_req <= ENGI_NOIS;
+    if (PAGES[i].own)                                  /* an engine's own page (FMTONE's, ANALOG4's) */
+        return TSEL->eng_req == PAGES[i].own;
+    if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] == P_FMODE)   /* FILTER: its engines only (eng_uflt.c) */
+        return uflt_engine(TSEL->eng_req);
 #endif
     if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] >= P_LN0 && PAGES[i].id[0] <= P_LN7)
         return drum_track(TSEL);
@@ -1062,7 +1064,8 @@ static void apply_preset_to(track_t *t, uint32_t pi)
     t->p[P_VOICE] = pr->mono ? V_LEGATO : V_POLY;   /* mono presets keep the legato feel */
     if(t->eng_req==ENGI_PROPHET)p5_preset_loaded(t,pi);
 #if MELODEE_M2K_ENGINES
-    m2k_preset_loaded(t, pi);                         /* (its FILTER) */
+    uflt_preset_loaded(t, pi);                        /* (its FILTER) */
+    mt_track_loaded(t);                               /* (Mini-Tone's: their extra controls) */
 #endif
     cz_factory_loaded(t);
     cz_track_accept(t);

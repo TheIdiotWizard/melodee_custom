@@ -158,7 +158,8 @@ static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset
     fm6_track_loaded(t);                          /* FM6: the preset's patch (ui.c apply_preset_to) */
 #if MELODEE_M2K_ENGINES
     t->p[P_FMODE] = TP[P_FMODE].def; t->p[P_FCUT] = TP[P_FCUT].def; t->p[P_FRES] = TP[P_FRES].def;
-    m2k_preset_loaded(t, pi);                     /* (its FILTER, as ui.c apply_preset_to) */
+    uflt_preset_loaded(t, pi);                    /* (its FILTER, as ui.c apply_preset_to) */
+    mt_track_loaded(t);
 #endif
 }
 static void host_preset_req(track_t *t, uint32_t e, uint32_t pi)
@@ -187,7 +188,7 @@ static void host_preset(track_t *t, uint32_t e, uint32_t pi)
 static void host_power_on_sound(track_t *t, uint32_t k)
 {
 #if MELODEE_M2K_ENGINES
-    static const uint8_t DEMO[2][2] = {{ENGI_SAW, 0}, {ENGI_SAW + 2u, 1}};   /* (the power-on SUPERSAW, FM BASS) */
+    static const uint8_t DEMO[2][2] = {{ENGI_SAW, 0}, {ENGI_FMTONE, 2}};   /* (the power-on SUPERSAW, FMTONE FM BASS) */
 #else
     static const uint8_t DEMO[2][2] = {{ENGI_PROPHET, 4}, {ENGI_FM6, 4}};
 #endif

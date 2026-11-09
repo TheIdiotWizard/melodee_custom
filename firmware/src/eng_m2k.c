@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio)
  * Portions Copyright (C) 2026 Sequencist (InigoHernandez), MONO2K: https://github.com/InigoHernandez/mono2k */
-/* SAW, ENS, STAT, PAR, DYN, WAV and NOIS: MONO2K's SWAV-SAW, SWAV-ENS, FM+STAT, FM+PAR, FM+DYN, DIGI-WAV and GND-NOIS machines
+/* SAW, ENS, WAV and NOIS: MONO2K's SWAV-SAW, SWAV-ENS, DIGI-WAV and GND-NOIS machines
  * (MONO2K firmware/src/m2k_dsp.c mach_block, GPL-3.0-only), each voice of a part running its own copy. The machines'
  * sample loops, laws and tables are MONO2K's (m2k_tables.h, extracted unchanged); what changed for Melodee:
  *  - a machine is a voice: Melodee's ADSR, velocity, glide, unison and LFO play it (MONO2K's own track chain, its
@@ -11,12 +11,12 @@
  *  - ENS's chorus is the part's (eng_m2k_post: one line over all its voices, CHRW across SPREAD's two sides);
  *  - WAV plays the owner's 64 waves (MONO2K's WAVE bank 64; in the resource region, res.c: silent without it), its
  *    sync master a free phase per voice;
- *  - the FM ratios and ENS's intervals are lists (an index each: the names MONO2K shows);
- *  - MONO2K's chain filter is not ported: the FILTER page (TRIO's filter, m2k_flt) takes its place, OFF by default;
- *    STAT's and PAR's TONE (a low-pass on their modulators) went for it, open now (1.2.4);
+ *  - ENS's intervals are a list (an index each: the names MONO2K shows);
+ *  - MONO2K's chain filter is not ported: the FILTER page (TRIO's filter, eng_uflt.c) takes its place, OFF by default;
  *  - NOIS is the noise alone (MONO2K's TUNE, which moved its chain filter, goes); STON's second noise goes across SPREAD's two sides (eng_m2k_post), in the middle without SPREAD
  *    unheard, as a mono sum of MONO2K's;
- *  - FLT (Melodee's LFO / ENV to the filter) and SHP move one control each, named in the table below.
+ *  - FLT (Melodee's LFO / ENV to the filter) and SHP move one control each, named in the table below;
+ *  - FM+STAT, FM+PAR and FM+DYN (engines 24..26) were retired in 1.2.6 for Mini-Tone's FMTONE (eng_mt.c).
  * The 32 x 32 -> 64 multiplies sit in out-of-line helpers on the device (M2K_MUL_OUT, as MONO2K's FM-1 build). */
 #include "m2k_tables.h"
 static uint8_t spread_on;             /* (voice.c: SPREAD's part, its left side) */
@@ -28,7 +28,7 @@ static int32_t *spread_buf;
 #define M2K_ENS_LEN 1024u            /* ENS's chorus line: 46 ms at half rate */
 #define M2K_ENS_GAIN 7119            /* a voice against the others' levels (MONO2K: calibrated, chain_ens20) */
 #define M2K_CLAMP(v, lo, hi) ((v) < (lo) ? (lo) : (v) > (hi) ? (hi) : (v))
-enum { M2K_SAW, M2K_ENS, M2K_STAT, M2K_PAR, M2K_DYN, M2K_WAV, M2K_NOIS };
+enum { M2K_SAW, M2K_ENS, M2K_STAT, M2K_PAR, M2K_DYN, M2K_WAV, M2K_NOIS };   /* (engine - ENGI_SAW; STAT PAR DYN retired, 1.2.6) */
 #define M2K_KINDS 7
 
 #if defined(FM1_IRQ_TARGET)
@@ -86,14 +86,6 @@ static inline uint32_t m2k_exp2(int32_t y)
 }
 /* the voice's increment moved by o 1/64 semitones (TUNE, an interval, the drift) */
 static inline uint32_t m2k_inc(uint32_t inc, int32_t o) { return o ? m2k_mulu_hi(inc, m2k_exp2(o / 3), 16) : inc; }
-/* FM+DYN's depth at a point of its law (Q8 steps, 0..256) */
-static inline uint32_t m2k_fmd_at(int32_t v8)
-{
-    int32_t i = v8 >> 8;
-    if (i >= 256) return T_FMDV[256];
-    return T_FMDV[i] + (((T_FMDV[i + 1] - T_FMDV[i]) * (uint32_t)(v8 & 255)) >> 8);
-}
-
 /* a plain one-pole, y += G (x - y), G Q24 (MONO2K's op_lp): NOIS's colours */
 typedef struct { int32_t s, G; uint32_t r; } m2k_op_t;
 static inline int32_t m2k_op_lp(m2k_op_t *f, int32_t x)
@@ -109,7 +101,7 @@ typedef struct {
         struct {
             uint32_t ph[7];
             int32_t ms[6];
-            uint32_t menv[3];        /* Q30 envelopes from the note */
+            uint32_t menv[1];        /* Q30 envelope from the note (WAV's) */
         };
         struct {                     /* NOIS */
             m2k_op_t gn[2][4];       /* each noise's colours: three one-poles and red's */
@@ -223,132 +215,6 @@ static void m2k_ens(m2k_voice_t *s, const int32_t *q, const int16_t *p, uint32_t
     }
 }
 
-/* FM+STAT: 1FRQ 1FIN 1ENV 1FB 2FRQ 2VOL TONE TUNE (1FRQ, 2FRQ: T_FMR24_NAME's 24) */
-static void m2k_stat(m2k_voice_t *s, const int32_t *q, const int16_t *p, uint32_t base, int16_t *o)
-{
-    uint32_t inc = m2k_inc(base, QB(7) >> 7);
-    uint32_t r1 = m2k_mulu_hi(T_FMR24[M2K_CLAMP(p[P_E0], 0, 23)], 192 * 256 + (uint32_t)q[1], 16);
-    uint32_t r2 = T_FMR24[M2K_CLAMP(p[P_E4], 0, 23)];
-    uint32_t i1 = m2k_mulu_hi(inc, r1, 16), i2 = m2k_mulu_hi(inc, r2, 16);
-    int32_t env = q[2];
-    uint32_t k1 = m2k_tq32(T_FMB, env < 64 * 256 ? env : 64 * 256);
-    if (env >= 65 * 256) {
-        k1 = (T_FMB[64] * (s->menv[0] >> 15)) >> 15;
-        s->menv[0] = m2k_mulu_hi(s->menv[0], m2k_tq32(T_FMEC, env - 64 * 256), 31);
-    }
-    uint32_t k2 = m2k_tq32(T_FMB, q[5]);
-    int32_t lp = T_FMLP[127];        /* (TONE removed: open; the FILTER page shapes the tone) */
-    uint32_t kf = m2k_tq32(T_FMFB, q[3]);
-    for (uint32_t i = 0; i < M2K_SUB; i++) {
-        int32_t m1 = m2k_sinp(s->ph[1] + (uint32_t)((s->ms[0] + s->ms[1]) >> 1) * kf);
-        s->ms[1] = s->ms[0];
-        s->ms[0] = m1;
-        uint64_t d = m2k_mul2_q15(lp, m1 * 256 - s->ms[2], m2k_sinp(s->ph[2]) * 256 - s->ms[4]);
-        s->ms[2] += (int32_t)d;
-        s->ms[4] += (int32_t)(d >> 32);
-        d = m2k_mul2_q15(lp, s->ms[2] - s->ms[3], s->ms[4] - s->ms[5]);
-        s->ms[3] += (int32_t)d;
-        s->ms[5] += (int32_t)(d >> 32);
-        uint32_t pm = (uint32_t)m2k_mul_sh(s->ms[3], (int32_t)k1, 8) + (uint32_t)m2k_mul_sh(s->ms[5], (int32_t)k2, 8);
-        o[i] = (int16_t)(m2k_sinp(s->ph[0] + pm) >> 1);
-        s->ph[0] += inc;
-        s->ph[1] += i1;
-        s->ph[2] += i2;
-    }
-}
-
-/* FM+DYN: 1FRQ 1FEN 1VOL 1VEN 2FRQ 2ENV 2FB TUNE */
-static void m2k_dyn(m2k_voice_t *s, const int32_t *q, uint32_t base, int16_t *o)
-{
-    uint32_t inc = m2k_inc(base, QB(7) >> 7);
-    int32_t f1 = q[0], f2 = q[4];
-    int32_t r1 = (f1 << 2) + (f1 > 126 * 256 ? (f1 - 126 * 256) << 2 : 0);
-    uint32_t r2 = f2 <= 126 * 256 ? ((uint32_t)f2 * (uint32_t)f2) >> 12
-                                  : (126u * 126u << 4) + ((508u << 4) * (uint32_t)(f2 - 126 * 256) >> 8);
-    int32_t fen = q[1], ven = q[3], env = q[5];
-    int64_t b1 = inc;
-    if (fen != 64 * 256) {
-        int32_t fe = T_FMFEN[fen >> 8];
-        if (fen & 255) fe += (int32_t)m2k_mul_sh(T_FMFEN[(fen >> 8) + 1] - fe, fen & 255, 8);
-        b1 += m2k_mul_sh(fe, (int32_t)(s->menv[1] >> 15), 15);
-        s->menv[1] = m2k_mulu_hi(s->menv[1], m2k_tq32(T_FMDEC, fen > 64 * 256 ? fen - 64 * 256 : 64 * 256 - fen), 31);
-    }
-    uint32_t i1 = (uint32_t)(int32_t)m2k_mul64_sh(b1, r1, 16), i2 = m2k_mulu_hi(inc, r2, 16);
-    int32_t vol8 = q[2];
-    int32_t k1 = (int32_t)m2k_fmd_at(vol8);
-    if (ven > 64 * 256) {
-        int32_t e8 = ((ven < 96 * 256 ? 4 * (ven - 64 * 256) : 128 * 256) * (int32_t)(s->menv[0] >> 15)) >> 15;
-        s->menv[0] = m2k_mulu_hi(s->menv[0], m2k_tq32(T_FMDEC, ven - 64 * 256), 31);
-        if (vol8 + e8 >= 64 * 256) {
-            k1 = (int32_t)m2k_fmd_at(vol8 + e8);
-        } else {
-            k1 += (int32_t)((T_FMDV[64] * (uint32_t)e8) >> 13);
-            if (k1 > (int32_t)T_FMDV[64]) k1 = (int32_t)T_FMDV[64];
-        }
-    } else if (ven < 64 * 256) {
-        int32_t c = ((64 * 256 - ven) * (int32_t)(s->menv[0] >> 15)) >> 13;
-        s->menv[0] = m2k_mulu_hi(s->menv[0], m2k_tq32(T_FMDEC, 64 * 256 - ven), 31);
-        int32_t f = 32768 - c;
-        int32_t v8 = ((f < 0 && vol8 > 64 * 256 ? 64 * 256 : vol8) * f) >> 15;
-        if (v8 >= 64 * 256) {
-            k1 = (int32_t)m2k_fmd_at(v8);
-        } else if (vol8 >= 64 * 256) {
-            int32_t h = vol8 - 64 * 256;
-            int32_t z = 32 * 256 - (int32_t)m2k_mul_sh(h * h, 2113, 26);
-            k1 = ((int32_t)T_FMDV[64] * (v8 - z)) >> 13;
-            if (k1 > (int32_t)T_FMDV[64]) k1 = (int32_t)T_FMDV[64];
-        } else {
-            k1 = (int32_t)m2k_mul_sh(k1, 2 * f - 32768, 15);
-        }
-    }
-    uint32_t k2 = m2k_fmd_at(env < 64 * 256 ? env : 64 * 256);
-    if (env >= 65 * 256) {
-        k2 = (T_FMDV[64] * (s->menv[2] >> 15)) >> 15;
-        s->menv[2] = m2k_mulu_hi(s->menv[2], m2k_tq32(T_FMEC, env - 64 * 256), 31);
-    }
-    uint32_t kf = m2k_tq32(T_FMFB, q[6]);
-    for (uint32_t i = 0; i < M2K_SUB; i++) {
-        int32_t m2 = m2k_sinp(s->ph[2] + (uint32_t)((s->ms[0] + s->ms[1]) >> 1) * kf);
-        s->ms[1] = s->ms[0];
-        s->ms[0] = m2;
-        uint32_t pm = (uint32_t)m2k_sinp(s->ph[1]) * (uint32_t)k1 + (uint32_t)m2 * k2;
-        o[i] = (int16_t)(m2k_sinp(s->ph[0] + pm) >> 1);
-        s->ph[0] += inc;
-        s->ph[1] += i1;
-        s->ph[2] += i2;
-    }
-}
-
-/* FM+PAR: 1FRQ 1ENV 2FRQ 2ENV 3FRQ 3ENV TONE TUNE (the FRQs: T_FMR24_NAME's 24) */
-static void m2k_par(m2k_voice_t *s, const int32_t *q, const int16_t *p, uint32_t base, int16_t *o)
-{
-    uint32_t inc = m2k_inc(base, QB(7) >> 7);
-    uint32_t ii[3], kk[3];
-    for (int j = 0; j < 3; j++) {
-        ii[j] = m2k_mulu_hi(inc, T_FMR24[M2K_CLAMP(p[P_E0 + 2 * j], 0, 23)], 16);
-        int32_t env = q[2 * j + 1];
-        uint32_t k = m2k_tq32(T_FMB, env);
-        if (env >= 65 * 256) {
-            k = m2k_mulu_hi(k, s->menv[j] >> 15, 15);
-            s->menv[j] = m2k_mulu_hi(s->menv[j], m2k_tq32(T_FMEC, env - 64 * 256), 31);
-        }
-        kk[j] = k;
-    }
-    int32_t lp = T_FMLP[127];        /* (TONE removed: open; the FILTER page shapes the tone) */
-    for (uint32_t i = 0; i < M2K_SUB; i++) {
-        uint32_t pm = 0;
-        for (int j = 0; j < 3; j++) {
-            int32_t *a = &s->ms[2 * j];
-            a[0] += (int32_t)m2k_mul_sh(m2k_sinp(s->ph[1 + j]) * 256 - a[0], lp, 15);
-            a[1] += (int32_t)m2k_mul_sh(a[0] - a[1], lp, 15);
-            pm += (uint32_t)m2k_mul_sh(a[1], (int32_t)kk[j], 8);
-            s->ph[1 + j] += ii[j];
-        }
-        o[i] = (int16_t)(m2k_sinp(s->ph[0] + pm) >> 1);
-        s->ph[0] += inc;
-    }
-}
-
 /* DIGI-WAV on the owner's 64: WAVE SCAN STIM SYNC BITS DTUN MIX2 STEP */
 static void m2k_wav(m2k_voice_t *s, const int32_t *q, uint32_t base, int16_t *o)
 {
@@ -446,9 +312,6 @@ static __attribute__((noinline)) void m2k_nois(m2k_voice_t *s, const int32_t *q,
 static const struct { int16_t gain; int8_t flt, shp; } M2K_ROLE[M2K_KINDS] = {
     [M2K_SAW] = {10240, 0, 1},       /* FLT UNIL, SHP UNIW */
     [M2K_ENS] = {6144, 3, 4},        /* FLT WAVE, SHP PW */
-    [M2K_STAT] = {7400, 2, 5},       /* FLT 1ENV, SHP 2VOL (TONE gone) */
-    [M2K_PAR] = {7400, 3, 1},        /* FLT 2ENV, SHP 1ENV (TONE gone) */
-    [M2K_DYN] = {7400, 2, 5},        /* FLT 1VOL, SHP 2ENV */
     [M2K_WAV] = {4500, 1, 0},        /* FLT SCAN, SHP WAVE */
     [M2K_NOIS] = {NOIS_GAIN, 1, 0},  /* FLT RED, SHP ST */
 };
@@ -478,46 +341,13 @@ static void m2k_note_on(track_t *t, voice_t *v)
     memcpy(fst, s->f, sizeof fst);
     memset(s, 0, sizeof *s);
     memcpy(s->f, fst, sizeof fst); s->fdrift = fdrift; s->fnoise = fnoise;
-    s->menv[0] = s->menv[1] = s->menv[2] = 1u << 30;
-    if (kind >= M2K_STAT && kind <= M2K_DYN) s->ph[0] = 1u << 31;   /* FM+'s carrier half a cycle on */
+    s->menv[0] = 1u << 30;
     if (kind == M2K_WAV && voice_was == 2u) s->ph[2] = keep;        /* a steal: the sync's master runs on */
     s->drng = drng;
     if (kind == M2K_ENS) {                       /* the first note after silence: the chorus starts empty */
         for (uint32_t k = 0; k < NVOICE; k++) if (&t->v[k] != v && t->v[k].active) return;
         memset(&m2k_part_of(t)->ch, 0, sizeof(m2k_chorus_t));
     }
-}
-
-/* The FILTER page: TRIO's filter (eng_trio.c), after the machine and before the voice's amp. MODE OFF LP BP HP NOT,
- * CUT (and the track's LFO / ENV -> FLT, which with MODE OFF move an engine control instead), RES (damping 2 .. 0.25,
- * no self-oscillation); the cutoff wanders a little, block by block; the input saturates above 16000, the output is
- * linear to half scale, as TRIO's */
-typedef struct { int32_t a1, a2, a3, ma, mb, mc; } m2k_flt_t;
-static void m2k_flt_coef(m2k_voice_t *s, const track_t *t, const vmod_t *m, m2k_flt_t *f)
-{
-    static const int16_t MIX[4][3] = {{0, 0, 1024}, {0, 1400, 0}, {1024, 0, -1024}, {1024, 0, 0}};   /* TRIO_MIX */
-    uint32_t mode = ((uint32_t)t->p[P_FMODE] - 1u) & 3u;
-    int32_t k = 8192 - t->p[P_FRES] * 7168 / 127;
-    tsvf_t c;
-    if (!s->fnoise) s->fnoise = (int32_t)((0x2545F491u ^ (uint32_t)(t - trk) * 7919u ^ (uint32_t)(s - m2k_part_of(t)->v) * 104729u) | 1u);
-    s->fdrift += (((int32_t)(noise32(&s->fnoise) >> 22) - 512) - s->fdrift) >> 3;
-    tsvf_coef_k(&c, clamp((t->p[P_FCUT] << 8) + m->cutoff + s->fdrift, 0, 127 << 8), k);
-    f->a1 = c.a1; f->a2 = c.a2; f->a3 = c.a3;
-    f->ma = MIX[mode][0]; f->mb = mode >= 2u ? -(k >> 2) : MIX[mode][1]; f->mc = MIX[mode][2];
-}
-static inline int32_t m2k_flt(const m2k_flt_t *f, int32_t *st, int32_t x)
-{
-    int32_t ic1 = st[0], ic2 = st[1], v1, v2, v3, a;
-    x = soft_knee(x, 16000) >> 1;
-    v3 = x - ic2;
-    v1 = (f->a1 * ic1 + f->a2 * v3) >> 13;
-    v2 = ic2 + ((f->a2 * ic1 + f->a3 * v3) >> 13);
-    ic1 = 2 * v1 - ic1;
-    ic2 = clamp(2 * v2 - ic2, -150000, 150000);
-    a = clamp(ic1, -49152, 49152);
-    st[0] = a + ((ic1 - a) >> 2);
-    st[1] = ic2;
-    return m2k_sat16(soft_knee((x * f->ma + v1 * f->mb + v2 * f->mc) >> 10, 16000) << 1);
 }
 
 static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const vmod_t *m)
@@ -530,27 +360,26 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
     m2k_params(t, m, q, M2K_ROLE[kind].flt, M2K_ROLE[kind].shp);
     int32_t *side = kind == M2K_NOIS && spread_on && t->p[P_E2] ? m2k_part_of(t)->side : 0;
     int32_t gain = M2K_ROLE[kind].gain, note = m->pitch16 >> 4;
-    m2k_flt_t flt;
+    uflt_t flt;                      /* the FILTER page (eng_uflt.c) */
     int fon = t->p[P_FMODE] != 0;
-    if (fon) m2k_flt_coef(s, t, m, &flt);
+    if (fon)
+        uflt_coef(&flt, (uint32_t)t->p[P_FMODE], (t->p[P_FCUT] << 8) + m->cutoff, t->p[P_FRES], &s->fdrift, &s->fnoise,
+                  0x2545F491u ^ (uint32_t)(t - trk) * 7919u ^ (uint32_t)(s - m2k_part_of(t)->v) * 104729u);
     for (uint32_t b = 0; b < n; b += M2K_SUB) {
         switch (kind) {
         case M2K_SAW: m2k_saw(s, q, m->inc, note, o, (uint32_t)(v - t->v) + (uint32_t)(t - trk) * 16u); break;
         case M2K_ENS: m2k_ens(s, q, t->p, m->inc, o); break;
-        case M2K_STAT: m2k_stat(s, q, t->p, m->inc, o); break;
-        case M2K_PAR: m2k_par(s, q, t->p, m->inc, o); break;
-        case M2K_DYN: m2k_dyn(s, q, m->inc, o); break;
         case M2K_WAV: m2k_wav(s, q, m->inc, o); break;
         default: m2k_nois(s, q, t->p, o, es); break;
         }
         for (uint32_t i = 0; i < M2K_SUB && b + i < n; i++) {
             int32_t x = m2k_sat16(((int32_t)o[i] * gain) >> 12);
-            out[b + i] += voice_amp(fon ? m2k_flt(&flt, s->f[0], x) : x, m, b + i);
+            out[b + i] += voice_amp(fon ? uflt_run(&flt, s->f[0], x) : x, m, b + i);
         }
         if (side)                    /* NOIS's second noise across the stereo: the voice's own amp (and filter) on it */
             for (uint32_t i = 0; i < M2K_SUB && b + i < n && b + i < CTL; i++) {
                 int32_t x = m2k_sat16(((int32_t)es[i] * gain) >> 12);
-                side[b + i] += voice_amp(fon ? m2k_flt(&flt, s->f[1], x) : x, m, b + i);
+                side[b + i] += voice_amp(fon ? uflt_run(&flt, s->f[1], x) : x, m, b + i);
             }
     }
 }
@@ -644,24 +473,6 @@ static const preset_t M2K_ENS_PRESETS[] = {
     {"OCT PULS", {32, 16, 16, 127, 32, 50, 40, 64}, {0, 60, 100, 40}, 0, 1},
     {"STRINGS", {26, 32, 22, 20, 90, 110, 110, 64}, {70, 80, 120, 90}, 0, 0},
 };
-static const preset_t M2K_STAT_PRESETS[] = {
-    {"FM BELL", {19, 0, 90, 0, 22, 30, 0, 64}, {0, 90, 0, 80}, 0, 0},
-    {"FM BASS", {15, 0, 50, 30, 15, 0, 0, 64}, {0, 50, 60, 20}, 0, 1},
-    {"E PIANO", {15, 10, 80, 0, 23, 20, 0, 64}, {0, 80, 30, 60}, 0, 0},
-    {"FEEDBACK", {15, 0, 40, 90, 19, 10, 0, 64}, {0, 60, 100, 40}, 0, 1},
-};
-static const preset_t M2K_PAR_PRESETS[] = {
-    {"PAR KEYS", {15, 50, 19, 80, 21, 0, 0, 64}, {0, 70, 50, 50}, 0, 0},
-    {"PAR ORGN", {11, 40, 15, 30, 19, 20, 0, 64}, {0, 30, 120, 30}, 0, 0},
-    {"METALLIC", {17, 90, 22, 85, 23, 75, 0, 64}, {0, 90, 0, 70}, 0, 0},
-    {"PAR BASS", {15, 70, 11, 40, 0, 0, 0, 64}, {0, 50, 70, 20}, 0, 1},
-};
-static const preset_t M2K_DYN_PRESETS[] = {
-    {"DYN PLUCK", {64, 64, 40, 100, 64, 90, 0, 64}, {0, 60, 0, 40}, 0, 0},
-    {"DYN BRASS", {64, 80, 50, 90, 32, 40, 20, 64}, {20, 70, 100, 50}, 0, 1},
-    {"DYN BELL", {90, 64, 60, 110, 101, 100, 0, 64}, {0, 90, 0, 80}, 0, 0},
-    {"DYN BASS", {32, 100, 50, 64, 64, 0, 40, 64}, {0, 50, 60, 20}, 0, 1},
-};
 static const preset_t M2K_WAV_PRESETS[] = {
     {"WAVE PAD", {26, 80, 60, 0, 0, 64, 0, 0}, {50, 70, 110, 70}, 0, 0},
     {"SCAN LEAD", {60, 110, 40, 0, 0, 70, 40, 0}, {0, 60, 100, 40}, 0, 1},
@@ -679,22 +490,6 @@ static const preset_t M2K_NOIS_PRESETS[] = {         /* MONO2K's GND-NOIS sounds
 };
 static const char *const N_M2K_ONOFF[3] = {"OFF", "ON", 0};
 #define M2K_NIL {"-", F_INT, 0, 0, 0, 0, 0}
-
-/* each preset's FILTER (apply_preset_to: MODE CUT RES; the rest OFF): STAT's and PAR's darker sounds, whose TONE was
- * low, take a low-pass now */
-static void m2k_preset_loaded(track_t *t, uint32_t pi)
-{
-    static const struct { uint8_t kind, preset, mode, cut, res; } F[] = {
-        {M2K_STAT, 1, 1, 72, 16},    /* FM BASS (TONE 70) */
-        {M2K_PAR, 1, 1, 80, 10},     /* PAR ORGN (TONE 70) */
-        {M2K_PAR, 3, 1, 64, 20},     /* PAR BASS (TONE 60) */
-    };
-    if (t->eng_req < ENGI_SAW || t->eng_req > ENGI_NOIS) return;
-    for (uint32_t k = 0; k < NELEM(F); k++)
-        if (F[k].kind == (int)(t->eng_req - ENGI_SAW) && F[k].preset == pi) {   /* (eng_req: the engine may switch later) */
-            t->p[P_FMODE] = F[k].mode; t->p[P_FCUT] = F[k].cut; t->p[P_FRES] = F[k].res;
-        }
-}
 
 static const engine_t ENG_M2K_SAW = {
     .name = "SAW",
@@ -717,36 +512,6 @@ static const engine_t ENG_M2K_ENS = {
     .knob = {P_E3, P_E4, P_E5, P_REL},
     .poly = M2K_ENS_POLY, .units = m2k_ens_units,
     .note_on = m2k_note_on, .render = m2k_render, .post = m2k_ens_post,
-};
-static const engine_t ENG_M2K_STAT = {
-    .name = "STAT",
-    .page_title = {"OP 1", "OP 2"},
-    .edit = {M2K_FR("1FRQ", 19), M2K_PD("1FIN", 64), M2K_PD("1ENV", 90), M2K_P("1FB"), M2K_FR("2FRQ", 22), M2K_P("2VOL"),
-             M2K_NIL, M2K_BI("TUNE")},   /* (TONE: the FILTER page) */
-    .presets = M2K_STAT_PRESETS, .npresets = NELEM(M2K_STAT_PRESETS),
-    .knob = {P_E0, P_E2, P_FCUT, P_REL},
-    .poly = M2K_POLY,
-    .note_on = m2k_note_on, .render = m2k_render,
-};
-static const engine_t ENG_M2K_PAR = {
-    .name = "PAR",
-    .page_title = {"OPS", "TONE"},
-    .edit = {M2K_FR("1FRQ", 15), M2K_PD("1ENV", 50), M2K_FR("2FRQ", 19), M2K_PD("2ENV", 80), M2K_FR("3FRQ", 21), M2K_P("3ENV"),
-             M2K_NIL, M2K_BI("TUNE")},   /* (TONE: the FILTER page) */
-    .presets = M2K_PAR_PRESETS, .npresets = NELEM(M2K_PAR_PRESETS),
-    .knob = {P_E1, P_E3, P_FCUT, P_REL},
-    .poly = M2K_POLY,
-    .note_on = m2k_note_on, .render = m2k_render,
-};
-static const engine_t ENG_M2K_DYN = {
-    .name = "DYN",
-    .page_title = {"OP 1", "OP 2"},
-    .edit = {M2K_PD("1FRQ", 64), M2K_BI("1FEN"), M2K_PD("1VOL", 40), M2K_BI("1VEN"), M2K_PD("2FRQ", 64), M2K_P("2ENV"),
-             M2K_P("2FB"), M2K_BI("TUNE")},
-    .presets = M2K_DYN_PRESETS, .npresets = NELEM(M2K_DYN_PRESETS),
-    .knob = {P_E1, P_E2, P_E5, P_REL},
-    .poly = M2K_POLY,
-    .note_on = m2k_note_on, .render = m2k_render,
 };
 static const engine_t ENG_M2K_WAV = {
     .name = "WAV",
