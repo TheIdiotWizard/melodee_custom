@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.2.7</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.2.8</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -98,7 +98,8 @@
       <a href="#saving">Saving</a>
       <a href="#projects">Projects</a>
       <a href="#engines">Engines</a>
-      <a class="sub" href="#m2k">SAW, ENS, WAV, NOIS</a>
+      <a class="sub" href="#m2k">SAW, ENS, WAV</a>
+      <a class="sub" href="#noise">NOISE</a>
       <a class="sub" href="#minitone">FMTONE, DUALVCO, ANALOG4</a>
       <a class="sub" href="#filter">FILTER</a>
       <a class="sub" href="#lofi">LoFi</a>
@@ -136,7 +137,7 @@
       <section id="about">
         <h2>About</h2>
         <p>Melodee is multi-engine synthesizer and sequencer firmware for the M-VAVE FM-1. After you install it, the unit runs Melodee instead of the official firmware: up to eight tracks (four that play an instrument, four more for external MIDI gear), a 64-step sequencer with patterns and songs, effects, USB MIDI and audio, Bluetooth MIDI and USB Host.</p>
-        <p>The selectable engines are <strong>SAW</strong>, <strong>ENS</strong>, <strong>WAV</strong> and <strong>NOIS</strong> from MONO2K, <strong>FMTONE</strong>, <strong>DUALVCO</strong> and <strong>ANALOG4</strong> from Mini-Tone, Felucca’s <strong>LoFi</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
+        <p>The selectable engines are <strong>SAW</strong>, <strong>ENS</strong> and <strong>WAV</strong> from MONO2K, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong> and <strong>ANALOG4</strong> from Mini-Tone, Felucca’s <strong>LoFi</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
       </section>
 
       <section id="before">
@@ -225,7 +226,7 @@
             <tr><td>SAW</td><td>UNIL</td><td>UNIW</td><td>SUB1</td><td>release</td></tr>
             <tr><td>ENS</td><td>WAVE</td><td>PW</td><td>CHRL</td><td>release</td></tr>
             <tr><td>WAV</td><td>WAVE</td><td>SCAN</td><td>SYNC</td><td>release</td></tr>
-            <tr><td>NOIS</td><td>ST</td><td>RED</td><td>STON</td><td>release</td></tr>
+            <tr><td>NOISE</td><td>FREQ</td><td>RES</td><td>COLR</td><td>release</td></tr>
             <tr><td>FMTONE</td><td>LEV A</td><td>LEV B</td><td>FB</td><td>HARM</td></tr>
             <tr><td>DUALVCO</td><td>DET</td><td>CNFG</td><td>BEND</td><td>OVER</td></tr>
             <tr><td>ANALOG4</td><td>WAV1</td><td>PW1</td><td>WAV2</td><td>FIN2</td></tr>
@@ -336,23 +337,34 @@
 
       <section id="engines">
         <h2>Engines</h2>
-        <p>Selectable instruments: <strong>SAW</strong>, <strong>ENS</strong>, <strong>WAV</strong>, <strong>NOIS</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong>, <strong>ANALOG4</strong>, <strong>LOFI</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
+        <p>Selectable instruments: <strong>SAW</strong>, <strong>ENS</strong>, <strong>WAV</strong>, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong>, <strong>ANALOG4</strong>, <strong>LOFI</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
         <p>Retired engines (ANALOG, DIGITAL, NOISE, CZ-1, and others) stay silent if an old project still names them; a track saved with SID plays as LOFI, which has SID’s engine number; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
 
         <section id="m2k">
-          <h3>SAW, ENS, WAV and NOIS</h3>
-          <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-ENS, DIGI-WAV and GND-NOIS machines.</p>
-          <p>Four polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (NOIS one page of three) (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and five presets, plus the <a href="#filter">FILTER</a> page. The track’s shape modulation moves one control of each engine; its filter modulation (ENV and LFO → FLT) moves the FILTER’s cutoff when the FILTER is on, and one engine control when it is OFF. Each voice counts 2 points of the BUDGET (ENS 3).</p>
+          <h3>SAW, ENS and WAV</h3>
+          <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-ENS and DIGI-WAV machines.</p>
+          <p>Three polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and five presets, plus the <a href="#filter">FILTER</a> page. The track’s shape modulation moves one control of each engine; its filter modulation (ENV and LFO → FLT) moves the FILTER’s cutoff when the FILTER is on, and one engine control when it is OFF. Each voice counts 2 points of the BUDGET (ENS 3).</p>
           <table>
             <thead><tr><th>Engine</th><th>Page 1</th><th>Page 2</th><th>Presets</th></tr></thead>
             <tbody>
               <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS</td></tr>
               <tr><td>ENS</td><td>CHORD: PCH2, PCH3, PCH4 (each oscillator’s interval: −12…+12 semitones or a ratio such as 3:2), WAVE</td><td>CHORUS: PW (pulse width), CHRL (chorus level), CHRW (chorus width), TUNE</td><td>MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS</td></tr>
               <tr><td>WAV</td><td>WAVE: WAVE (OS01–OS64), SCAN (through the table), STIM (scan time), SYNC</td><td>SHAPE: BITS (reduction), DTUN (second oscillator), MIX2, STEP</td><td>WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS</td></tr>
-              <tr><td>NOIS</td><td>NOISE: ST (a second noise mixed in), RED (white at 0, pink at 64, red at 127), STON (ON: the second noise across the stereo; needs SPREAD)</td><td>—</td><td>WHITE, NOISHAT, SHAKER, WINDPAD, WHOOSH</td></tr>
             </tbody>
           </table>
-          <p>The engines have no filter of their own: with the FILTER’s MODE OFF, NOIS is only its colour (RED).</p>
+          <p>MONO2K’s GND-NOIS (NOIS) was replaced by NOISE in 1.2.8; tracks saved with NOIS play silent.</p>
+        </section>
+        <section id="noise">
+          <h3>NOISE</h3>
+          <p>Noise through its own resonant filter, from analog-style hiss to chip-style shift-register buzz. Two EDIT pages; no FILTER page (its filter is part of it). The track’s FLT moves FREQ, SHP moves COLR, and pitch moves the key (FREQ with TRK, and the clock). CC 74 sets FREQ and CC 71 RES. Each voice counts 2 points of the BUDGET (its weight: WAV+).</p>
+          <table>
+            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
+            <tbody>
+              <tr><td>SRC</td><td><strong>MODE</strong>: ANLG (white noise, plus random clicks set by DENS), DUST (the clicks alone: crackle, drops), LFSR (a shift register clocked above the key: chip noise, pitched at short lengths), META (one short register sequence a period of the key: a metallic tone). <strong>COLR</strong>: white at 0, pink at 64, brown at 127. <strong>FREQ</strong>: the filter’s frequency. <strong>RES</strong>: low-pass at 0, a narrow band-pass at 127.</td></tr>
+              <tr><td>MOVE</td><td><strong>TRK</strong>: how far FREQ follows the key (127: a semitone a semitone, around C4). <strong>DENS</strong> (ANLG, DUST): the clicks’ density; <strong>LEN</strong> in LFSR and META: the register (L23…L7, or 127…7 steps). <strong>DRFT</strong>: a slow random wander of FREQ and the level. <strong>CRSH</strong> (ANLG, DUST): sample-and-hold and fewer bits; <strong>CLK</strong> in LFSR and META: the clock, in semitones above the key.</td></tr>
+            </tbody>
+          </table>
+          <p>Presets: WIND, RAIN, ARCADE (a pitched chip buzz), METAL. A note from silence sounds the same each time.</p>
         </section>
         <section id="minitone">
           <h3>FMTONE, DUALVCO and ANALOG4</h3>
@@ -370,8 +382,8 @@
         </section>
         <section id="filter">
           <h3>FILTER</h3>
-          <p>An EDIT page on SAW, ENS, WAV, NOIS, FMTONE, DUALVCO and ANALOG4 (not LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
-          <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0, STAT, PAR, DYN, TRIO and VOICE in 1.2.6. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
+          <p>An EDIT page on SAW, ENS, WAV, FMTONE, DUALVCO and ANALOG4 (not NOISE, LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
+          <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0, STAT, PAR, DYN, TRIO and VOICE in 1.2.6, NOIS in 1.2.8. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
         </section>
         <section id="lofi">
           <h3>LoFi</h3>
@@ -803,7 +815,7 @@
             <tr><td>MIXER</td><td><kbd>KNOB 1</kbd> LEVEL, <kbd>KNOB 2</kbd> PAN, <kbd>KNOB 4</kbd> MUTE for the selected track. Sends live on the effect pages.</td></tr>
             <tr><td>GLOBAL</td><td><kbd>KNOB 1</kbd> A4 concert pitch (<strong>400–480&nbsp;Hz</strong>, default 440), <kbd>KNOB 2</kbd> <strong>BUDGET</strong> budget for CPU resources (8–32 points, default 18; see <a href="#tracks">Tracks</a>), <kbd>KNOB 3</kbd> CLK (INT / USB / TRS / BLE; see <a href="#midi-clock">Clock and transport</a>), <kbd>KNOB 4</kbd> TUNE (fine cents, ±50). A4, BUDGET and CLK are device settings: they survive power-off and stay when you load a project. TUNE, and SYSTEM’s MIDI and ROUT, come back at power-on, but a project or template brings its own.</td></tr>
             <tr><td>SYSTEM</td><td>MIDI (the input MIDI tracks listen to: USB, TRS or BLE; instrument tracks accept every input), DRUM channel (OFF or 1–16, default 10), ROUT (<strong>CH1-4</strong>, <strong>SEL</strong>, <strong>CH5-8</strong>, <strong>CH9-12</strong> or <strong>CH13-16</strong>), and CPU info. <kbd>KNOB 1</kbd> also shows receive activity. See <a href="#midi">MIDI</a>.</td></tr>
-            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for SAW, ENS, FMT (FMTONE), WAV+ (WAV and NOIS), DRUM, LOFI, DUAL (DUALVCO), A4 (ANALOG4), WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
+            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for SAW, ENS, FMT (FMTONE), WAV+ (WAV and NOISE), DRUM, LOFI, DUAL (DUALVCO), A4 (ANALOG4), WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
           </tbody>
         </table>
       </section>
