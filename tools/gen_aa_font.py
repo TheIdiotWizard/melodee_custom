@@ -49,7 +49,7 @@ PHASES = 2                             # horizontal phases per glyph (aa_raster.
 LEVELS = [4]                           # alpha steps kept of the 16 (--levels)
 KERN_PX = 28                           # the shared kerning's size (VL's: exact there, within 1/16 px at 16 / 20 px)
 # faces stored Huffman-coded (--huff): all four (the pixel faces are 1 bit and need no code)
-HUFF = [("LB", "TX", "VL", "HR")]
+HUFF = [("XS", "SM", "MD", "LB", "TX", "VL", "HR")]
 # HR (the hero, 48 px) draws a value or a name: every letter, the digits and the signs names and values use (the
 # factory names' ' ( ) too); the space as its range and the rest as extras. A string with another character is drawn
 # in VL (gfx.c text_has)
@@ -60,11 +60,14 @@ PIXEL = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "melodee_pixe
 def preset(name):
     if name == "rubik":
         v = str(FONTS.parent / "assets" / "fonts" / "Rubik[wght].ttf")       # SIL OFL 1.1, Google Fonts
-        return [("LB", v + "@500", 16, (32, 126), EXTRAS, 0.0, PHASES),             # the large type's roles
+        return [("XS", v + "@500", 10, (32, 126), EXTRAS, 0.0, PHASES),             # (1.3.7, the band pages after
+                ("SM", v + "@500", 12, (32, 126), EXTRAS, 0.0, PHASES),             #  LOOM-8: keycaps and chips, labels
+                ("MD", v + "@500", 15, (32, 126), EXTRAS, 0.0, PHASES),             #  and tags, the header and titles)
+                ("LB", v + "@500", 16, (32, 126), EXTRAS, 0.0, PHASES),             # the large type's roles
                 ("TX", v + "@500", 20, (32, 126), EXTRAS, 0.0, PHASES),
                 ("VL", v + "@500", 28, (32, 126), EXTRAS, 0.0, 1),
                 ("HR", v + "@500", 48, (32, 32), [ord(c) for c in HR_CHARS[1:]], 0.0, 1),
-                ("PIX", str(PIXEL), 0, (32, 126), EXTRAS, None, 1, [("LB", 2, 1), ("TX", 2, 0), ("VL", 3, 0), ("HR", 5, 0)])]
+                ("PIX", str(PIXEL), 0, (32, 126), EXTRAS, None, 1, [("XS", 1, 0), ("SM", 1, 0), ("MD", 2, 1), ("LB", 2, 1), ("TX", 2, 0), ("VL", 3, 0), ("HR", 5, 0)])]
     raise SystemExit(f"unknown preset {name}")
 
 

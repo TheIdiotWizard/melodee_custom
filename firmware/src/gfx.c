@@ -41,6 +41,9 @@ typedef struct { const char *label; } kc_t;
 #define RES_OK() 1                               /* melodee.c: the resource region (res.c) is installed */
 #endif
 static uint32_t ty_pixel(void);
+#define TY_XS (ty_pixel() ? &AP_XS : &AF_XS)  /* (1.3.7, the band pages) keycaps, chips: 10 px, pixel 1 x */
+#define TY_SM (ty_pixel() ? &AP_SM : &AF_SM)  /* labels, the tag line, captions, hints: 12 px, pixel 1 x */
+#define TY_MD (ty_pixel() ? &AP_MD : &AF_MD)  /* the header, titles: 15 px, pixel 2 x */
 #define TY_LB (ty_pixel() ? &AP_LB : &AF_LB)  /* labels, units, chips, tags: 16 px, pixel 2 x */
 #define TY_TX (ty_pixel() ? &AP_TX : &AF_TX)  /* names, rows, the header, text: 20 px, pixel 2 x */
 #define TY_VL (ty_pixel() ? &AP_VL : &AF_VL)  /* values: 28 px, pixel 3 x */
@@ -151,7 +154,8 @@ static struct {
 #define T_TRK(k) UI_PALETTES[ux.pal].trk[(k) & 3u]   /* track k's colour (the mixer, lanes, track chips) */
 /* knob k's colour on the selected track's pages (its label, its curve segment, a row, a lane, a slot): a shade of the
  * track's colour (tools/gen_ui_palettes.py SHADES; knob 1 the track's own), so a page keeps its track's family */
-#define T_KNOB(k) UI_PALETTES[ux.pal].knob[ux.trk & 3u][(k) & 3u]
+static uint8_t ux_one;                  /* (1.3.7: a band page's picture draws in the track's colour alone) */
+#define T_KNOB(k) (ux_one ? ux.theme : UI_PALETTES[ux.pal].knob[ux.trk & 3u][(k) & 3u])
 
 static inline uint16_t ux_gray(uint32_t x5) { return (uint16_t)((x5 << 11) | (x5 << 6) | x5); }
 /* a + (b - a) * pct / 100 per channel, rounded; MONO on the red channel, so it stays gray */

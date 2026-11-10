@@ -1999,7 +1999,7 @@ static int test_roll(void)
     ui.force = 1; ui_draw();
     n = roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 1);
     ok &= n > 20u && roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 0) == roll_diff(STRIP(0), 1);   /* (+ the card's strip) */
-    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_TX, "12"), H_HEAD, 1) == 0;
+    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_MD, "12"), H_HEAD, 1) == 0;   /* (1.3.7: the header in TY_MD) */
     ok &= roll_diff(ring_vx(0), VY, ring_vx(0) + text_w(TY_TX, "12"), VY + ROLL_H, 1) == 0;
     /* TUNE 10 -> 11 on a card: the 1 stays */
     ui_power_on(); song.g[G_TUNE] = 10; roll_settle();

@@ -767,7 +767,133 @@ static void pv_fx(int32_t h)
         pv_fx_strip(sy, ly, a, b, tone < 0 ? b : a, tone ? hz : 0, T_KNOB(3), !tone);
     }
 }
-#include "ui_engpic.c"                                  /* the engines' pictures (1.3.0) */
+#include "ui_engpic.c"
+/* ------------------------------------------------- the FX slot's Character (1.3.7) --- */
+/* The mockup's "Character" page: the effect's name large, in small letters, and what it does in a line under it (at
+ * the left); at the right the effect's own curve from its values, in the track's colour: DRIVE its transfer at DRIVE
+ * and SHAPE, CRUSH its steps, the rooms their tails, the sweeps and pedals their waves or notches, the note effects
+ * their repeats */
+static void pv_lower(char *d, const char *s, uint32_t n);
+static const char *const FX_WHAT[FX_COUNT] = {
+    [FX_OFF] = "nothing in this slot", [FX_PHASER] = "a sweeping phase shift", [FX_WIDTH] = "one voice made wide",
+    [FX_FORMANT] = "a vowel filter", [FX_TAPE] = "tape wow and flutter", [FX_SPIT] = "a sputtering grain",
+    [FX_ECHO] = "", [FX_ROOM] = "a small room", [FX_REVERB] = "a long reverb tail", [FX_CHORUS] = "a doubled, drifting voice",
+    [FX_MIDIVERB] = "notes held past their release", [FX_MIDIDELAY] = "notes repeated in time",
+    [FX_SOFT] = "a soft saturation", [FX_HARD] = "a hard clip", [FX_FOLD] = "a wavefolder", [FX_FUZZ] = "a fuzz",
+    [FX_CRUSH] = "fewer bits, a lower rate", [FX_FLANGER] = "a sweeping comb", [FX_PEDAL_PHASER] = "a pedal's phaser",
+    [FX_PEDAL_CHORUS] = "a pedal's chorus"};
+static int32_t ch_wrap(int32_t x, int32_t y, int32_t w, const char *s, uint16_t c)   /* words to lines; the rows used */
+{
+    char line[40];
+    uint32_t n = 0, i = 0, rows = 0;
+    while (s[i] && rows < 5u) {
+        uint32_t j = i, k;
+        while (s[j] && s[j] != ' ') j++;                /* the next word: s[i .. j) */
+        k = n;
+        if (n) line[k++] = ' ';
+        if (k + (j - i) + 1u > sizeof line) break;
+        str_cpy(line + k, s + i, j - i + 1u);
+        line[k + j - i] = 0;
+        if (n && text_w(TY_SM, line) > w) {             /* (too wide: the line so far, the word to the next) */
+            line[n] = 0;
+            cv_text_on(x, ty_y(y + (int32_t)rows * 15 + 7, TY_SM), TY_SM, line, c, T_BG);
+            rows++;
+            n = 0;
+            continue;
+        }
+        n = k + (j - i);
+        i = s[j] ? j + 1u : j;
+    }
+    if (n && rows < 5u) {
+        cv_text_on(x, ty_y(y + (int32_t)rows * 15 + 7, TY_SM), TY_SM, line, c, T_BG);
+        rows++;
+    }
+    return (int32_t)rows * 15;
+}
+static void pv_fx_character(int32_t h)
+{
+    const page_t *pg = cur_page();
+    uint32_t master = pg->scope == SC_GLOBAL, slot = (pg->id[0] - (master ? G_MFXMIX : P_FXMIX)) / FX_PARAMS;
+    const int16_t *p = (master ? song.g : TSEL->p) + pg->id[0] - 1u;   /* TYPE MIX RATE CHAR */
+    uint32_t type = (uint32_t)clamp(p[0], 0, FX_COUNT - 1), failed = fx_state[master ? slot : FX_TRACK_SI(song.sel % NPART, slot)].failed;
+    int32_t rate = p[2], cha = p[3], tone = master ? song.g[G_MFXTONE + slot] : TSEL->p[P_FXTONE + slot];
+    int32_t x0 = 132, x1 = 228, w = x1 - x0, top = 6, bot = h - 6, cy = (top + bot) / 2, i, py = 0;
+    uint16_t ink = type && p[1] ? T_THEME : T_DIM;
+    char nm[20], what[72];
+    const aafont_t *nf;
+    /* the name, the line under it */
+    pv_lower(nm, N_FX[type], sizeof nm);
+    nf = text_w(TY_VL, nm) <= 118 ? TY_VL : text_w(TY_TX, nm) <= 118 ? TY_TX : TY_MD;
+    cv_text_on(9, 2, nf, nm, T_TEXT, T_BG);
+    str_cpy(what, failed ? "out of memory: it plays dry" : FX_WHAT[type], sizeof what);
+    if (!failed && type) {
+        if (master) {
+            str_cpy(what + str_len(what), ", shared by every track, in slot ", sizeof what - str_len(what));
+        } else {
+            char tn[4] = {'T', (char)('1' + song.sel % NTRK), 0, 0};
+            str_cpy(what + str_len(what), ", after ", sizeof what - str_len(what));
+            str_cpy(what + str_len(what), tn, sizeof what - str_len(what));
+            str_cpy(what + str_len(what), "'s sound, in slot ", sizeof what - str_len(what));
+        }
+        fmt_int(what + str_len(what), (int32_t)slot + 1);
+    }
+    ch_wrap(9, nf->h + 6, 118, what, T_MID);
+    if (!type || failed)
+        return;
+    /* the curve */
+    if (fx_drive((int32_t)type) || type == FX_CRUSH) {  /* a transfer: in across, out up; the straight line faint */
+        int32_t half = (bot - top) / 2, levels = 1 << (1 + ((127 - clamp(rate, 0, 127)) >> 4));
+        cv_rect(x0, cy, w, 1, T_LINE);
+        cv_rect(x0 + w / 2, top, 1, bot - top, T_LINE);
+        cv_line(x0 + w / 2 - half, bot, x0 + w / 2 + half, top, T_LINE);
+        for (i = 0; i <= w; i++) {
+            int32_t in = (i - w / 2) * 32767 / (w / 2), out, y;
+            if (type == FX_CRUSH)
+                out = (in * levels / 2 + (in >= 0 ? 16384 : -16384)) / 32768 * 65536 / levels;
+            else
+                out = ins_shape(type - FX_SOFT + IT_SOFT, (in * (4096 + rate * rate * 3)) >> 12, 0);
+            out = clamp(out, -32767, 32767);
+            y = cy * 16 - out * half * 16 / 32768;
+            cv_vspan_aa(x0 + i, i ? py : y, y, ink);
+            py = y;
+        }
+    } else if (type == FX_ROOM || type == FX_REVERB || type == FX_MIDIVERB) {   /* the tail: SIZE (DECAY) long */
+        int32_t len = type == FX_ROOM ? 30 + rate * 70 / 127 + cha * 60 / 127 : 40 + rate * 150 / 127;
+        int32_t kb = 32768 - 9 * 32768 / len * 2, eb = 32767, hgt = bot - top;
+        uint32_t r = 0x2545F491u;
+        cv_rect(x0, bot, w, 1, T_LINE);
+        for (i = 0; i < w && eb > 400; i += 3) {
+            int32_t b;
+            r = r * 1103515245u + 12345u;
+            b = hgt * (eb >> 7) / 256 * (type == FX_MIDIVERB ? 32768 : 18000 + (int32_t)(r >> 17) % 14768) / 32768;
+            if (b > 0) cv_rect(x0 + i, bot - b, 2, b, i ? ep_fade(70) : ink);
+            eb = eb * kb >> 15;
+        }
+    } else if (type == FX_MIDIDELAY) {                  /* the note, its echoes at TIME and DECAY */
+        static const uint8_t DIVQ[10] = {16, 8, 4, 2, 5, 3, 32, 64, 128, 255};
+        int32_t step = 24 * DIVQ[clamp(rate, 0, 9)] / 16, x = x0, v = 127, n = 0, hgt = bot - top;
+        if (step < 3) step = 3;
+        cv_rect(x0, bot, w, 1, T_LINE);
+        while (x < x1 && v > 0 && n < 24) {
+            int32_t b = hgt * v / 127;
+            if (b > 0) cv_rect(x, bot - b, 3, b, n ? ep_fade((uint32_t)(80 - (n < 6 ? n : 6) * 10)) : ink);
+            v = v * (127 - clamp(cha, 0, 127)) / 127;
+            x += step;
+            n++;
+        }
+    } else {                                            /* the sweeps and the pedals: the dry wave faint, the sound */
+        int32_t amp = (bot - top) * 16 / 2 - 16;
+        uint32_t k;
+        for (k = fx_sloop_type((int32_t)type) ? 1u : 0u; k < 2u; k++) {
+            for (i = 0; i < w; i++) {
+                int32_t y = clamp(cy * 16 + pv_fx_y(type, k, i * 208 / w, p, tone, amp), top * 16, bot * 16);
+                cv_vspan_aa(x0 + i, i ? py : y, y, k ? ink : ep_fade(30));
+                py = y;
+            }
+        }
+    }
+}
+                                  /* the engines' pictures (1.3.0) */
 /* ---------------------------------------------------- the bands (1.3.0) --- */
 /* the knobs' strip's panel: rows Y_STRIP .. + H_STRIP, a cell a knob (draw_column: col_band), a line between them */
 static void pv_band_panel(void)
@@ -784,101 +910,107 @@ static void pv_band_panel(void)
 /* the tag line: a rule, then where you are ("SUPERSAW > SAW > P3": the sound, the engine, its pattern; an FX slot:
  * the effect, its slot), then the pages' dots */
 static uint32_t pv_tag_sig;
+static void pv_lower(char *d, const char *s, uint32_t n)   /* (a name in small letters) */
+{
+    uint32_t i;
+    for (i = 0; s[i] && i + 1u < n; i++)
+        d[i] = s[i] >= 'A' && s[i] <= 'Z' ? (char)(s[i] + 32) : s[i];
+    d[i] = 0;
+}
 static void pv_tag(void)
 {
-    char nm[20], pt[8], s[48];
-    const char *en = ENGINES[eng_idx(TSEL->eng_req)]->name;
+    /* 1.3.7, the mockup's: "T1 saw > unison > P1" (the track and its engine, the page, the pattern); an FX slot
+     * "T1 > fx > slot 1 drive", the shared rack "all > shared fx > slot 2 room"; too wide: the pattern goes, then the
+     * first part. The '>' faint, the words in the text colour, small; a rule before them, the pages' dots after */
+    char part[3][28], chip[20], w[20];
     const page_t *pg = cur_page();
-    uint32_t n, k, sig, i, shared = pg->fam == FAM_FX && pg->scope == SC_GLOBAL;
-    int32_t x, dw;
+    uint32_t n, k, sig, i, fx = pg->fam == FAM_FX && pg->graph == GR_NONE, shared = fx && pg->scope == SC_GLOBAL, np;
+    int32_t x, dw, tw, gw = text_w(TY_SM, ">") + 8, first;
     page_dots(&n, &k);
-    sound_name(TSEL, nm);
-    str_cpy(pt, "P", sizeof pt);
-    pat_num(pt + 1, TSEL->pattern);
-    sig = str_hash(str_hash(str_hash(song.sel * 7u + ux.gen * 977u + ux.pal * 31u + n * 131u + k * 7919u + shared, en), nm), pt);
+    head_chip_text(chip);
+    if (fx) {
+        uint32_t slot = (pg->id[0] - (shared ? G_MFXMIX : P_FXMIX)) / FX_PARAMS;
+        str_cpy(part[0], shared ? "all" : "T1", sizeof part[0]);
+        if (!shared) part[0][1] = (char)('1' + song.sel % NTRK);
+        str_cpy(part[1], shared ? "shared fx" : "fx", sizeof part[1]);
+        str_cpy(part[2], "slot ", sizeof part[2]);
+        fmt_int(part[2] + 5, (int32_t)slot + 1);
+        str_cpy(part[2] + str_len(part[2]), " ", 2);
+        pv_lower(w, chip, sizeof w);
+        str_cpy(part[2] + str_len(part[2]), w, sizeof part[2] - str_len(part[2]));
+    } else {
+        str_cpy(part[0], "T1 ", sizeof part[0]);
+        part[0][1] = (char)('1' + song.sel % NTRK);
+        pv_lower(part[0] + 3, ENGINES[eng_idx(TSEL->eng_req)]->name, sizeof part[0] - 3);
+        pv_lower(part[1], chip, sizeof part[1]);
+        str_cpy(part[2], "P", sizeof part[2]);
+        pat_num(part[2] + 1, TSEL->pattern);
+    }
+    sig = str_hash(str_hash(str_hash(ux.gen * 977u + ux.pal * 31u + n * 131u + k * 7919u + fx, part[0]), part[1]), part[2]);
     if (!ui.force && sig == pv_tag_sig)
         return;
     pv_tag_sig = sig;
     cv_begin(240, H_TAG, T_BG);
-    dw = n > 1u ? (int32_t)n * 9 + 2 : 0;               /* (the dots: 6 px, 3 apart; the page's in TEXT) */
-    if (dw > 90) dw = 0;
+    dw = n > 1u ? (int32_t)n * 8 + 2 : 0;               /* (the dots: 5 px, 3 apart; the page's in TEXT) */
+    if (dw > 80) dw = 0;
     {
-        int32_t room = 236 - 24 - dw, tw, form;
-        for (form = 0; form < 3; form++) {              /* the sound > the engine > the pattern; then without the engine,
-                                                         * then the sound alone (never cut) */
-            if (shared) {
-                str_cpy(s, form ? "SHARED FX" : "ALL TRACKS > SHARED FX", sizeof s);
-            } else {
-                str_cpy(s, nm[0] ? nm : en, sizeof s);
-                if (!form && nm[0] && !str_eq(nm, en)) {
-                    str_cpy(s + str_len(s), " > ", 4);
-                    str_cpy(s + str_len(s), en, sizeof s - str_len(s));
-                }
-                if (form < 2) {
-                    str_cpy(s + str_len(s), " > ", 4);
-                    str_cpy(s + str_len(s), pt, sizeof s - str_len(s));
-                }
-            }
-            if (text_w(TY_LB, s) <= room)
+        int32_t room = 231 - dw - 24;
+        for (first = 0, np = 3; ; ) {                   /* (too wide: the pattern, then the first part, goes) */
+            for (tw = 0, i = (uint32_t)first; i < np; i++)
+                tw += text_w(TY_SM, part[i]) + (i + 1u < np ? gw : 0);
+            if (tw <= room || (np == 2u && first == 1))
                 break;
+            if (np == 3u && (!fx || first)) np = 2u;    /* (an FX slot: its first part goes before its slot) */
+            else first = 1;
         }
-        const aafont_t *f = ty_fit(TY_LB, s, room);
-        tw = text_w(f, s) < room ? text_w(f, s) : room;
-        x = 236 - dw - tw;
-        cv_rect(6, H_TAG / 2, x - 12 > 0 ? x - 12 : 0, 1, T_LINE);
-        cv_text_fit(x, ty_y(H_TAG / 2, f), f, s, T_MID, T_BG, room);
+        x = 231 - dw - (tw < room ? tw : room);
+        cv_rect(9, H_TAG / 2, x - 17 > 0 ? x - 17 : 0, 1, T_LINE);
+        for (i = (uint32_t)first; i < np; i++) {
+            x = cv_text_fit(x, ty_y(H_TAG / 2, TY_SM), TY_SM, part[i], T_TEXT, T_BG, 231 - dw - x);
+            if (i + 1u < np)
+                x = cv_text_on(x + 4, ty_y(H_TAG / 2, TY_SM), TY_SM, ">", T_DIM, T_BG) + 4;
+        }
     }
     if (dw)
-        for (i = 0, x = 236 - dw + 4; i < n; i++, x += 9)
-            cv_rrect(x, H_TAG / 2 - 3, 6, 6, 3, i == k ? T_TEXT : T_RAISE, T_BG);
+        for (i = 0, x = 231 - dw + 4; i < n; i++, x += 8)
+            cv_disc(x + 2, H_TAG / 2, 5, i == k ? T_TEXT : T_RAISE, 0);
     cv_blit(0, Y_TAG);
 }
 /* the hints: what SELECT, PRESETS and OCT+ / OCT- do here */
 static uint32_t pv_hint_sig;
 static void pv_hints(void)
 {
+    /* 1.3.7, the mockup's: four hints on two rows, a small outlined keycap and its word; the left ones at the left,
+     * the right ones flush right */
     const page_t *pg = cur_page();
-    khint_t h[3];
-    uint32_t n = 0, sig;
+    khint_t h[4];
+    uint32_t sig, i;
     if (designer_on() && designer_foot())                /* the sound designer: its keys (ui_designer.c) */
         return;
     if (pg->fam == FAM_FX && pg->graph == GR_NONE) {    /* an FX slot */
-        h[n++] = (khint_t){KC_SELECT, "next"};
-        h[n++] = (khint_t){KC_OCTDN, "rack"};
+        h[0] = (khint_t){KC_SELECT, "next slot"};
+        h[1] = (khint_t){KC_ALGO, "track"};
+        h[2] = (khint_t){KC_OCTDN, "rack"};
+        h[3] = (khint_t){KC_KEYS, "play"};
     } else {
-        h[n++] = (khint_t){KC_SELECT, "page"};
-        if (sec_on())
-            h[n++] = (khint_t){KC_PRESETS, "section"};
-        else
-            h[n++] = (khint_t){KC_OCTUP, "sheet"};
+        h[0] = (khint_t){KC_SELECT, "page"};
+        h[1] = (khint_t){KC_ALGO, "track"};
+        h[2] = sec_on() ? (khint_t){KC_PRESETS, "section"} : (khint_t){KC_OCTUP, "sheet"};
+        h[3] = (khint_t){KC_KEYS, "play"};
     }
-    sig = n * 7u + (uint32_t)sec_on() * 131u + (uint32_t)pg->fam * 977u + ux.gen * 31u + ux.pal * 7919u;
+    sig = 7u + (uint32_t)sec_on() * 131u + (uint32_t)pg->fam * 977u + (uint32_t)(pg->graph == GR_NONE) * 7u + ux.gen * 31u + ux.pal * 7919u;
     if (!ui.force && sig == pv_hint_sig)
         return;
     pv_hint_sig = sig;
     cv_begin(240, H_HINT, T_BG);
-    {   /* LOOM-8's hints: an outlined keycap, its word after it; the first at the left, the last flush right; too
-         * wide: the first's word goes, then all words (the keycaps never shrink) */
-        int32_t x = 6, y = (H_HINT - KC_PH) / 2, tot = 0;
-        uint32_t i, drop = 0;
-        for (i = 0; i < n; i++)
-            tot += kc_w(h[i].key) + KH_GAP + text_w(TY_LB, h[i].act) + 12;
-        if (tot - 12 > 228)
-            drop = 1;
-        if (drop && tot - 12 - KH_GAP - text_w(TY_LB, h[0].act) > 228)
-            drop = n;
-        for (i = 0; i < n; i++) {
-            const char *act = i < drop ? "" : h[i].act;
-            int32_t kw = kc_w(h[i].key), w = kw + (act[0] ? KH_GAP + text_w(TY_LB, act) : 0);
-            if (i + 1u == n && n > 1u)
-                x = 234 - w;
-            cv_rrect(x, y, kw, KC_PH, 11, T_MID, T_BG);
-            cv_rrect(x + 1, y + 1, kw - 2, KC_PH - 2, 10, T_BG, T_MID);
-            cv_text_on(x + 4, ty_y(y + KC_PH / 2, TY_LB), TY_LB, KC[h[i].key].label, T_TEXT, T_BG);
-            if (act[0])
-                cv_text_on(x + kw + KH_GAP, ty_y(y + KC_PH / 2, TY_LB), TY_LB, act, T_TEXT, T_BG);
-            x += w + 12;
-        }
+    for (i = 0; i < 4u; i++) {
+        const char *lb = KC[h[i].key].label;
+        int32_t kw = text_w(TY_XS, lb) + 10, w = kw + 5 + text_w(TY_SM, h[i].act), cy = i < 2u ? 9 : 25;
+        int32_t x = i & 1u ? 233 - w : 7;
+        cv_rrect(x, cy - 7, kw, 14, 7, T_MID, T_BG);
+        cv_rrect(x + 1, cy - 6, kw - 2, 12, 6, T_BG, T_MID);
+        cv_text_c(x + kw / 2, ty_y(cy, TY_XS), TY_XS, lb, T_TEXT, T_BG);
+        cv_text_on(x + kw + 5, ty_y(cy, TY_SM), TY_SM, h[i].act, T_TEXT, T_BG);
     }
     cv_blit(0, Y_HINT);
 }
@@ -889,8 +1021,12 @@ static void pv_picture(void)
     uint32_t pic = pv_pic(&cut, &res), sig = pv_curve_sig() ^ pic * 131u ^ (uint32_t)(cut + 1) * 7919u ^ (uint32_t)h * 613u, i;
     int32_t pp = pic == 6u && song.playing ? (int32_t)(TSEL->seq_idx % (uint32_t)clamp(TSEL->p[P_SLEN], 1, NSTEP)) : -1;
     sig ^= pic == 0u ? (ui.frame >> 1) * 2654435761u : 0u;   /* (the scope: every other frame) */
-    if (pic == 10u)                                     /* an engine's picture: its values (DRUM: the lanes lit) */
-        sig ^= ep_sig(TSEL->eng_req % NENGINES) * 2246822519u;
+    if (pic == 10u) {                                   /* an engine's picture: its values (DRUM: the lanes lit), the
+                                                         * sound's name in its title */
+        char nm[20];
+        sound_name(TSEL, nm);
+        sig ^= str_hash(ep_sig(TSEL->eng_req % NENGINES), nm) * 2246822519u;
+    }
     if (pic == 9u) {                                    /* FX: the slot's effect (no column) and its buffer */
         uint32_t m = cur_page()->scope == SC_GLOBAL, id = cur_page()->id[0];
         sig ^= (uint32_t)(m ? song.g : TSEL->p)[id - 1u] * 7919u +
@@ -918,13 +1054,16 @@ static void pv_picture(void)
     pv.pplay = pp;                                      /*  two dots) */
     for (uint32_t band = 0; band < (uint32_t)((uint32_t)h); band += CV_MAX / (240)) {
         cv_begin_band(240,(uint32_t)h,T_BG,band);
-        cv_rrect(PV_PANEL_X, 0, PV_PANEL_W, h, 6, T_PANEL, T_BG);
-        cv_bg = T_PANEL;
+        if (pic != 9u && pic != 10u) {                  /* (1.3.7: an engine's or an effect's picture on the page's
+                                                         * own ground, as the mockup) */
+            cv_rrect(PV_PANEL_X, 0, PV_PANEL_W, h, 6, T_PANEL, T_BG);
+            cv_bg = T_PANEL;
+        }
         if (pic == 5u) pv_arp(h);
         else if (pic == 6u) pv_steps(h);
         else if (pic == 3u) pv_filter(cut, res, h);
-        else if (pic == 9u) pv_fx(h);
-        else if (pic == 10u) ep_draw(TSEL->eng_req % NENGINES, h);
+        else if (pic == 9u) pv_fx_character(h);
+        else if (pic == 10u) ep_frame(TSEL->eng_req % NENGINES, h);
         else stage_wave(T_THEME, 8, h - 16);
         cv_blit_band(0, (uint32_t)y);
     }
@@ -1142,6 +1281,7 @@ static void pv_draw(void)
     {   /* the picture straight on the background (no panel: the screen calm) */
         uint16_t panel = ux.panel;
         ux.panel = ux.bg;
+        ux_one = 1;                                     /* (1.3.7: the mockup's one colour) */
         if (kind == PV_RINGS) {
             pv_picture();
         } else {
@@ -1152,5 +1292,6 @@ static void pv_draw(void)
             }
         }
         ux.panel = panel;
+        ux_one = 0;
     }
 }

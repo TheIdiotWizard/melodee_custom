@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.3.0](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.0)**
-([release notes](docs/RELEASE_1.3.0.md); earlier: [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+Current release: **[Melodee Custom 1.3.7](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.7)**
+([release notes](docs/RELEASE_1.3.7.md); earlier: [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
 [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
@@ -35,7 +35,7 @@ Current release: **[Melodee Custom 1.3.0](https://github.com/TheIdiotWizard/melo
 - **Per-track effects:** each track's three FX slots take any audio effect again (drive, crush, phaser, flanger,
   chorus, room, reverb and so on) as well as NOTE TAIL and NOTE ECHO, alongside the shared sends. Melodee's own
   insert code, restored. One REVERB runs across all racks: choosing it in a slot turns it off where it was.
-- **Look (1.3.0):** after [LOOM-8](https://github.com/charlesvestal/fm1-loom)'s tape-deck design. Sound pages read in
+- **Look (1.3.0, as its mockup in 1.3.7):** after [LOOM-8](https://github.com/charlesvestal/fm1-loom)'s tape-deck design. Sound pages read in
   bands: header, a picture, a tag line, the knob strip and key hints. Each engine's EDIT page draws its sound from
   live values (WAV's real wave, FMTONE's routing, NOISE's spectrum, the DUALVCO / ANALOG4 / SAW waveforms, WHEEL's
   drawbars, DRUM's lanes). Stage, mixer, lists and song pages keep their layout with the new colours and header.
