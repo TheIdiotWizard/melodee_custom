@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.2.8</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.3.0</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -172,6 +172,16 @@
           <li>On Stage the octave buttons only shift the octave (both together reset). Everywhere else they are Enter / Esc.</li>
           <li>Named values often open a picker. Hold <kbd>HOME</kbd> and set <strong>PICKER POPUPS</strong> to <strong>OFF</strong> to edit those names on the knob instead. The choice is remembered. Sheets, and lists you open yourself, stay as they are. Short pages (CHORD, ENV DEST, LFO DEST, LFO 2, ARP 2) put their settings straight on the four knobs.</li>
         </ul>
+        <h3>How a sound page is laid out</h3>
+        <p>Sound pages (EDIT, ENV, LFO, FX slots, ARP, CHORD, GLO and the like) read top to bottom in five bands, after LOOM-8:</p>
+        <ul>
+          <li><strong>Header</strong>: the track pill, the section chip and the page name on the left; octave, ROW, HOST/BLE, battery, REC, transport and BPM on the right.</li>
+          <li><strong>Picture</strong>: what the page does. On EDIT pages each engine draws its sound from its live values: WAV shows the actual wavetable wave, FMTONE its routing with levels and ratios, NOISE its spectrum, DUALVCO, ANALOG4 and SAW their waveforms, WHEEL its drawbar levels, DRUM its lanes lighting as they play.</li>
+          <li><strong>Tag line</strong>: where you are (SOUND › ENGINE › pattern) and dots for the pages.</li>
+          <li><strong>Knob strip</strong>: the four values with a gauge under each.</li>
+          <li><strong>Hints</strong>: the keys that do something here and what they do.</li>
+        </ul>
+        <p>Stage, the mixer, lists, the browser and song pages keep their layout with the new colours and header.</p>
         <h3>Holds and locks</h3>
         <p>Hold <kbd>GLO</kbd> or <kbd>SCL</kbd> for a quick layer on the keys and knobs (hold time is set in the global settings menu as <strong>HOLD</strong>). Double-press the same button within about 300&nbsp;ms to lock the layer open with both hands free; press it again to close. Press <kbd>FX</kbd> to open the track effects rack. Its track insert slots also offer <strong>NOTE TAIL</strong> (its rack row's REL extends the envelope release) and <strong>NOTE ECHO</strong> (LEVEL sets repeat velocity, TIME selects a tempo division, DECAY sets velocity loss per repeat). Both save with the project and are available only on individual tracks. Hold <kbd>EDIT</kbd> to undo, <kbd>SAVE</kbd> to write the project back to its slot, <kbd>HOME</kbd> for the menu, <kbd>SEQ</kbd> for the PATTERNS grid, <kbd>REC</kbd> to capture.</p>
         <h3>Sheets and undo</h3>
@@ -833,7 +843,7 @@
         <table>
           <thead><tr><th>Item</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>COLOR</td><td><strong>MONO</strong> (default): white on black, all tracks in white. <strong>LOOM A</strong> and <strong>LOOM B</strong>: black background and white text, with a colour for each track from LOOM-8’s: LOOM A pink, teal, yellow and blue, LOOM B orange, green, purple and tan (tracks 5–8 reuse the four). A track’s pages take its colour. Knob 1 uses the selected track’s color; the other three knobs are shades of it. Remembered.</td></tr>
+            <tr><td>COLOR</td><td><strong>TAPE A</strong> (default): LOOM-8’s tape-deck look, warm brown background and off-white text, tracks in yellow, orange, green and teal. <strong>TAPE B</strong>: the same base with blue, purple, tan and sage. <strong>LOOM A</strong> and <strong>LOOM B</strong>: black background with LOOM-8 track colours (pink, teal, yellow, blue / orange, green, purple, tan). <strong>MONO</strong>: white on black. Tracks 5–8 reuse the four colours. A track’s pages take its colour. Remembered; a project saved with the old MONO default opens in TAPE A.</td></tr>
             <tr><td>FONT</td><td><strong>RUBIK</strong> (default) or <strong>PIXEL</strong> (Melodee Pixel, a block face). Pages keep the same layout in either. Remembered.</td></tr>
             <tr><td>HOLD</td><td>The duration of a long hold of a button or knob (0.3–0.6&nbsp;s) to pull up an additional menu or action.</td></tr>
             <tr><td>LIGHTS</td><td>Idle indicator brightness, OFF (only pressed / engaged / selectable) through FULL.</td></tr>
