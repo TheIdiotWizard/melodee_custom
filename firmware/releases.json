@@ -1,12 +1,12 @@
 [
   {
-    "version": "1.2.6",
-    "product": "FM-1_91026",
+    "version": "1.2.7",
+    "product": "FM-1_91027",
     "pkg": {
-      "dual": "../../firmware/melodee-1.2.6.fwsc"
+      "dual": "../../firmware/melodee-1.2.7.fwsc"
     },
     "sha256": {
-      "dual": "0a7bfda811cb7e2e9c19f9279b9b25ca5afb0041ff7cc96a4a84e53a9e5726df"
+      "dual": "984cd77f9a299b88225b29a49e55317b821bf641b6f2a4b0d22f43813fa29528"
     }
   },
   {
@@ -167,6 +167,16 @@
     },
     "sha256": {
       "dual": "b4f13d418c5e408e26a2af0ea7fbda2c3dfadf56f7a07624262196718a6924ad"
+    }
+  },
+  {
+    "version": "1.2.6",
+    "product": "FM-1_91026",
+    "pkg": {
+      "dual": "../../firmware/melodee-1.2.6.fwsc"
+    },
+    "sha256": {
+      "dual": "0a7bfda811cb7e2e9c19f9279b9b25ca5afb0041ff7cc96a4a84e53a9e5726df"
     }
   },
   {
