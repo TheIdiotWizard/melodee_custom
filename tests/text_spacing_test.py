@@ -35,7 +35,7 @@ LOWER = ["oeo", "coco", "eco", "nono", "minimum", "hello", "level", "decay", "re
 UPPER = ["CUTOFF", "RESO", "LEVEL", "DECAY", "RELEASE", "SOUND", "OCOE", "COCO", "NONO", "MINIMUM", "SUPER SAW",
          "MELODEE", "PRESETS", "ANALOG", "DIGITAL", "PITCH", "SWING", "AV AW LT TA YO"]
 RULE = ["gfx"]   # "gfx": src/gfx.c cv_text; "rounded": the earlier rule (each glyph at the rounded pen, 1 phase)
-LIMIT = {"XS": 0.61, "SM": 1.06, "MD": 1.06, "BV": 1.06, "BL": 1.06, "LB": 0.51, "TX": 0.51, "VL": 1.01, "HR": 1.01}   # a phase step (VL, HR: one phase, a pixel), plus raster noise (1.3.7: XS 12 px two phases; Barlow SM, MD, BV, BL one phase, its weights kerned as the SemiBold)
+LIMIT = {"XS": 0.61, "SM": 1.06, "MD": 1.06, "BV": 1.06, "BL": 1.06, "LB": 0.51, "TX": 0.51, "VL": 1.01, "HR": 1.01}   # a phase step (VL, HR: one phase, a pixel), plus raster noise (1.3.2: XS 12 px two phases; Barlow SM, MD, BV, BL one phase, its weights kerned as the SemiBold)
 RES = r"(?: MELODEE_RES)?"   # (tables in the resource region, res.c, carry the section attribute)
 
 

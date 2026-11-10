@@ -62,7 +62,7 @@ def preset(name):
         v = str(FONTS.parent / "assets" / "fonts" / "Rubik[wght].ttf")       # SIL OFL 1.1, Google Fonts
         b = str(FONTS.parent / "assets" / "fonts" / "BarlowSemiCondensed-")         # SIL OFL 1.1 (LOOM-8's face)
         lower = [ord(c) for c in "abcdefghijklmnopqrstuvwxyz0123456789"]
-        return [("XS", b + "SemiBold.ttf", 12, (32, 126), EXTRAS, 0.0, PHASES),       # (1.3.7, the band pages as
+        return [("XS", b + "SemiBold.ttf", 12, (32, 126), EXTRAS, 0.0, PHASES),       # (1.3.2, the band pages as
                 ("SM", b + "Medium.ttf", 15, (32, 126), EXTRAS, 0.0, 1),         #  LOOM-8: Barlow Semi Condensed;
                 ("MD", b + "Bold.ttf", 15, (32, 126), EXTRAS, 0.0, 1),           #  labels and keycaps, text,
                 ("BV", b + "SemiBold.ttf", 23, (32, 126), EXTRAS, 0.0, 1),            #  titles, the strip's values,
@@ -187,7 +187,7 @@ def shared_kern(faces, kern_min, pre="AF_K"):
     """the kerning of every face as one table (KERN_PX): (C text, {ch: left class}, {ch: right class}, right classes,
     the order of AF_KL / AF_KR, bytes)"""
     fonts = {f[1] for f in faces}
-    if len(fonts) > 1 and pre != "AF_K":                # (1.3.7, Barlow: its weights' kerning as the SemiBold's)
+    if len(fonts) > 1 and pre != "AF_K":                # (1.3.2, Barlow: its weights' kerning as the SemiBold's)
         fonts = {sorted(fonts, key=lambda f: "SemiBold" not in f)[0]}
     assert len(fonts) == 1, "one kerning table: every face of one font and weight"
     order = []

@@ -1,30 +1,37 @@
-Melodee 1.3.2 fixes FM-1s that stayed on a black screen and came back as
-**WL82 UBOOT1.00** after installing 1.3.0 or 1.3.1.
+# Melodee Custom 1.3.2
 
-1.3.0 made 320 MHz the default, which retunes the FM-1's system clock at every start,
-before the screen and USB come up. On some units, often the ones that had trouble with
-the second core, that retune fails; the watchdog restarts the FM-1, the next start fails
-the same way, and after two such starts the boot guard enters UBOOT.
+The sound pages now match the LOOM-8-style mockup that 1.3.0 was meant to follow.
 
-- Melodee starts at the boot loader's **360 MHz** again and does not touch the clock, as
-  1.2.1 did. 320 MHz remains available in the HOME-held menu's **OVERCLOCK**.
-- A 320 MHz session that crashes or hangs is followed by a start that leaves the clock
-  untouched and saves 360 MHz (**CPU FAULT: 360 MHZ**). If the retune itself fails, the
-  FM-1 says **PLL FAULT: 360 MHZ** once and OVERCLOCK reads **360 ONLY** from then on.
-- The retune runs only once the watchdog reads back as armed (after johnskiller's
-  follow-ups to #27).
-- A crash or a lost second core at 360 MHz no longer moves the FM-1 to 320 MHz.
-- The 320 MHz default saved by 1.3.0 and 1.3.1 reads as 360 MHz; choose 320 MHz again in
-  OVERCLOCK if you want it.
-- A retired second core stays off until power-off from the moment it is retired.
-- The recovery downloads accept the unmodified official M-VAVE V15 `FM-1.fwsc`, verified
-  by whole-file SHA-256, as the corrected 1.3.1 archives did.
+- **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/)
+  (Chrome or Edge, USB).
+- **Edit:** [web editor](https://theidiotwizard.github.io/melodee_custom/webapp/editor/)
 
-If an FM-1 is stuck in UBOOT, restore it with the recovery tool from these downloads
-(`fm1-recover --info`, then a `.fwsc` backup run, then `--write`; see `RECOVERY.md` in the
-archive) or with M-VAVE's updater, then install 1.3.2. An FM-1 still running 1.3.0 or
-1.3.1 can avoid the risk by setting OVERCLOCK to 360 MHz before updating.
+## What changed from 1.3.0
 
-Firmware downloads include Standard (dual-core) and Single core variants.
-`BUILD_INFO.json` records the source commit and native executable smoke tests;
-`SHA256SUMS` covers all release assets.
+- **LOOM-8's typeface.** The sound pages are set in Barlow Semi Condensed, as LOOM-8 is: 12 px labels and keycaps,
+  15 px text and titles, 23 px values, 31 px effect names. Knob labels are small, dim and lower case. (Stage, lists
+  and the other screens keep Rubik.)
+- **Header.** The track's level as a small bar, a smaller track pill and section chip, the page title (EDIT pages
+  say **Engine**, FX slots **Character**), the pattern, then transport and BPM in the title size.
+- **Hints on two rows.** Four thin pill keys with their words: SELECT page, ALGO track, PRESETS section (or
+  OCT+ sheet), KEYS play; on FX slots SELECT next slot, ALGO track, OCT− rack, KEYS play.
+- **Tag line.** "T1 saw › unison › P1": the track and engine, the page, the pattern.
+- **One colour.** Pictures, curves and gauges on these pages draw in the track's colour only, with dim lines; values
+  are in the text colour.
+- **Engine pictures in a frame.** A title row (the engine, the sound's name) and a caption under the picture that says
+  what the values mean ("5 saws, 12.2 st apart, a sub", "OS14 · scan +17 through the table", "algorithm 2: ratios
+  1 · 1 · 4"). SAW now draws its detuned saws, ENS its chord as a ladder, DRUM small pads, MIDI a socket.
+- **FX "Character" pages.** The effect's name large, what it does and where it sits ("a soft saturation, after T1's
+  sound, in slot 1"), and the effect's own curve: DRIVE and CRUSH their transfer at DRIVE / BITS and SHAPE, ROOM and
+  REVERB their tails, the sweeps and pedals their waves or notches, NOTE ECHO its repeats. The TONE strip is gone from
+  the picture (TONE is on the knob strip).
+
+## Upgrading
+
+Install as usual; projects, presets, settings and backups are kept. Tested on the computer build of the firmware;
+the screens were checked as rendered images against the mockup.
+
+## Credits
+
+Palette and layout ideas from [LOOM-8](https://github.com/charlesvestal/fm1-loom) by Charles Vestal. New code by
+Kerem Kilic (Ellic Studio).

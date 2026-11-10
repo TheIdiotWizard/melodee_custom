@@ -768,7 +768,7 @@ static void pv_fx(int32_t h)
     }
 }
 #include "ui_engpic.c"
-/* ------------------------------------------------- the FX slot's Character (1.3.7) --- */
+/* ------------------------------------------------- the FX slot's Character (1.3.2) --- */
 /* The mockup's "Character" page: the effect's name large, in small letters, and what it does in a line under it (at
  * the left); at the right the effect's own curve from its values, in the track's colour: DRIVE its transfer at DRIVE
  * and SHAPE, CRUSH its steps, the rooms their tails, the sweeps and pedals their waves or notches, the note effects
@@ -919,7 +919,7 @@ static void pv_lower(char *d, const char *s, uint32_t n)   /* (a name in small l
 }
 static void pv_tag(void)
 {
-    /* 1.3.7, the mockup's: "T1 saw > unison > P1" (the track and its engine, the page, the pattern); an FX slot
+    /* 1.3.2, the mockup's: "T1 saw > unison > P1" (the track and its engine, the page, the pattern); an FX slot
      * "T1 > fx > slot 1 drive", the shared rack "all > shared fx > slot 2 room"; too wide: the pattern goes, then the
      * first part. The '>' faint, the words in the text colour, small; a rule before them, the pages' dots after */
     char part[3][28], chip[20], w[20];
@@ -980,7 +980,7 @@ static void pv_tag(void)
 static uint32_t pv_hint_sig;
 static void pv_hints(void)
 {
-    /* 1.3.7, the mockup's: four hints on two rows, a small outlined keycap and its word; the left ones at the left,
+    /* 1.3.2, the mockup's: four hints on two rows, a small outlined keycap and its word; the left ones at the left,
      * the right ones flush right */
     const page_t *pg = cur_page();
     khint_t h[4];
@@ -1053,7 +1053,7 @@ static void pv_picture(void)
     pv.pplay = pp;                                      /*  two dots) */
     for (uint32_t band = 0; band < (uint32_t)((uint32_t)h); band += CV_MAX / (240)) {
         cv_begin_band(240,(uint32_t)h,T_BG,band);
-        if (pic != 9u && pic != 10u) {                  /* (1.3.7: an engine's or an effect's picture on the page's
+        if (pic != 9u && pic != 10u) {                  /* (1.3.2: an engine's or an effect's picture on the page's
                                                          * own ground, as the mockup) */
             cv_rrect(PV_PANEL_X, 0, PV_PANEL_W, h, 6, T_PANEL, T_BG);
             cv_bg = T_PANEL;
@@ -1280,7 +1280,7 @@ static void pv_draw(void)
     {   /* the picture straight on the background (no panel: the screen calm) */
         uint16_t panel = ux.panel;
         ux.panel = ux.bg;
-        ux_one = 1;                                     /* (1.3.7: the mockup's one colour, LOOM-8's thin lines) */
+        ux_one = 1;                                     /* (1.3.2: the mockup's one colour, LOOM-8's thin lines) */
         cv_thin = 1;
         if (kind == PV_RINGS) {
             pv_picture();

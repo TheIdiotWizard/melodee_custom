@@ -52,14 +52,14 @@ static void draw_rec_mark(int32_t x, uint16_t bg)
 #define ROLL_FRAMES 9u
 #define ROLL_SNAP 3u                                    /* frames (~45 ms) */
 #define ROLL_BPM 4u                                     /* ui.roll[]: the four cards, then the header BPM */
-#define ROLL_Y (col_band ? 15 : 20)                     /* a cell's value strip: rows 20..43 (the text face; 1.3.7, the
+#define ROLL_Y (col_band ? 15 : 20)                     /* a cell's value strip: rows 20..43 (the text face; 1.3.2, the
                                                          * strip's 23 px values: 15..42, under the label's 0..14) */
 #define ROLL_H (col_band ? 28 : 24)
-#define BPM_W 34                                        /* the header's BPM strip: 34 columns, every row (1.3.7: TY_MD) */
+#define BPM_W 34                                        /* the header's BPM strip: 34 columns, every row (1.3.2: TY_MD) */
 #define BPM_X (238 - BPM_W)                             /* (1.3.0: at the right, after the transport's glyph) */
 #define HEAD_R (BPM_X - 16)                             /* the left part's end: the transport's glyph at HEAD_R + 2 */
 #define HEAD_MSG_X 4
-#define HEAD_PILL_X 11                                  /* (1.3.7: after the level's bar) */                                    /* a message: from the left (the track's pill gives way) */
+#define HEAD_PILL_X 11                                  /* (1.3.2: after the level's bar) */                                    /* a message: from the left (the track's pill gives way) */
 static uint16_t roll_bg;                                /* what a card's value lies on (its fill: tinted while hot) */
 static const uint8_t ROLL_EASE[17] = {0, 45, 84, 118, 147, 172, 193, 210, 223, 234, 242, 247, 251, 253, 254, 255, 255};
 
@@ -99,7 +99,7 @@ static void roll_note(uint32_t k, const char *a, const char *b, int snap)
 static uint8_t col_band;                                /* (below: the strip's cells) */
 static int32_t roll_text(uint32_t k, int32_t x, int32_t y, const char *s, uint16_t fg)
 {
-    const aafont_t *f = k == ROLL_BPM ? TY_SM : col_band ? TY_BV : TY_TX;   /* (1.3.7: the header's BPM in the title face) */
+    const aafont_t *f = k == ROLL_BPM ? TY_SM : col_band ? TY_BV : TY_TX;   /* (1.3.2: the header's BPM in the title face) */
     uint32_t e = (uint8_t)(ui.frame - ui.roll[k].t0) + 1u, i, p = 0;
     const char *a = ui.roll[k].from;
     int32_t cy = k < ROLL_BPM ? y : 0, h = k < ROLL_BPM ? ROLL_H : H_HEAD;   /* (a card's value: at ROLL_Y) */
@@ -321,7 +321,7 @@ static void draw_head(void)
     int16_t bpm = song.g[G_BPM];                        /* (read once: what is noted is what is drawn) */
     int32_t octave = input_octave(TSEL);
     head_chip_text(chip);
-    if (head_band_page() && !msg) {                     /* (1.3.7, the mockup's titles: the page itself is in the tag
+    if (head_band_page() && !msg) {                     /* (1.3.2, the mockup's titles: the page itself is in the tag
                                                          * line) */
         const page_t *hp = cur_page();
         if (hp->scope == SC_ENGINE)
@@ -404,7 +404,7 @@ static void draw_head(void)
         if (tag[0])                                     /* (status: always shown; the page's name gives way) */
             rx = cv_text_r(rx, ty_y(H_HEAD / 2, TY_XS), TY_XS, tag, tag_color, T_BG) - 5;
     }
-    if (!ble_words && !msg && !chain.running && rx > 150) {   /* (1.3.7, the mockup's: the pattern playing, dim) */
+    if (!ble_words && !msg && !chain.running && rx > 150) {   /* (1.3.2, the mockup's: the pattern playing, dim) */
         str_cpy(b, "P", 4);
         pat_num(b + 1, TSEL->pattern);
         rx = cv_text_r(rx, ty_y(H_HEAD / 2, TY_SM), TY_SM, b, T_MID, T_BG) - 5;
@@ -445,7 +445,7 @@ static void draw_head(void)
         char tn[4] = {'T', (char)('1' + song.sel % 8u), 0, 0};
         const char *fam = head_fam();
         int32_t w = text_w(TY_SM, tn) + 10, fw = text_w(TY_XS, fam) + 8, lh = (int32_t)trk_level(song.sel) * 14 / 127;
-        /* (1.3.7, the mockup's: the track's level as a bar, its pill, the family's outlined chip, the page's name) */
+        /* (1.3.2, the mockup's: the track's level as a bar, its pill, the family's outlined chip, the page's name) */
         cv_rrect(x, H_HEAD / 2 - 7, 3, 14, 1, T_RAISE, T_BG);
         if (lh > 0)
             cv_rect(x, H_HEAD / 2 + 7 - lh, 3, lh, T_THEME);
@@ -568,7 +568,7 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
     uint8_t sig;
     uint16_t lc = vc == T_DIM ? T_DIM : card_tc[c & 3u] ? card_tc[c & 3u] : T_KNOB(c), cbg = col_band ? T_SURF : T_BG;
     int32_t x, uw, room = COL_W;                        /* (the 3 px between cells keep values apart) */
-    const aafont_t *vf = col_band ? TY_BV : TY_TX, *lf = col_band ? TY_XS : TY_LB;   /* (1.3.7, the strip: LOOM-8's
+    const aafont_t *vf = col_band ? TY_BV : TY_TX, *lf = col_band ? TY_XS : TY_LB;   /* (1.3.2, the strip: LOOM-8's
                                                          * faces: labels 12 px, values 23 px) */
     const aafont_t *rf = vf;                            /* (the face values roll in) */
     int32_t vy = ROLL_Y, vb;                            /* (the value's line box, its baseline) */
@@ -619,7 +619,7 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
                                                          * strip: the track's own, never a knob's shade) */
         vc = col_band ? T_THEME : lc;
     else if (col_band && vc != T_DIM && vc != T_ACCENT && vc != T_REC)
-        vc = T_TEXT;                                    /* (1.3.7: the strip's values in the text colour alone) */
+        vc = T_TEXT;                                    /* (1.3.2: the strip's values in the text colour alone) */
     if (strip) {                                        /* rolling: the value strip only */
         cv_begin(COL_W, ROLL_H, cbg);
         cv_oy = -ROLL_Y;
@@ -650,7 +650,7 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         if (!strip && label[0]) {
             const char *ls = cell_label(label, COL_W - 2);
             char lw[16];
-            if (col_band) {                             /* (1.3.7: the strip's labels in small letters, as the mockup) */
+            if (col_band) {                             /* (1.3.2: the strip's labels in small letters, as the mockup) */
                 uint32_t j;
                 for (j = 0; ls[j] && j + 1u < sizeof lw; j++)
                     lw[j] = ls[j] >= 'A' && ls[j] <= 'Z' ? (char)(ls[j] + 32) : ls[j];

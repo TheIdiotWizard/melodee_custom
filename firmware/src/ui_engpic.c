@@ -63,7 +63,7 @@ static void ep_trace(int32_t x0, int32_t w, int32_t cy, int32_t amp, ep_fn_t f, 
 static uint16_t ep_fade(uint32_t pct) { return ux_mix(T_BG, T_THEME, (int32_t)pct); }
 static void ep_label(int32_t x, int32_t y, const char *s, uint16_t c) { cv_text_on(x, y, TY_SM, s, c, T_BG); }
 static void ep_label_r(int32_t x, int32_t y, const char *s, uint16_t c) { cv_text_r(x, y, TY_SM, s, c, T_BG); }
-/* the caption (1.3.7, the mockup's: under the picture, small and dim, what the values mean in words) */
+/* the caption (1.3.2, the mockup's: under the picture, small and dim, what the values mean in words) */
 #define EP_CAP 48
 static void ep_cat(char *cap, const char *s) { str_cpy(cap + str_len(cap), s, EP_CAP - str_len(cap)); }
 static void ep_cati(char *cap, int32_t v, int sign)
@@ -650,7 +650,7 @@ static void ep_draw(uint32_t e, int32_t h, char *cap)
     else ep_midi(p, h, cap);
 }
 
-/* the engine's picture in its frame (1.3.7, the mockup's): a title row (the engine in small letters, the sound at the
+/* the engine's picture in its frame (1.3.2, the mockup's): a title row (the engine in small letters, the sound at the
  * right, dim), the picture, its caption (what the values mean, small and dim) */
 #define EP_TITLE_H 18
 #define EP_CAP_H 16
