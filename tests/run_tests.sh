@@ -228,8 +228,8 @@ if [ "$UI" = renders ]; then
         cat "$LOG/$n.fail"
         exit 1
     fi
-    if [ ! -f build/ui_new/MONO/home.png ]; then
-        echo "UI renders produced no MONO screenshots" >&2
+    if [ ! -f "build/ui_new/TAPE A/home.png" ]; then
+        echo "UI renders produced no TAPE A screenshots" >&2
         exit 1
     fi
     echo "UI RENDERS PASSED in $(($(date +%s) - start)) s"
