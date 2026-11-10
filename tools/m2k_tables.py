@@ -11,9 +11,9 @@ import re, sys
 src, waves, out, rev = sys.argv[1:5]
 want = ["T_SIN", "T_SW1LO", "T_SW1HI",
         "T_SW2LO", "T_SW2HI", "T_SWSUBX", "T_SWHP", "T_ENS_PCH", "T_ENS_PIDX", "T_ENS_PNAME", "T_ENS_G", "T_ENS_W",
-        "T_ENV_COEF", "T_VOL", "T_EXP2F", "T_RED_W"]   # (1.2.6: the FM+ tables gone with STAT PAR DYN)
+        "T_ENV_COEF", "T_VOL", "T_EXP2F"]   # (1.2.6: the FM+ tables gone with STAT PAR DYN; 1.2.8: T_RED_W with NOIS)
 wavewant = ["T_WAVES64", "T_WAVES64_DC", "T_WAVES64_G", "T_WAVE64_NAME"]
-defs = ["ENS_OFF", "ENS_CINC", "ENS_CDEP", "GN_G0", "GN_G1", "GN_G2", "GN_GT", "GN_KW", "GN_K0", "GN_K1", "GN_K2", "GN_KB"]
+defs = ["ENS_OFF", "ENS_CINC", "ENS_CDEP"]   # (1.2.8: GND-NOIS's GN_* gone with NOIS)
 def grab(text, names):
     got = {}
     for n in names:
@@ -27,7 +27,7 @@ d = [re.search(r"^#define " + n + r"\b.*$", t, re.M).group(0) for n in defs]
 with open(out, "w") as f:
     f.write("/* SPDX-License-Identifier: GPL-3.0-only\n"
             " * Copyright (C) 2026 Sequencist (Inigo Hernandez), MONO2K: https://github.com/InigoHernandez/mono2k */\n"
-            "/* The tables of MONO2K's SWAV-SAW, SWAV-ENS, DIGI-WAV and GND-NOIS machines (eng_m2k.c),\n"
+            "/* The tables of MONO2K's SWAV-SAW, SWAV-ENS and DIGI-WAV machines (eng_m2k.c),\n"
             " * extracted unchanged from MONO2K's generated firmware/gen/m2k_tables.h and m2k_waves64.h at commit " + rev + "\n"
             " * by tools/m2k_tables.py. The 64 waves are the MONO2K owner's (assets/waves/mono2k64), in the resource region. */\n"
             "#ifndef M2K_TABLES_H\n#define M2K_TABLES_H\n")

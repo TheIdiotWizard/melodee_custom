@@ -12,7 +12,7 @@ typedef struct { int32_t a1, a2, a3, ma, mb, mc; } uflt_t;
 /* the engines with the FILTER page (ui.c page_visible, midi_control.c's CC 74 / 71) */
 static int uflt_engine(uint32_t e)
 {
-    return (e >= ENGI_SAW && e <= ENGI_NOIS && !(e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u)) ||
+    return e == ENGI_SAW || e == ENGI_SAW + 1u || e == ENGI_WAV ||   /* (NOISE has its own filter; NOIS retired, 1.2.8) */
            (e >= ENGI_FMTONE && e <= ENGI_ANA4);
 }
 

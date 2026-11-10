@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.2.7](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.2.7)**
-([release notes](docs/RELEASE_1.2.7.md); earlier: [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+Current release: **[Melodee Custom 1.2.8](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.2.8)**
+([release notes](docs/RELEASE_1.2.8.md); earlier: [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
 [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
@@ -21,9 +21,11 @@ Current release: **[Melodee Custom 1.2.7](https://github.com/TheIdiotWizard/melo
   silent until another engine is picked.
 - **Engines (1.2.0):** [MONO2K](https://github.com/InigoHernandez/mono2k)'s **SAW** (SWAV-SAW), **ENS** (SWAV-ENS)
   and **WAV** (DIGI-WAV, the MONO2K owner's 64 waves), each playable polyphonically (six voices; ENS three);
-  **NOIS** (GND-NOIS: white to red noise, a second noise across the stereo) since 1.2.2. **PROPHET**, **FM6** and
+  **NOIS** (GND-NOIS) from 1.2.2 to 1.2.7. **PROPHET**, **FM6** and
   **PHASE** are retired.
-- **FILTER (1.2.4):** SAW, ENS, WAV, NOIS, FMTONE, DUALVCO and ANALOG4 have a **FILTER** page (TRIO's filter: LP / BP /
+- **NOISE (1.2.8):** the **NOISE** engine (analog hiss, crackle, shift-register and metallic noise through its own
+  resonant filter) in place of NOIS, whose tracks play silent.
+- **FILTER (1.2.4):** SAW, ENS, WAV, FMTONE, DUALVCO and ANALOG4 have a **FILTER** page (TRIO's filter: LP / BP /
   HP / notch, CUT, RES; CC 74 / 71).
 - **Engines (1.0):** Felucca's **WHEEL** organ and its **LOFI** and **PHYS** engines are back, at their original
   engine numbers. **CZ-1** and **SID** are retired (DRUM keeps KIT SID).
@@ -36,7 +38,7 @@ Current release: **[Melodee Custom 1.2.7](https://github.com/TheIdiotWizard/melo
 - **Palettes:** MONO, white on black, no colour (1.2.0, the default), and LOOM A / LOOM B (1.2.7), black with a
   colour per track from [LOOM-8](https://github.com/charlesvestal/fm1-loom)'s: pink, teal, yellow, blue / orange, green,
   purple, tan (HOME menu → COLOR).
-- **GLO > WEIGHTS:** voice weights for SAW, ENS, FMT (FMTONE), WAV+ (WAV, NOIS), DRUM, LOFI, DUAL (DUALVCO), A4
+- **GLO > WEIGHTS:** voice weights for SAW, ENS, FMT (FMTONE), WAV+ (WAV, NOISE), DRUM, LOFI, DUAL (DUALVCO), A4
   (ANALOG4), WHEEL and PHYS on three pages.
 - **Relative encoders everywhere:** with a relative **MIDI MODE** (HOME menu), every CC that sets a value moves it
   from where it is, like the panel knobs, except CC 7 LEVEL and CC 1 the mod wheel (1.0.3; every CC since 1.2.4).

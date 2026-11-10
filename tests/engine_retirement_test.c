@@ -12,14 +12,14 @@ int main(void)
 #if MELODEE_M2K_ENGINES
     /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's engines at 22..28.
      * 1.2.6: VOICE (5), TRIO (6) and MONO2K's STAT PAR DYN (24..26) retired; Mini-Tone's FMTONE DUALVCO ANALOG4 at 29..31 */
-    const uint8_t retired[]={2,5,6,11,12,15,19,24,25,26};
+    const uint8_t retired[]={2,5,6,12,15,19,24,25,26,28};   /* (1.2.8: NOIS 28 retired, NOISE 11 back) */
 #else
     const uint8_t retired[]={11,15};
 #endif
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
-            {22, 5, "SAW"}, {23, 5, "ENS"}, {27, 5, "WAV"}, {28, 5, "NOIS"},
+            {22, 5, "SAW"}, {23, 5, "ENS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
             {29, 8, "FMTONE"}, {30, 9, "DUALVCO"}, {31, 8, "ANALOG4"},
 #else
             {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
@@ -47,12 +47,12 @@ int main(void)
                    eng_state_size(ENGI_FMTONE)>0 && eng_state_size(ENGI_DUAL)>0 && eng_state_size(ENGI_ANA4)>0);
         {   /* SAVE > USER with each of MONO2K's seven: the slot holds it, LOAD brings it back */
             int ok=1;
-            static const uint8_t m2k7[]={ENGI_SAW,ENGI_SAW+1u,ENGI_WAV,ENGI_NOIS,ENGI_FMTONE,ENGI_DUAL,ENGI_ANA4};
+            static const uint8_t m2k7[]={ENGI_SAW,ENGI_SAW+1u,ENGI_WAV,11u,ENGI_FMTONE,ENGI_DUAL,ENGI_ANA4};
             for(uint32_t j=0;j<NELEM(m2k7);j++){
                 uint32_t e=m2k7[j], k=UP_SLOTS-1u-j;
                 set_engine_of(TSEL,(uint8_t)e);apply_preset_to(TSEL,1);
                 for(uint32_t i=0;i<3;i++){const param_desc_t *d=param_desc_of(e,P_E0+i);   /* (within each control's range) */
-                    TSEL->p[P_E0+i]=(int16_t)(e==ENGI_NOIS&&i==2u?1:d->min+(int32_t)(5u+i+j)%(d->max-d->min+1));}
+                    TSEL->p[P_E0+i]=(int16_t)(d->min+(int32_t)(5u+i+j)%(d->max-d->min+1));}
                 TSEL->p[P_FMODE]=2;TSEL->p[P_FCUT]=(int16_t)(33+j);TSEL->p[P_FRES]=44;   /* (their FILTER too) */
                 if(e==ENGI_FMTONE||e==ENGI_ANA4)TSEL->p[P_FM2_DEC]=(int16_t)(61+j);   /* an operator-slot control */
                 int16_t want[8];memcpy(want,TSEL->p+P_E0,sizeof want);int16_t want2=TSEL->p[P_FM2_DEC];
@@ -66,6 +66,12 @@ int main(void)
                 up_put(k,0);
             }
             bad+=check("SAVE > USER keeps a sound of each of the seven, its FILTER and extra controls too; LOAD brings it back",ok);
+            memset(&favorites,0,sizeof favorites);
+            favorite_set(11u,1,1);favorite_set(11u,3,1);favorite_set(ENGI_SAW,1,1);favorite_set(ENGI_FMTONE,7,1);
+            bad+=check("NOISE's stars (1.2.8: row 11's byte 7, the row MONO2K's and Mini-Tone's share) apart from theirs",
+                       favorite_has(11u,1)&&favorite_has(11u,3)&&!favorite_has(11u,0)&&!favorite_has(11u,2)&&favorite_has(ENGI_SAW,1)&&
+                       !favorite_has(ENGI_SAW,3)&&favorite_has(ENGI_FMTONE,7)&&favorites.factory[11][7]==0x0Au&&favorites.factory[11][0]==0x02u&&
+                       (favorite_set(11u,1,0),!favorite_has(11u,1)&&favorite_has(ENGI_SAW,1)));
             set_engine_of(TSEL,ENGI_SAW);apply_preset_to(TSEL,0);
             TSEL->p[P_FMODE]=3;TSEL->p[P_FCUT]=21;TSEL->p[P_FRES]=99;
             project_capture(&proj_scratch);

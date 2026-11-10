@@ -61,10 +61,13 @@ static int p5_favorite_set(uint32_t slot,int on,int factory);
 #define ENGI_NOIS 28u
 #define ENGI_ANA4 31u
 #endif
-/* the byte of row 11 a star is in, -1 none: MONO2K's (22..28) a byte each in 0..6, Mini-Tone's (29..31) two each in
- * 10..15 (up to 16 presets) */
+/* the byte of row 11 a star is in, -1 none: MONO2K's (22..28) a byte each in 0..6, NOISE's (11, back in the shipping
+ * build since 1.2.8: row 11 is no longer its own) byte 7, Mini-Tone's (29..31) two each in 10..15 (up to 16 presets) */
 static int m2k_fav_byte(uint32_t engine, uint32_t preset)
 {
+#if MELODEE_M2K_ENGINES
+    if (engine == 11u && preset < 8u) return 7;
+#endif
     if (engine >= ENGI_SAW && engine < ENGI_SAW + 7u && preset < 8u) return (int)(engine - ENGI_SAW);
     if (engine > ENGI_SAW + 6u && engine <= ENGI_ANA4 && preset < 16u) return 10 + (int)(engine - ENGI_SAW - 7u) * 2 + (int)(preset >> 3);
     return -1;

@@ -315,9 +315,9 @@ if core; then
     run "CPU live takes: native replay comparison, timed input, failure cleanup and guarded restoration" "$PY" tests/audio_cpu_take_test.py
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
-    t "shipping engines: LOFI WHEEL PHYS, MONO2K's and Mini-Tone's; CZ-1 VOICE TRIO STAT PAR DYN retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
-    t "MONO2K and Mini-Tone engines: presets, the first note after silence, NOIS, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
-    t "MONO2K and Mini-Tone engines in the UI: the FILTER page (theirs only), FMTONE / ANALOG4's own pages" m2k_ui_test $FWS
+    t "shipping engines: LOFI WHEEL PHYS NOISE, MONO2K's and Mini-Tone's; CZ-1 VOICE TRIO STAT PAR DYN NOIS retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
+    t "MONO2K, NOISE and Mini-Tone engines: presets, the first note after silence, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
+    t "MONO2K and Mini-Tone engines in the UI: the FILTER page (theirs only, not NOISE), FMTONE / ANALOG4's own pages" m2k_ui_test $FWS
     t "capture gating, derived caches and silent-track clocks" performance_test -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "canvas drawing overlaps DMA without changing pending pixels" lcd_overlap_test -O1 -w -Ibuild/gen
     t "user presets (UP_PUT parser, bank round trip, versions, PHYS DRUM -> DRUM, grid records)" upreset_test
@@ -445,7 +445,7 @@ fi
 
 if sound && [ $TABLES = 1 ]; then
     mkdir -p build/mod_demo \
-        build/phys_demo build/drum_demo build/noise_demo build/fm6_demo
+        build/phys_demo build/drum_demo build/noise_demo build/noise_ship_demo build/fm6_demo
     t "regression: golden renders, health, voices, CPU budget" regress -O2 $FW -- \
         "$OUT/regress" tests/golden.txt tests/cpu_baseline.txt
     t "regression, shipping engines: golden renders, health, voices, CPU budget" regress_felucca:regress -O2 $FWS -- \
@@ -495,6 +495,8 @@ if sound && [ $TABLES = 1 ]; then
         "$OUT/drum_kits_test" build/drum_kits_demo
     t "NOISE: colour slopes, key-tracked filter and clock, META period, DC, clipping, retrigger, cost, demos" noise_test \
         -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW -- "$OUT/noise_test" build/noise_demo
+    t "NOISE in the shipping build (1.2.8, NOIS's place): the same checks" noise_ship:noise_test -O2 $FWS -- \
+        "$OUT/noise_ship" build/noise_ship_demo
     t "FM6: the DX7's algorithms, pitch, levels, envelopes, modulation; DC, clipping, macros, patches, voices, cost, demos" \
         fm6_test -O2 $FW -- "$OUT/fm6_test" build/fm6_demo
     t "FM6: native fp32 AMS against the double reference, every modulation" fm6_ams_test -O2 $FW

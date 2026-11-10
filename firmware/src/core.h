@@ -85,7 +85,7 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define ENGI_MIDI 21u            /* 20 reserved for the Prophet user-preset namespace */
 #define ENGI_SAW 22u
 #define ENGI_WAV 27u
-#define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.2) */
+#define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.2..1.2.7; retired for NOISE, 11, in 1.2.8): its ID reserved */
 #define ENGI_FMTONE 29u          /* Mini-Tone's FMTONE, DUALVCO and ANALOG4 (1.2.6: eng_mt.c) */
 #define ENGI_DUAL 30u
 #define ENGI_ANA4 31u
@@ -100,19 +100,19 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
                                    * and SID (3); 0: the CZ-1 and SID firmware. DRUM's KIT SID keeps its own 6581 */
 #endif
 #ifndef MELODEE_M2K_ENGINES
-#define MELODEE_M2K_ENGINES MELODEE_FELUCCA_ENGINES   /* MONO2K's SAW ENS WAV NOIS (22, 23, 27, 28, eng_m2k.c)
-                                * and Mini-Tone's FMTONE DUALVCO ANALOG4 (29..31, eng_mt.c) in place of PROPHET, FM6, PHASE,
-                                * VOICE, TRIO and MONO2K's STAT PAR DYN (24..26), whose stored sounds keep their numbers and play silent; the
+#define MELODEE_M2K_ENGINES MELODEE_FELUCCA_ENGINES   /* MONO2K's SAW ENS WAV (22, 23, 27, eng_m2k.c), NOISE (11,
+                                * eng_noise.c) and Mini-Tone's FMTONE DUALVCO ANALOG4 (29..31, eng_mt.c) in place of PROPHET,
+                                * FM6, PHASE, VOICE, TRIO and MONO2K's STAT PAR DYN (24..26) and NOIS (28), whose stored sounds keep their numbers and play silent; the
                                 * CZ-1 and SID fixture build (MELODEE_FELUCCA_ENGINES 0) keeps them */
 #endif
-/* the retired engines' code (CZ-1, SID, FM6, PROPHET, PHASE, NOISE, STAT, PAR, DYN, TRIO, VOICE): built only where a test
+/* the retired engines' code (CZ-1, SID, FM6, PROPHET, PHASE, STAT, PAR, DYN, TRIO, VOICE): built only where a test
  * fixture still plays them (MELODEE_FELUCCA_ENGINES 0); the shipping build keeps their stored data's numbers alone */
 #define MELODEE_RETIRED_CODE (!MELODEE_M2K_ENGINES)
 #define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
 #define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
 #if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
-#define NENG_SHOWN (11u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
-                                                /* SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4 LOFI [WHEEL] PHYS [NOISE] DRUM MIDI */
+#define NENG_SHOWN (11u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS))
+                                                /* SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 LOFI [WHEEL] PHYS DRUM MIDI */
 #elif MELODEE_FELUCCA_ENGINES
 #define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
                                                 /* PROPHET FM6 PHASE LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */

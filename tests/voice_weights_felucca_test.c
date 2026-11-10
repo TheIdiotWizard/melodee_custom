@@ -34,7 +34,7 @@ int main(void)
         settings_vpoints[(k + 1u) % VOICE_KINDS] = 0;
     }
     set_engine_of(&trk[0], ENGI_SAW + 1u); trk[0].engine = trk[0].eng_req; ok &= voice_units(&trk[0]) == 3u;   /* ENS AUTO */
-    set_engine_of(&trk[0], ENGI_NOIS); trk[0].engine = trk[0].eng_req;   /* WAV+: WAV and NOIS */
+    set_engine_of(&trk[0], 11u); trk[0].engine = trk[0].eng_req;   /* WAV+: WAV and NOISE (NOIS's, 1.2.8) */
     settings_vpoints[3] = 6; ok &= voice_units(&trk[0]) == 6u; settings_vpoints[3] = 0;
     bad += check("each of the ten weights reaches its own engine's voices only (WAV+: WAV NOIS); AUTO keeps the built-in rule", ok);
 

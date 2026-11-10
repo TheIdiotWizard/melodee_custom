@@ -22,8 +22,8 @@
 #include "eng_wheel.c"
 #include "eng_phys.c"           /* PHYS: DaisySP physical models (phys_dsp.c, MIT) */
 #include "eng_drum.c"           /* DRUM: synthesized 808 circuits (drum_808.c), the 909, a C64's SID (drum_sid.c), CR78, FM */
-#if MELODEE_LEGACY_EXTRAS
-#include "eng_noise.c"
+#if MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES
+#include "eng_noise.c"            /* NOISE (11): retired in 2.x, back in the shipping build since 1.2.8 for MONO2K's NOIS */
 #endif
 #include "eng_fm6.c"            /* FM6: 6-operator FM rendered as Dexed renders it (fm6_core.c) */
 #include "eng_midi.c"
@@ -86,7 +86,6 @@ static uint32_t eng_state_size(uint32_t e)
     case ENGI_FMTONE: case ENGI_DUAL: case ENGI_ANA4:
         return mt_state_size(e);
     case ENGI_SAW + 1u: return M2K_PART_BYTES(M2K_ENS);
-    case ENGI_NOIS: return M2K_PART_BYTES(M2K_NOIS);
 #if MELODEE_SLICE
     case ENGI_SLICE: return sizeof(slc_rb_t);
 #endif
@@ -164,8 +163,8 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,                /* 9: retired PHYS; stored ID reserved */
 #endif
     &ENG_DRUM,                   /* 10 (ENGI_DRUM) */
-#if MELODEE_LEGACY_EXTRAS
-    &ENG_NOISE,                  /* 11 */
+#if MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES
+    &ENG_NOISE,                  /* 11 (the shipping build's since 1.2.8) */
 #else
     &ENG_RETIRED,                /* 11: retired NOISE; stored ID reserved */
 #endif
@@ -195,7 +194,7 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_RETIRED,                /* 25: PAR (FM+PAR): the same */
     &ENG_RETIRED,                /* 26: DYN (FM+DYN): the same */
     &ENG_M2K_WAV,                /* 27: WAV, MONO2K's DIGI-WAV */
-    &ENG_M2K_NOIS,               /* 28: NOIS, MONO2K's GND-NOIS */
+    &ENG_RETIRED,                /* 28: NOIS (MONO2K's GND-NOIS, 1.2.2..1.2.7): retired for NOISE (11), its sounds silent */
     &ENG_FMTONE,                 /* 29: FMTONE, Mini-Tone's (eng_mt.c) */
     &ENG_DUAL,                   /* 30: DUALVCO, Mini-Tone's */
     &ENG_ANA4,                   /* 31: ANALOG4, Mini-Tone's */
@@ -231,7 +230,7 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if MELODEE_M2K_ENGINES
-    ENGI_SAW, ENGI_SAW + 1, ENGI_WAV, ENGI_NOIS,   /* SAW ENS WAV NOIS (MONO2K's) */
+    ENGI_SAW, ENGI_SAW + 1, ENGI_WAV, 11,   /* SAW ENS WAV (MONO2K's), NOISE (1.2.8, in NOIS's place) */
     ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4,             /* FMTONE DUALVCO ANALOG4 (Mini-Tone's) */
 #else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
@@ -250,8 +249,8 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     7,                           /* WHEEL */
 #endif
     9,                           /* PHYS */
-#if MELODEE_LEGACY_EXTRAS
-    11,                          /* NOISE */
+#if MELODEE_LEGACY_EXTRAS && !MELODEE_M2K_ENGINES
+    11,                          /* NOISE (the shipping build's: after WAV, above) */
 #endif
 #elif MELODEE_LEGACY_EXTRAS
     2, ENGI_CZ, 3, 5,             /* PHASE CZ-1 SID VOICE */
@@ -279,10 +278,11 @@ static int eng_extra_retired(uint32_t e)
 #endif
     if (!MELODEE_CZ && e == ENGI_CZ) return 1;
     if (MELODEE_M2K_ENGINES && (e == ENGI_PROPHET || e == ENGI_FM6 || e == 2u)) return 1;   /* their sounds: silent */
-    if (e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u)
-        return 1;                /* STAT, PAR, DYN (retired for Mini-Tone's three, in every build): silent */
+    if ((e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u) || e == ENGI_NOIS)
+        return 1;                /* STAT, PAR, DYN (retired for Mini-Tone's three), NOIS (for NOISE), in every build: silent */
     if (MELODEE_M2K_ENGINES && (e == 5u || e == 6u))
         return 1;                /* VOICE, TRIO (the shipping build's; the fixture build still plays them): silent */
+    if (MELODEE_M2K_ENGINES && e == 11u) return 0;   /* NOISE: the shipping build's since 1.2.8 */
     if (MELODEE_FELUCCA_ENGINES && (e == 2u || e == 5u || e == 6u || e == 9u)) return 0;
     return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
 }

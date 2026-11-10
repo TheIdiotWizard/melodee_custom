@@ -1,15 +1,14 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
-/* MONO2K's four engines (src/eng_m2k.c) and Mini-Tone's three (src/eng_mt.c) on the host, through hostsim.c.
+/* MONO2K's three engines (src/eng_m2k.c), NOISE (src/eng_noise.c, in NOIS's place since 1.2.8; its own checks:
+ * noise_test.c) and Mini-Tone's three (src/eng_mt.c) on the host, through hostsim.c.
  *   build/host/m2k_test
- * 1. every preset of SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4 sounds: one note at velocity 127, its peak short of the voice clip.
+ * 1. every preset of SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 sounds: one note at velocity 127, its peak short of the voice clip.
  * 2. the first note after silence: a note, its release run out, then idle blocks rendered the way the mixer does
  *    (track_render_audio, clear_idle 0) over a buffer full of other audio; the next note's first 50 ms peak no
  *    higher than the same note's from a fresh part (+25 %). ENS's chorus once took that buffer in and played it
  *    back at the next note (a burst, often a clip).
- * 3. NOIS: RED's colour (the power of an octave at 300 Hz against one at 4.8 kHz: white -12 dB, pink 0, red +12, each
- *    +-3); two voices are two noises (their sum's power twice one's, +-15 %); STON without SPREAD leaves the middle the
- *    first noise alone (sample for sample as ST 0), with SPREAD it adds the second to the left side only.
+ * 3. (NOIS's colour and stereo: retired with it, 1.2.8)
  * 4. the FILTER page (TRIO's filter): OFF changes nothing (as before it, sample for sample); LP at CUT 40 takes 4.8 kHz
  *    at least 20 dB further down than 300 Hz, HP at CUT 100 300 Hz; ENV -> FLT moves the cutoff, not UNIW, with it on;
  *    on FMTONE, DUALVCO and ANALOG4 LP at CUT 30 takes their 4.8 kHz 12 dB or more down against MODE OFF.
@@ -54,26 +53,6 @@ static int32_t render_peak(uint32_t n, int dirty)
     return pk;
 }
 
-/* NOIS: one note held, ST st, RED red, STON on; the filter out of the way; n samples of the voice sum (and the left
- * side, with SPREAD) */
-static void nois_render(int st, int red, int on, int spread, int32_t *y, int32_t *left, uint32_t n, uint32_t notes)
-{
-    setup(ENGI_NOIS, 0);
-    trk[0].p[P_E0] = (int16_t)st; trk[0].p[P_E1] = (int16_t)red; trk[0].p[P_E2] = (int16_t)on;
-    trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127; trk[0].p[P_REL] = 20; trk[0].p[P_ED_FLT] = 0;
-    for (uint32_t k = 0; k < notes; k++) trk_note_on(&trk[0], 60 + 4 * k, 110);
-    static int32_t b[CTL];
-    uint32_t warm = FS / 10u / CTL;
-    for (uint32_t i = 0; i < warm + n / CTL; i++) {
-        spread_on = (uint8_t)spread;
-        track_render_audio(&trk[0], b, CTL, 1);
-        if (i >= warm) for (uint32_t k = 0; k < CTL; k++) {
-            y[(i - warm) * CTL + k] = b[k];
-            if (left) left[(i - warm) * CTL + k] = spread_buf[k];
-        }
-    }
-    spread_on = 0;
-}
 /* the power of y between f0 and 2 f0 (a Hann-windowed DFT of 4096-sample frames, averaged) */
 static double band(const int32_t *y, uint32_t n, double f0)
 {
@@ -90,7 +69,6 @@ static double band(const int32_t *y, uint32_t n, double f0)
         }
     return pw;
 }
-static double power(const int32_t *y, uint32_t n) { double s = 0; for (uint32_t i = 0; i < n; i++) s += (double)y[i] * y[i]; return s / n; }
 
 /* SAW SUPERSAW, one note held, its FILTER mode / cut / res; n samples of the voice */
 static void saw_render(int mode, int cut, int res, int fenv, int32_t *y, uint32_t n)
@@ -124,8 +102,8 @@ static void mt_render(uint32_t e, int mode, int cut, int32_t *y, uint32_t n)
 
 int main(void)
 {
-    static const char *const NAME[7] = {"SAW", "ENS", "WAV", "NOIS", "FMTONE", "DUALVCO", "ANALOG4"};
-    static const uint8_t ENG7[7] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_WAV, ENGI_NOIS, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
+    static const char *const NAME[7] = {"SAW", "ENS", "WAV", "NOISE", "FMTONE", "DUALVCO", "ANALOG4"};
+    static const uint8_t ENG7[7] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_WAV, 11u, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
     int ok = 1;
     for (uint32_t k = 0; k < 7u; k++) {
         const engine_t *e = ENGINES[ENG7[k]];
@@ -146,7 +124,7 @@ int main(void)
             setup(ENG7[k], pi);
             trk[0].p[P_REL] = 20;
             trk_note_on(&trk[0], 60, 110);
-            int32_t fresh = render_peak(FS / 20u, 0);   /* (NOIS: a noise's peak varies, its level does not) */
+            int32_t fresh = render_peak(FS / 20u, 0);   /* (NOISE: a noise's peak varies, its level does not) */
             render_peak(FS / 4u, 0);
             trk_note_off(&trk[0], 60);
             uint32_t idle = 0;
@@ -156,7 +134,7 @@ int main(void)
             }
             trk_note_on(&trk[0], 60, 110);
             int32_t again = render_peak(FS / 20u, 0);
-            if (!idle || again > fresh + fresh / (ENG7[k] == ENGI_NOIS ? 2 : 4)) {
+            if (!idle || again > fresh + fresh / (ENG7[k] == 11u ? 2 : 4)) {
                 printf("m2k: %s %s first note %d, after silence %d (idle %u)\n", NAME[k], e->presets[pi].name,
                        (int)fresh, (int)again, idle);
                 ok = 0;
@@ -164,35 +142,6 @@ int main(void)
         }
     }
     check("the first note after silence (idle blocks over a dirty mixer buffer) starts as from a fresh part", ok);
-
-    {
-        enum { NS = 4096u * 6u };
-        static int32_t y[NS], z[NS], l[NS], l0[NS];   /* (l0: the voice on the left side alone) */
-        static const struct { int red; double db; } COL[3] = {{0, -12}, {64, 0}, {127, 12}};
-        ok = 1;
-        for (uint32_t c = 0; c < 3u; c++) {
-            nois_render(0, COL[c].red, 0, 0, y, 0, NS, 1);
-            double db = 10 * log10(band(y, NS, 300) / band(y, NS, 4800));
-            printf("m2k: NOIS RED %3d: an octave at 300 Hz against 4.8 kHz %+.1f dB (want %+.0f)\n", COL[c].red, db, COL[c].db);
-            ok &= fabs(db - COL[c].db) <= 3;
-        }
-        check("NOIS RED: white -12 dB, pink 0, red +12 over four octaves (+-3)", ok);
-        nois_render(0, 0, 0, 0, y, 0, NS, 1); double p1 = power(y, NS);
-        nois_render(0, 0, 0, 0, y, 0, NS, 2); double p2 = power(y, NS);
-        check("NOIS: two voices are two noises (their power twice one's, +-15 %)", fabs(p2 / p1 - 2) <= 0.3);
-        nois_render(0, 64, 0, 0, y, 0, NS, 1);
-        nois_render(127, 64, 1, 0, z, 0, NS, 1);
-        check("NOIS STON without SPREAD: the middle is the first noise alone (as ST 0, sample for sample)", !memcmp(y, z, sizeof y));
-        nois_render(127, 64, 0, 0, z, 0, NS, 1);
-        check("NOIS ST 127 without STON: the second noise in the middle (louder than ST 0)", power(z, NS) > 1.3 * power(y, NS));
-        nois_render(0, 64, 0, 1, y, l0, NS, 1);          /* (one voice: SPREAD's left side, the whole voice) */
-        nois_render(127, 64, 1, 1, z, l, NS, 1);
-        double dd = 0;
-        for (uint32_t i = 0; i < NS; i++) dd += (double)(l[i] - z[i]) * (l[i] - z[i]);
-        printf("m2k: NOIS STON with SPREAD: the left side's second noise %.0f, the voice %.0f\n", sqrt(dd / NS), sqrt(power(z, NS)));
-        check("NOIS STON with SPREAD: the middle the first noise (as ST 0), the left side the second besides",
-              !memcmp(y, z, sizeof y) && !memcmp(l0, y, sizeof y) && dd / NS > 0.2 * power(z, NS));
-    }
 
     {
         enum { NS = 4096u * 6u };
@@ -225,12 +174,16 @@ int main(void)
         settings_midi_knob_mode = MK_ABSOLUTE;
         midi_parameter(&trk[0], 74, 32); midi_parameter(&trk[0], 71, 127);
         ok = trk[0].p[P_FCUT] == 32 && trk[0].p[P_FRES] == 127;
-        static const uint8_t MORE[] = {ENGI_NOIS, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
+        static const uint8_t MORE[] = {ENGI_SAW + 1u, ENGI_WAV, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
         for (uint32_t k = 0; k < NELEM(MORE); k++) {
             setup(MORE[k], 0); midi_parameter(&trk[0], 74, (uint8_t)(10 + k)); midi_parameter(&trk[0], 71, (uint8_t)(90 + k));
             ok &= trk[0].p[P_FCUT] == (int16_t)(10 + k) && trk[0].p[P_FRES] == (int16_t)(90 + k);
         }
-        check("CC 74 / 71: the FILTER's CUT / RES on all seven (Mini-Tone's three too)", ok);
+        check("CC 74 / 71: the FILTER's CUT / RES on its six (Mini-Tone's three too)", ok);
+        setup(11u, 0); int16_t fc = trk[0].p[P_FCUT], fr = trk[0].p[P_FRES];
+        midi_parameter(&trk[0], 74, 20); midi_parameter(&trk[0], 71, 100);
+        check("CC 74 / 71 on NOISE: its own FREQ / RES (no FILTER page)",
+              trk[0].p[P_E2] == 20 && trk[0].p[P_E3] == 100 && trk[0].p[P_FCUT] == fc && trk[0].p[P_FRES] == fr);
         setup(ENGI_SAW, 0);
         settings_midi_knob_mode = MK_REL1;
         trk[0].p[P_ATK] = 40; trk[0].p[P_FCUT] = 100; trk[0].p[P_LEVEL] = 50;
@@ -249,6 +202,6 @@ int main(void)
         settings_midi_knob_mode = keep;
     }
 
-    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4: presets, the first note after silence, NOIS's colour and stereo, the FILTER, CC 74 / 71 and REL 1: OK\n");
+    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4: presets, the first note after silence, the FILTER, CC 74 / 71 and REL 1: OK\n");
     return bad != 0;
 }

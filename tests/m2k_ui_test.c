@@ -2,8 +2,8 @@
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
 /* MONO2K's four and Mini-Tone's three in the UI (the shipping build; tests/ui_test.c's stubs, not its own tests):
  *   build/host/m2k_ui_test
- * EDIT's FILTER page (MODE CUT RES ENV) is there for SAW ENS WAV NOIS FMTONE DUALVCO ANALOG4 only, not LOFI, DRUM or
- * the retired STAT PAR DYN; its knobs turn its values; FMTONE's and ANALOG4's own pages show on their engine only and
+ * EDIT's FILTER page (MODE CUT RES ENV) is there for SAW ENS WAV FMTONE DUALVCO ANALOG4 only, not NOISE (its own
+ * filter), LOFI, DRUM or the retired STAT PAR DYN; its knobs turn its values; FMTONE's and ANALOG4's own pages show on their engine only and
  * their knobs turn the controls kept in the operator slots. */
 #define UI_TEST_NO_MAIN 1
 #include "ui_test.c"
@@ -13,7 +13,7 @@ int main(void)
     int bad = 0, ok = 1;
     uint32_t pg = NPAGES;
     for (uint32_t i = 0; i < NPAGES; i++) if (!strcmp(PAGES[i].title, "FILTER")) pg = i;
-    static const struct { uint8_t e, on; } E[] = {{ENGI_SAW, 1}, {ENGI_SAW + 1u, 1}, {ENGI_WAV, 1}, {ENGI_NOIS, 1},
+    static const struct { uint8_t e, on; } E[] = {{ENGI_SAW, 1}, {ENGI_SAW + 1u, 1}, {ENGI_WAV, 1}, {11u, 0},
         {ENGI_FMTONE, 1}, {ENGI_DUAL, 1}, {ENGI_ANA4, 1}, {ENGI_SAW + 2u, 0}, {ENGI_SAW + 3u, 0}, {ENGI_SAW + 4u, 0},
         {3u, 0}, {ENGI_DRUM, 0}};
     ui_power_on();
@@ -23,7 +23,7 @@ int main(void)
     }
     ok &= pg < NPAGES && PAGES[pg].fam == FAM_EDIT && PAGES[pg].id[0] == P_FMODE && PAGES[pg].id[1] == P_FCUT &&
           PAGES[pg].id[2] == P_FRES && PAGES[pg].id[3] == P_ED_FLT;
-    bad += check("EDIT FILTER (MODE CUT RES ENV): the seven only, not LOFI, DRUM or the retired STAT PAR DYN", ok);
+    bad += check("EDIT FILTER (MODE CUT RES ENV): the six only, not NOISE, LOFI, DRUM or the retired STAT PAR DYN", ok);
 
     ok = 1;
     uint32_t nf = 0, na = 0, a4mix = NPAGES;
@@ -31,7 +31,7 @@ int main(void)
         if (!PAGES[i].own) continue;
         nf += PAGES[i].own == ENGI_FMTONE; na += PAGES[i].own == ENGI_ANA4;
         if (PAGES[i].own == ENGI_ANA4 && !strcmp(PAGES[i].title, "MIX")) a4mix = i;
-        static const uint8_t ALL[] = {ENGI_SAW, ENGI_NOIS, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4, 3u, ENGI_DRUM};
+        static const uint8_t ALL[] = {ENGI_SAW, 11u, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4, 3u, ENGI_DRUM};
         for (uint32_t k = 0; k < NELEM(ALL); k++) {
             set_engine_of(TSEL, ALL[k]); TSEL->engine = TSEL->eng_req;
             if (page_visible(i) != (ALL[k] == PAGES[i].own)) { printf("m2k ui: page %s, engine %u: %d\n", PAGES[i].title, ALL[k], page_visible(i)); ok = 0; }

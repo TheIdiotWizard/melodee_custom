@@ -26,7 +26,7 @@ static const char *const PRESET_CAT[NENGINES] = {
     [2] = "RGSLEU",                                     /* PHASE: BRASS ORGAN STRING RESO BELL WIRE */
     [5] = "PLBF",                                       /* VOICE: CHOIR AAH, VOX LEAD, WOW BASS, WHISPER */
 #endif
-#if MELODEE_LEGACY_EXTRAS
+#if MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES
     [11] = "FFFF",                                      /* NOISE */
 #endif
 #if MELODEE_FELUCCA_ENGINES
@@ -45,7 +45,6 @@ static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_SAW] = "LPLLB",                               /* SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS */
     [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
-    [ENGI_NOIS] = "DDDPF",                              /* NOIS: WHITE, NOISHAT, SHAKER, WINDPAD, WHOOSH */
     [ENGI_FMTONE] = "KEBRPLLE",                         /* TINE EP, BELL, FM BASS, BRASS, GLASS PAD, PLUCK / RESO PLUCK, FIFTH RING */
     [ENGI_DUAL] = "DEEBLBPDL",                          /* 808 KICK, FM BELL, RING METAL, 2 BASSES, DUAL LEAD, F+R GLASS, TOM, RESO LEAD */
     [ENGI_ANA4] = "BLLBPDDD",                           /* SAW BASS, PWM / SYNC LEAD, ACID, WARM PAD, KICK, ZAP TOM, NOISE HAT */
