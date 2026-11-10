@@ -823,8 +823,8 @@ static void pv_fx_character(int32_t h)
     const aafont_t *nf;
     /* the name, the line under it */
     pv_lower(nm, N_FX[type], sizeof nm);
-    nf = text_w(TY_VL, nm) <= 118 ? TY_VL : text_w(TY_TX, nm) <= 118 ? TY_TX : TY_MD;
-    cv_text_on(9, 2, nf, nm, T_TEXT, T_BG);
+    nf = text_has(TY_BL, nm) && text_w(TY_BL, nm) <= 118 ? TY_BL : TY_MD;   /* (LOOM-8's: 31 px bold) */
+    cv_text_on(9, 0, nf, nm, T_TEXT, T_BG);
     str_cpy(what, failed ? "out of memory: it plays dry" : FX_WHAT[type], sizeof what);
     if (!failed && type) {
         if (master) {
@@ -1005,12 +1005,11 @@ static void pv_hints(void)
     cv_begin(240, H_HINT, T_BG);
     for (i = 0; i < 4u; i++) {
         const char *lb = KC[h[i].key].label;
-        int32_t kw = text_w(TY_XS, lb) + 10, w = kw + 5 + text_w(TY_SM, h[i].act), cy = i < 2u ? 9 : 25;
+        int32_t kw = text_w(TY_SM, lb) + 9, w = kw + 4 + text_w(TY_SM, h[i].act), cy = i < 2u ? 8 : 24;
         int32_t x = i & 1u ? 233 - w : 7;
-        cv_rrect(x, cy - 7, kw, 14, 7, T_MID, T_BG);
-        cv_rrect(x + 1, cy - 6, kw - 2, 12, 6, T_BG, T_MID);
-        cv_text_c(x + kw / 2, ty_y(cy, TY_XS), TY_XS, lb, T_TEXT, T_BG);
-        cv_text_on(x + kw + 5, ty_y(cy, TY_SM), TY_SM, h[i].act, T_TEXT, T_BG);
+        cv_outline(x, cy - 7, kw, 15, 7, T_MID);        /* (LOOM-8's keycap: a thin pill, its label as its word) */
+        cv_text_c(x + kw / 2, ty_y(cy, TY_SM), TY_SM, lb, T_TEXT, T_BG);
+        cv_text_on(x + kw + 4, ty_y(cy, TY_SM), TY_SM, h[i].act, T_TEXT, T_BG);
     }
     cv_blit(0, Y_HINT);
 }
@@ -1281,7 +1280,8 @@ static void pv_draw(void)
     {   /* the picture straight on the background (no panel: the screen calm) */
         uint16_t panel = ux.panel;
         ux.panel = ux.bg;
-        ux_one = 1;                                     /* (1.3.7: the mockup's one colour) */
+        ux_one = 1;                                     /* (1.3.7: the mockup's one colour, LOOM-8's thin lines) */
+        cv_thin = 1;
         if (kind == PV_RINGS) {
             pv_picture();
         } else {
@@ -1293,5 +1293,6 @@ static void pv_draw(void)
         }
         ux.panel = panel;
         ux_one = 0;
+        cv_thin = 0;
     }
 }

@@ -9,11 +9,12 @@ upstream Melodee releases, so this build skips to 1.3.7.)
 
 ## What changed from 1.3.0
 
-- **Smaller type.** Three new type sizes (10, 12 and 15 px) for the header, tag line, knob labels, captions and
-  hints. Knob labels are small, dim and lower case; values stay large.
+- **LOOM-8's typeface.** The sound pages are set in Barlow Semi Condensed, as LOOM-8 is: 12 px labels and keycaps,
+  15 px text and titles, 23 px values, 31 px effect names. Knob labels are small, dim and lower case. (Stage, lists
+  and the other screens keep Rubik.)
 - **Header.** The track's level as a small bar, a smaller track pill and section chip, the page title (EDIT pages
   say **Engine**, FX slots **Character**), the pattern, then transport and BPM in the title size.
-- **Hints on two rows.** Four small outlined keys with their words: SELECT page, ALGO track, PRESETS section (or
+- **Hints on two rows.** Four thin pill keys with their words: SELECT page, ALGO track, PRESETS section (or
   OCT+ sheet), KEYS play; on FX slots SELECT next slot, ALGO track, OCT− rack, KEYS play.
 - **Tag line.** "T1 saw › unison › P1": the track and engine, the page, the pattern.
 - **One colour.** Pictures, curves and gauges on these pages draw in the track's colour only, with dim lines; values

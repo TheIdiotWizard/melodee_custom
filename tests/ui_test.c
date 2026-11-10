@@ -1909,8 +1909,9 @@ static int roll_static_now(void)                  /* the screen is the static re
 }
 /* the pages' knobs are rings (ui_pages.c): column c's cell, its value's row, where its value starts (centred) */
 #define RX(c) CARD_X(c)
-#define VY (Y_STRIP + (H_STRIP - COL_H) / 2 + ROLL_Y)   /* (1.3.0: the knobs' strip at the foot, LOOM-8's bands) */
-#define STRIP(c) RX(c), VY, RX(c) + 58, VY + ROLL_H
+#define VY (Y_STRIP + (H_STRIP - COL_H) / 2 + 15)   /* (1.3.7: the strip's value row, 28 rows) */
+#define RH 28
+#define STRIP(c) RX(c), VY, RX(c) + 58, VY + RH
 static int32_t ring_vx(uint32_t c)
 {
     int16_t *vp;
@@ -1922,8 +1923,8 @@ static int32_t ring_vx(uint32_t c)
     param_format(d, *vp, v, &u);
     pv_words(d->label, v, u, lb, w, uu);
     if (str_eq(u, d->label)) uu[0] = 0;
-    uw = uu[0] ? text_w(TY_LB, uu) + 2 : 0;
-    return RX(c) + COL_W / 2 - (text_w(TY_TX, w) + uw) / 2;
+    uw = uu[0] ? text_w(TY_XS, uu) + 2 : 0;          /* (1.3.7: the strip's faces) */
+    return RX(c) + COL_W / 2 - (text_w(TY_BV, w) + uw) / 2;
 }
 static int test_roll(void)
 {
@@ -1999,26 +2000,27 @@ static int test_roll(void)
     ui.force = 1; ui_draw();
     n = roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 1);
     ok &= n > 20u && roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 0) == roll_diff(STRIP(0), 1);   /* (+ the card's strip) */
-    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_MD, "12"), H_HEAD, 1) == 0;   /* (1.3.7: the header in TY_MD) */
-    ok &= roll_diff(ring_vx(0), VY, ring_vx(0) + text_w(TY_TX, "12"), VY + ROLL_H, 1) == 0;
+    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_SM, "12"), H_HEAD, 1) == 0;   /* (1.3.7: the header's BPM in TY_SM) */
+    ok &= roll_diff(ring_vx(0), VY, ring_vx(0) + text_w(TY_BV, "12") - 1, VY + RH, 1) == 0;   /* (Barlow: a figure's ink reaches its cell's edge) */
     /* TUNE 10 -> 11 on a card: the 1 stays */
     ui_power_on(); song.g[G_TUNE] = 10; roll_settle();
     turn(EN_K4, 1); frame(); frame();
     memcpy(roll_shot, host_screen, sizeof roll_shot);
     ui.force = 1; ui_draw();
     ok &= song.g[G_TUNE] == 11 && roll_diff(STRIP(3), 1) > 20u && roll_diff(STRIP(3), 0) == 0;
-    ok &= roll_diff(ring_vx(3), VY, ring_vx(3) + text_w(TY_TX, "1"), VY + ROLL_H, 1) == 0;
+    ok &= roll_diff(ring_vx(3), VY, ring_vx(3) + text_w(TY_BV, "1"), VY + RH, 1) == 0;
     bad += check("roll: header BPM 120 -> 121 and a card 10 -> 11: only the strip changes, unchanged digits stay put", ok);
 
-    /* the direction: 5 -> 6 and -5 -> -6 at frame 4: the new digit comes from below (up) / above (down) */
+    /* the direction: 5 -> 6 and -5 -> -6 at frame 4: the new digit comes from below (up) / above (down) (1.3.7: across
+     * the value, the strip's 23 px face) */
     ui_power_on(); song.g[G_TUNE] = 5; roll_settle();
-    st = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
+    st = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
     turn(EN_K4, 1); frame(); frame(); frame();
-    up = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
+    up = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
     ok = ui.roll[3].dir == 1;
     ui_power_on(); song.g[G_TUNE] = 7; roll_settle();
     turn(EN_K4, -1); frame(); frame(); frame();
-    down = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
+    down = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
     ok &= ui.roll[3].dir == -1 && st > 0 && up > st + 16 && down < st - 16;
     ui_power_on(); song.g[G_TUNE] = -5; roll_settle();
     turn(EN_K4, -1);

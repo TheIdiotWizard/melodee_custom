@@ -41,9 +41,11 @@ typedef struct { const char *label; } kc_t;
 #define RES_OK() 1                               /* melodee.c: the resource region (res.c) is installed */
 #endif
 static uint32_t ty_pixel(void);
-#define TY_XS (ty_pixel() ? &AP_XS : &AF_XS)  /* (1.3.7, the band pages) keycaps, chips: 10 px, pixel 1 x */
-#define TY_SM (ty_pixel() ? &AP_SM : &AF_SM)  /* labels, the tag line, captions, hints: 12 px, pixel 1 x */
+#define TY_XS (ty_pixel() ? &AP_XS : &AF_XS)  /* (1.3.7, the band pages: Barlow Semi Condensed, LOOM-8's) keycaps, labels: 12 px */
+#define TY_SM (ty_pixel() ? &AP_SM : &AF_SM)  /* the tag line, captions, hints' words: 15 px */
 #define TY_MD (ty_pixel() ? &AP_MD : &AF_MD)  /* the header, titles: 15 px, pixel 2 x */
+#define TY_BV (ty_pixel() ? &AP_BV : &AF_BV)  /* (1.3.7) the strip's values: 23 px, pixel 2 x */
+#define TY_BL (ty_pixel() ? &AP_BL : &AF_BL)  /* (1.3.7) an effect's name: 31 px, small letters and figures */
 #define TY_LB (ty_pixel() ? &AP_LB : &AF_LB)  /* labels, units, chips, tags: 16 px, pixel 2 x */
 #define TY_TX (ty_pixel() ? &AP_TX : &AF_TX)  /* names, rows, the header, text: 20 px, pixel 2 x */
 #define TY_VL (ty_pixel() ? &AP_VL : &AF_VL)  /* values: 28 px, pixel 3 x */
@@ -757,9 +759,10 @@ static void cv_circle(int32_t cx, int32_t cy, int32_t d, uint16_t c, uint16_t un
 static void cv_ring(int32_t cx, int32_t cy, int32_t d, uint16_t c) { cv_disc(cx, cy, d, c, 1); }
 /* column x from y a to y b (1/16 px, either order) 2 px thick, its ends anti-aliased, blended over the canvas: a
  * smooth trace drawn a column at a time (Stage's waveform, docs/design) */
+static uint8_t cv_thin;                 /* (1.3.7: the band pages' pictures, LOOM-8's: traces 1.25 px, not 2) */
 static void cv_vspan_aa(int32_t x, int32_t a, int32_t b, uint16_t c)
 {
-    int32_t lo = a < b ? a : b, hi = (a < b ? b : a) + 32, y;
+    int32_t lo = a < b ? a : b, hi = (a < b ? b : a) + (cv_thin ? 20 : 32), y;
     if ((uint32_t)x >= cv_w)
         return;
     for (y = lo >> 4; y <= (hi - 1) >> 4; y++) {
@@ -769,6 +772,37 @@ static void cv_vspan_aa(int32_t x, int32_t a, int32_t b, uint16_t c)
         p = &cv_px[((uint32_t)py-cv_top) * cv_w + (uint32_t)x];
         *p = swap16(mix565(swap16(*p), c, (uint32_t)cov * 2u));
     }
+}
+/* a 1 px outline of a rounded rectangle (r: its corners), anti-aliased over what is on the canvas (1.3.7: keycaps and
+ * chips; an outline drawn as two filled rrects leaves the inner one's square corners showing) */
+static int32_t rr_in(int32_t px, int32_t py, int32_t w, int32_t h, int32_t r)   /* (1/8 px) inside the box */
+{
+    int32_t cx = px < r * 8 ? r * 8 : px > w * 8 - r * 8 ? w * 8 - r * 8 : px;
+    int32_t cy = py < r * 8 ? r * 8 : py > h * 8 - r * 8 ? h * 8 - r * 8 : py;
+    int32_t dx = px - cx, dy = py - cy;
+    return px >= 0 && py >= 0 && px < w * 8 && py < h * 8 && dx * dx + dy * dy <= r * r * 64;
+}
+static void cv_outline(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint16_t c)
+{
+    int32_t i, j, sx, sy;
+    if (r > w / 2) r = w / 2;
+    if (r > h / 2) r = h / 2;
+    if(!cv_top)GFX_HOOK_CELL(x, y + cv_oy, x + w, y + h + cv_oy);
+    for (j = 0; j < h; j++)
+        for (i = 0; i < w; i++) {
+            int32_t n = 0, py = y + j + cv_oy;
+            uint16_t *p;
+            if (i > r && i < w - 1 - r && j > 0 && j < h - 1) continue;   /* (the middle: nothing) */
+            if (j > r && j < h - 1 - r && i > 0 && i < w - 1) continue;
+            for (sy = 0; sy < 4; sy++)
+                for (sx = 0; sx < 4; sx++) {
+                    int32_t qx = i * 8 + sx * 2 + 1, qy = j * 8 + sy * 2 + 1;
+                    n += rr_in(qx, qy, w, h, r) && !rr_in(qx - 8, qy - 8, w - 2, h - 2, r > 1 ? r - 1 : 0);
+                }
+            if (!n || (uint32_t)(x + i) >= cv_w || (uint32_t)py < cv_top || (uint32_t)py >= cv_top + cv_rows) continue;
+            p = &cv_px[((uint32_t)py - cv_top) * cv_w + (uint32_t)(x + i)];
+            *p = swap16(mix565(swap16(*p), c, (uint32_t)n * 2u));
+        }
 }
 /* a 1 px dashed outline, 3 on, 2 off (a pattern waiting: the design's dashed chip), its corners rounded (r) and solid */
 static void cv_dashed(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint16_t c)

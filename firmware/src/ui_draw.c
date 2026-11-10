@@ -52,8 +52,9 @@ static void draw_rec_mark(int32_t x, uint16_t bg)
 #define ROLL_FRAMES 9u
 #define ROLL_SNAP 3u                                    /* frames (~45 ms) */
 #define ROLL_BPM 4u                                     /* ui.roll[]: the four cards, then the header BPM */
-#define ROLL_Y 20                                       /* a cell's value strip: rows 20..43 (the text face) */
-#define ROLL_H 24
+#define ROLL_Y (col_band ? 15 : 20)                     /* a cell's value strip: rows 20..43 (the text face; 1.3.7, the
+                                                         * strip's 23 px values: 15..42, under the label's 0..14) */
+#define ROLL_H (col_band ? 28 : 24)
 #define BPM_W 34                                        /* the header's BPM strip: 34 columns, every row (1.3.7: TY_MD) */
 #define BPM_X (238 - BPM_W)                             /* (1.3.0: at the right, after the transport's glyph) */
 #define HEAD_R (BPM_X - 16)                             /* the left part's end: the transport's glyph at HEAD_R + 2 */
@@ -95,9 +96,10 @@ static void roll_note(uint32_t k, const char *a, const char *b, int snap)
 /* s (the text face) at x, y with field k's roll: each character at its pen in s (the digits are tabular and never kerned,
  * so the old value has the same pens); a rolling digit has moved o of the strip's h rows (ROLL_EASE, one frame
  * later per place from the right), clipped to the strip. The roll's last frame clears it: the static text. */
+static uint8_t col_band;                                /* (below: the strip's cells) */
 static int32_t roll_text(uint32_t k, int32_t x, int32_t y, const char *s, uint16_t fg)
 {
-    const aafont_t *f = k == ROLL_BPM ? TY_MD : TY_TX;   /* (1.3.7: the header's BPM in the title face) */
+    const aafont_t *f = k == ROLL_BPM ? TY_SM : col_band ? TY_BV : TY_TX;   /* (1.3.7: the header's BPM in the title face) */
     uint32_t e = (uint8_t)(ui.frame - ui.roll[k].t0) + 1u, i, p = 0;
     const char *a = ui.roll[k].from;
     int32_t cy = k < ROLL_BPM ? y : 0, h = k < ROLL_BPM ? ROLL_H : H_HEAD;   /* (a card's value: at ROLL_Y) */
@@ -352,7 +354,7 @@ static void draw_head(void)
     if (!ui.force && sig == ui.head_sig) {
         if (ui.roll[ROLL_BPM].from[0] || moved) {       /* rolling, or snapped to the new value: the BPM's strip only */
             cv_begin(BPM_W, H_HEAD, T_BG);
-            roll_text(ROLL_BPM, 0, ty_y(H_HEAD / 2, TY_MD), b, ui.bpm_t ? T_ACCENT : T_TEXT);
+            roll_text(ROLL_BPM, 0, ty_y(H_HEAD / 2, TY_SM), b, ui.bpm_t ? T_ACCENT : T_TEXT);
             cv_blit(BPM_X, Y_HEAD);
         }
         return;
@@ -364,7 +366,7 @@ static void draw_head(void)
      * chip ("EDIT") and where you are ("Unison"), or a message across them */
     cv_icon_mid(HEAD_R + 1, H_HEAD / 2, 12, chain.running ? ICON_X_SONG : song.playing ? ICON_X_PLAY : ICON_X_STOP,
                 song.playing ? T_TEXT : T_MID, T_BG);
-    roll_text(ROLL_BPM, BPM_X, ty_y(H_HEAD / 2, TY_MD), b, ui.bpm_t ? T_ACCENT : T_TEXT);
+    roll_text(ROLL_BPM, BPM_X, ty_y(H_HEAD / 2, TY_SM), b, ui.bpm_t ? T_ACCENT : T_TEXT);
     if (msg && head_toast(HEAD_MSG_X))                  /* (too long for the header: a toast under it, draw_toast; the
                                                          * header as it is) */
         msg = 0;
@@ -427,8 +429,7 @@ static void draw_head(void)
         b[0] = octave > 0 ? '+' : '-';
         fmt_int(b + 1, octave < 0 ? -octave : octave);
         w = text_w(TY_XS, b) + 10;
-        cv_rrect(rx - w, H_HEAD / 2 - 7, w, 14, 3, T_DIM, T_BG);
-        cv_rrect(rx - w + 1, H_HEAD / 2 - 6, w - 2, 12, 2, T_BG, T_DIM);
+        cv_outline(rx - w, H_HEAD / 2 - 8, w, 16, 3, T_DIM);
         cv_text_c(rx - w / 2, ty_y(H_HEAD / 2, TY_XS), TY_XS, b, T_TEXT, T_BG);
         rx -= w + 5;
     }
@@ -452,8 +453,7 @@ static void draw_head(void)
         cv_rrect(x, H_HEAD / 2 - 8, w, 16, 8, T_THEME, T_BG);
         cv_text_c(x + w / 2, ty_y(H_HEAD / 2, TY_SM), TY_SM, tn, T_INK, T_THEME);
         x += w + 5;
-        cv_rrect(x, H_HEAD / 2 - 7, fw, 14, 3, T_DIM, T_BG);
-        cv_rrect(x + 1, H_HEAD / 2 - 6, fw - 2, 12, 2, T_BG, T_DIM);
+        cv_outline(x, H_HEAD / 2 - 8, fw, 16, 3, T_DIM);
         cv_text_c(x + fw / 2, ty_y(H_HEAD / 2, TY_XS), TY_XS, fam, T_MID, T_BG);
         x += fw + 6;
     }
@@ -534,7 +534,7 @@ enum { CS_CARD, CS_RING, CS_CAPTURE };               /* how draw_column draws a 
 static void list_capture(uint32_t c, const char *label, const char *val, const char *unit, uint16_t vc);
 static uint8_t col_style;
 static int32_t card_y = Y_LABEL;                        /* the strip's row (sections' tabs: lower) */
-static uint8_t col_band;                                /* 1.3.0: the cells in LOOM-8's knob strip (pv_band): on the
+/* col_band (above), 1.3.0: the cells in LOOM-8's knob strip (pv_band): on the
                                                          * panel, the label MID, the value TEXT (a word in the label
                                                          * face), the gauge in the track's colour */
 static uint16_t card_tc[4];                             /* a cell's label colour (0: the track's; the GLO layer: each's) */
@@ -568,7 +568,10 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
     uint8_t sig;
     uint16_t lc = vc == T_DIM ? T_DIM : card_tc[c & 3u] ? card_tc[c & 3u] : T_KNOB(c), cbg = col_band ? T_SURF : T_BG;
     int32_t x, uw, room = COL_W;                        /* (the 3 px between cells keep values apart) */
-    const aafont_t *vf = TY_TX, *lf = col_band ? TY_SM : TY_LB;   /* (1.3.7, the strip: the small face) */
+    const aafont_t *vf = col_band ? TY_BV : TY_TX, *lf = col_band ? TY_XS : TY_LB;   /* (1.3.7, the strip: LOOM-8's
+                                                         * faces: labels 12 px, values 23 px) */
+    const aafont_t *rf = vf;                            /* (the face values roll in) */
+    int32_t vy = ROLL_Y, vb;                            /* (the value's line box, its baseline) */
     uint32_t n, kn;
     int32_t kid;
     if (col_style == CS_CAPTURE) {                      /* a list's row (ui_list.c) */
@@ -602,10 +605,10 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
     if (uw && text_w(vf, val) + uw > room)              /* ("1.0 ms"): the value keeps its size, the unit goes */
         unit[0] = 0, uw = 0;
     if (text_w(vf, val) > room)                         /* ("HARM MIN"): the label face before it is cut */
-        vf = col_band && text_w(TY_MD, val) <= room ? TY_MD : lf;
+        vf = col_band && text_w(TY_MD, val) <= room ? TY_MD : col_band ? TY_SM : lf;
     if (col_band && val[0] && !(val[0] >= '0' && val[0] <= '9') && !(val[0] == '-' && val[1] >= '0' && val[1] <= '9') &&
         !(val[0] == '+' && val[1] >= '0' && val[1] <= '9') && !(val[0] == '.' ))
-        vf = text_w(TY_MD, val) <= room ? TY_MD : lf;  /* (the strip: a word smaller than a number, as LOOM-8's) */
+        vf = text_w(TY_MD, val) <= room ? TY_MD : TY_SM;   /* (the strip: a word smaller than a number, as LOOM-8's) */
     sig = (uint8_t)str_hash(str_hash(song.sel + TSEL->eng_req * 4u + ux.gen * 64u, label), unit);
     snap = ui.force || sig != ui.roll[c].sig;           /* what the value is of: label, unit, track, engine, palette */
     strip = !snap && str_eq(key, ui.col[c]);
@@ -625,16 +628,16 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         col_old_value(c, ov);
         ui.roll[c].sig = sig;
         if (!str_eq(ov, val))
-            roll_note(c, ov, val, snap || named || vf != TY_TX || kid >= 0);
+            roll_note(c, ov, val, snap || named || vf != rf || kid >= 0);
         else if (snap)
             ui.roll[c].from[0] = 0;
         str_cpy(ui.col[c], key, sizeof ui.col[c]);
         cv_begin(COL_W, COL_H, cbg);
         if (col_band && ratio >= 0) {                   /* the gauge: the track's colour over a raised track (44 px) */
-            int32_t gw = 44, gx = (COL_W - gw) / 2, fw = ratio * gw / 1000;
-            cv_rrect(gx, COL_H - 4, gw, 4, 2, T_RAISE, cbg);
+            int32_t gw = COL_W - 16, gx = (COL_W - gw) / 2, fw = ratio * gw / 1000;
+            cv_rrect(gx, COL_H - 3, gw, 3, 1, T_RAISE, cbg);
             if (fw > 0)
-                cv_rrect(gx, COL_H - 4, fw < 4 ? 4 : fw, 4, 2, T_THEME, T_RAISE);
+                cv_rrect(gx, COL_H - 3, fw < 3 ? 3 : fw, 3, 1, T_THEME, T_RAISE);
         } else if (hot)                                 /* (and a bar under it) */
             cv_rrect(COL_W / 2 - 14, COL_H - 4, 28, 3, 1, lc, cbg);
     }
@@ -642,6 +645,7 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         /* the label: capitals in the track's colour, centred, rows 3..21; the value under it (the text face, rolling),
          * the unit (label face, mid) on its baseline, both centred; the gauge: 3 px at row 44 */
         int32_t vw = text_w(vf, val) + uw, vx = COL_W / 2 - (vw < room ? vw : room) / 2;
+        vb = vy + rf->asc;
         (void)icon;                                     /* (the design draws no card icons) */
         if (!strip && label[0]) {
             const char *ls = cell_label(label, COL_W - 2);
@@ -653,7 +657,7 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
                 lw[j] = 0;
                 ls = lw;
             }
-            cv_text_fit(COL_W / 2 - (text_w(lf, ls) < COL_W - 2 ? text_w(lf, ls) : COL_W - 2) / 2, col_band ? 2 : 3, lf,
+            cv_text_fit(COL_W / 2 - (text_w(lf, ls) < COL_W - 2 ? text_w(lf, ls) : COL_W - 2) / 2, col_band ? 0 : 3, lf,
                         ls, col_band ? (vc == T_DIM ? T_DIM : hot ? T_THEME : T_MID) : lc, cbg, COL_W - 2);
         }
         if (kid >= 0)                                   /* "[OCT+]": the keycap (accent: it would act; DIM: it would not) */
@@ -662,14 +666,14 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         else if (binary_value(val) >= 0) {
             binary_badge(COL_W / 2, 21, 22, val, cbg);
             x = COL_W - 6;
-        } else if (vf == TY_TX)                         /* the value rolls */
-            x = roll_text(c, vx, ROLL_Y, val, vc);
+        } else if (vf == rf)                            /* the value rolls */
+            x = roll_text(c, vx, vy, val, vc);
         else if (val[0] >= 'A' && val[0] <= 'Z' && val[1] >= 'a' && val[1] <= 'z')   /* a name ("Chorus"): free text */
-            x = cv_free_text(vx, ROLL_Y + TY_TX->asc - vf->asc, vf, val, vc, cbg, room - uw);
+            x = cv_free_text(vx, vb - vf->asc, vf, val, vc, cbg, room - uw);
         else
-            x = cv_text_fit(vx, ROLL_Y + TY_TX->asc - vf->asc, vf, val, vc, cbg, room - uw);
+            x = cv_text_fit(vx, vb - vf->asc, vf, val, vc, cbg, room - uw);
         if (unit[0])                                    /* the unit on the value's baseline */
-            cv_text_on(x + 2, ROLL_Y + TY_TX->asc - lf->asc, lf, unit, T_MID, cbg);
+            cv_text_on(x + 2, vb - lf->asc, lf, unit, T_MID, cbg);
     }
     cv_oy = 0;
     if (stage_drop_rows && !strip)                      /* (rows r0 .. under the header: Y_LABEL - r0 wraps, + r0 back) */

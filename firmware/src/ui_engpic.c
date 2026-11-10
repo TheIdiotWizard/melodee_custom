@@ -128,13 +128,13 @@ static void ep_wav(const int16_t *p, int32_t h, char *cap)
     }
     w.bits = 16 - (p[P_E4] * 14 >> 7);
     w.stp = p[P_E7] * 6 >> 7;
-    for (k = 4; k >= 1; k--) {                          /* the table behind: the next waves, further up and back */
+    for (k = 2; k >= 1; k--) {                          /* the table behind: the next waves, further up and back */
         int32_t i = (pos >> 8) + k;
         if (i > 63)
             continue;
         w.ia = w.ib = i;
         w.wf = 0;
-        ep_trace(EP_X0 + 30 + k * 9, EP_W - 60, cy - k * 7, amp * (12 - k) / 12, ep_wav_at, &w, 1u, ep_fade(48 - k * 9), 0);
+        ep_trace(EP_X0 + 20 + k * 12, EP_W - 60, cy - k * 10, amp * (12 - k) / 12, ep_wav_at, &w, 1u, ep_fade(40 - k * 12), 0);
     }
     w.ia = pos >> 8;
     w.ib = clamp(w.ia + 1, 0, 63);
@@ -653,7 +653,7 @@ static void ep_draw(uint32_t e, int32_t h, char *cap)
 /* the engine's picture in its frame (1.3.7, the mockup's): a title row (the engine in small letters, the sound at the
  * right, dim), the picture, its caption (what the values mean, small and dim) */
 #define EP_TITLE_H 18
-#define EP_CAP_H 14
+#define EP_CAP_H 16
 static void ep_frame(uint32_t e, int32_t h)
 {
     char nm[EP_CAP], cap[EP_CAP], en[EP_CAP];
@@ -672,5 +672,5 @@ static void ep_frame(uint32_t e, int32_t h)
     ep_draw(e, h - EP_TITLE_H - EP_CAP_H, cap);
     cv_oy = 0;
     if (cap[0])
-        cv_free_text(12, ty_y(h - EP_CAP_H / 2, TY_SM), TY_SM, cap, T_MID, T_BG, 216);
+        cv_free_text(12, ty_y(h - EP_CAP_H / 2 - 1, TY_SM), TY_SM, cap, T_MID, T_BG, 216);
 }

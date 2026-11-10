@@ -476,9 +476,11 @@ a role has the same line height and baseline in both, so a layout holds in eithe
 
 | Role | Use | Rubik | Pixel |
 |---|---|---|---|
-| `TY_XS` | (1.3.7, the band pages) keycaps, chips, the header's tags | 10 px | 1 x |
-| `TY_SM` | (1.3.7, the band pages) the strip's labels, the tag line, captions, hints | 12 px | 1 x |
-| `TY_MD` | (1.3.7) the header's page name and BPM, picture titles | 15 px | 2 x |
+| `TY_XS` | (1.3.7, the band pages, Barlow Semi Condensed SemiBold) the strip's labels and units, chips, the header's tags | 12 px | 1 x |
+| `TY_SM` | (1.3.7, Barlow Medium) the tag line, captions, hints, keycaps, the header's BPM | 15 px | 1 x |
+| `TY_MD` | (1.3.7, Barlow Bold) the header's page name, picture titles, words in the strip | 15 px | 2 x |
+| `TY_BV` | (1.3.7, Barlow SemiBold) the strip's values | 23 px | 2 x |
+| `TY_BL` | (1.3.7, Barlow Bold) an FX slot's name (small letters, figures) | 31 px | 3 x |
 | `TY_LB` | labels, units, tags, chips, keycaps | 16 px | 2 x (letters and figures 4 wide) |
 | `TY_TX` | names, rows, the header, text | 20 px | 2 x |
 | `TY_VL` | values | 28 px | 3 x |
