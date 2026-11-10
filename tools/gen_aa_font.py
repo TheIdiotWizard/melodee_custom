@@ -49,7 +49,7 @@ PHASES = 2                             # horizontal phases per glyph (aa_raster.
 LEVELS = [4]                           # alpha steps kept of the 16 (--levels)
 KERN_PX = 28                           # the shared kerning's size (VL's: exact there, within 1/16 px at 16 / 20 px)
 # faces stored Huffman-coded (--huff): all four (the pixel faces are 1 bit and need no code)
-HUFF = [("XS", "SM", "MD", "BV", "BL", "LB", "TX", "VL", "HR")]
+HUFF = [("LB", "TX", "VL", "HR")]
 # HR (the hero, 48 px) draws a value or a name: every letter, the digits and the signs names and values use (the
 # factory names' ' ( ) too); the space as its range and the rest as extras. A string with another character is drawn
 # in VL (gfx.c text_has)
@@ -60,18 +60,11 @@ PIXEL = Path(__file__).resolve().parents[1] / "assets" / "fonts" / "melodee_pixe
 def preset(name):
     if name == "rubik":
         v = str(FONTS.parent / "assets" / "fonts" / "Rubik[wght].ttf")       # SIL OFL 1.1, Google Fonts
-        b = str(FONTS.parent / "assets" / "fonts" / "BarlowSemiCondensed-")         # SIL OFL 1.1 (LOOM-8's face)
-        lower = [ord(c) for c in "abcdefghijklmnopqrstuvwxyz0123456789"]
-        return [("XS", b + "SemiBold.ttf", 12, (32, 126), EXTRAS, 0.0, PHASES),       # (1.3.2, the band pages as
-                ("SM", b + "Medium.ttf", 15, (32, 126), EXTRAS, 0.0, 1),         #  LOOM-8: Barlow Semi Condensed;
-                ("MD", b + "Bold.ttf", 15, (32, 126), EXTRAS, 0.0, 1),           #  labels and keycaps, text,
-                ("BV", b + "SemiBold.ttf", 23, (32, 126), EXTRAS, 0.0, 1),            #  titles, the strip's values,
-                ("BL", b + "Bold.ttf", 31, (32, 32), lower, 0.0, 1),                  #  an effect's name; no kerning)
-                ("LB", v + "@500", 16, (32, 126), EXTRAS, 0.0, PHASES),             # the large type's roles
+        return [("LB", v + "@500", 16, (32, 126), EXTRAS, 0.0, PHASES),             # the large type's roles
                 ("TX", v + "@500", 20, (32, 126), EXTRAS, 0.0, PHASES),
                 ("VL", v + "@500", 28, (32, 126), EXTRAS, 0.0, 1),
                 ("HR", v + "@500", 48, (32, 32), [ord(c) for c in HR_CHARS[1:]], 0.0, 1),
-                ("PIX", str(PIXEL), 0, (32, 126), EXTRAS, None, 1, [("XS", 1, 0), ("SM", 1, 0), ("MD", 2, 1), ("BV", 2, 0), ("BL", 3, 0), ("LB", 2, 1), ("TX", 2, 0), ("VL", 3, 0), ("HR", 5, 0)])]
+                ("PIX", str(PIXEL), 0, (32, 126), EXTRAS, None, 1, [("LB", 2, 1), ("TX", 2, 0), ("VL", 3, 0), ("HR", 5, 0)])]
     raise SystemExit(f"unknown preset {name}")
 
 
@@ -183,12 +176,10 @@ def quantise(b, n):
     return ar.pack(q)
 
 
-def shared_kern(faces, kern_min, pre="AF_K"):
+def shared_kern(faces, kern_min):
     """the kerning of every face as one table (KERN_PX): (C text, {ch: left class}, {ch: right class}, right classes,
     the order of AF_KL / AF_KR, bytes)"""
     fonts = {f[1] for f in faces}
-    if len(fonts) > 1 and pre != "AF_K":                # (1.3.2, Barlow: its weights' kerning as the SemiBold's)
-        fonts = {sorted(fonts, key=lambda f: "SemiBold" not in f)[0]}
     assert len(fonts) == 1, "one kerning table: every face of one font and weight"
     order = []
     for f in sorted(faces, key=lambda f: -(f[3][1] - f[3][0] + 1 + len(f[4]))):
@@ -197,9 +188,6 @@ def shared_kern(faces, kern_min, pre="AF_K"):
                 order.append(c)
     pairs = {(a, b): d for (a, b), d in ar.kern_pairs(fonts.pop(), KERN_PX, order, True, kern_min).items()
              if ord(a) < 256 and ord(b) < 256 and d}
-    if pre != "AF_K":                                   # (Barlow: figures and signs never kern, the values roll)
-        fig = set("0123456789+-.,:% ")
-        pairs = {k: d for k, d in pairs.items() if not (k[0] in fig and k[1] in fig)}
     lc, rc, rows, cols = {}, {}, {}, {}
     for a in order:
         row = tuple(pairs.get((a, b), 0) for b in order)
@@ -218,10 +206,10 @@ def shared_kern(faces, kern_min, pre="AF_K"):
             assert got == pairs.get((a, b), 0), f"kerning classes lose {a!r}{b!r}"
     assert all(-128 <= d < 128 for d in km)
     text = "\n".join([f"/* kerning: {len(pairs)} pairs at {KERN_PX} px in 1/16 px, {len(rows)} x {len(cols)} classes */",
-                      ar.c_array(pre + "M", "int8_t", km, 24, attr="MELODEE_RES"),
-                      ar.c_array(pre + "L", "uint8_t", [lc.get(c, 0) for c in order], 24),
-                      ar.c_array(pre + "R", "uint8_t", [rc.get(c, 0) for c in order], 24)]) + "\n"
-    return text, lc, rc, len(cols), order, len(km) + 2 * len(order), len(pairs), pre
+                      ar.c_array("AF_KM", "int8_t", km, 24, attr="MELODEE_RES"),
+                      ar.c_array("AF_KL", "uint8_t", [lc.get(c, 0) for c in order], 24),
+                      ar.c_array("AF_KR", "uint8_t", [rc.get(c, 0) for c in order], 24)]) + "\n"
+    return text, lc, rc, len(cols), order, len(km) + 2 * len(order), len(pairs)
 
 
 def emit(face, tracking, gamma, kern):
@@ -285,8 +273,7 @@ def emit(face, tracking, gamma, kern):
         lines.append(ar.c_array(f"AF_{name}_KR", "uint8_t", kr, 24))
     ex = ", ".join(str(CODE.get(c, c)) for c in extras) or "0"
     lines.append(f"static const uint8_t AF_{name}_EX[{max(1, len(extras))}] = {{{ex}}};")
-    kp = kern[6] if kern else "AF_K"
-    kt = (f"AF_{name}_KL, AF_{name}_KR, {kp}M" if own else f"{kp}L, {kp}R, {kp}M") if kern else "0, 0, 0"
+    kt = (f"AF_{name}_KL, AF_{name}_KR, AF_KM" if own else "AF_KL, AF_KR, AF_KM") if kern else "0, 0, 0"
     lines.append(f"static const aafont_t AF_{name} = {{{r['h']}, {r['asc']}, {first}, {last}, {len(extras)}, "
                  f"{kern[2] if kern else 0}, AF_{name}_G, AF_{name}_DATA, {kt}, AF_{name}_EX, {psh}, "
                  f"{'AF_%s_HC' % name if hc else '0'}, {cap_px(font, px)}, 0, {round(px * 256 / KERN_PX)}}};")
@@ -393,19 +380,12 @@ def main():
            "#pragma once", "#include <stdint.h>",
            "#ifndef MELODEE_RES", "#define MELODEE_RES  /* melodee.c: the resource region (res.c) */", "#endif", ""]
     total, metrics, kern = 0, {}, None
-    aa = [f for f in faces if f[0] != "PIX" and "Rubik" in f[1]]   # (the shared kerning: Rubik's; Barlow its own)
-    ba = [f for f in faces if f[0] != "PIX" and "Barlow" in f[1]]
-    bkern = None
+    aa = [f for f in faces if f[0] != "PIX"]
     if aa and a.kern_min:
         text, *kern = shared_kern(aa, a.kern_min)
         out.append(text)
         total += kern[4]
         print(f"kerning: {kern[5]} pairs at {KERN_PX} px, shared = {kern[4]} B")
-    if ba and a.kern_min:
-        text, *bkern = shared_kern(ba, a.kern_min, "AF_BK")
-        out.append(text)
-        total += bkern[4]
-        print(f"kerning (Barlow): {bkern[5]} pairs at {KERN_PX} px, shared = {bkern[4]} B")
     for f in faces:
         if f[0] == "PIX":
             text, cost, n = emit_pixel(f, metrics)
@@ -413,7 +393,7 @@ def main():
             total += cost
             print(f"face PIX: {os.path.basename(f[1])} {n} glyphs, 1 bit, roles {[r[:2] for r in f[7]]} = {cost} B")
             continue
-        text, c = emit(f, a.tracking, a.gamma, kern if "Rubik" in f[1] else bkern)
+        text, c = emit(f, a.tracking, a.gamma, kern)
         metrics[f[0]] = (c["h"], c["asc"])
         out.append(text)
         total += c["total"]

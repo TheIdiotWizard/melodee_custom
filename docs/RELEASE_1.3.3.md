@@ -1,23 +1,30 @@
-Melodee 1.3.3 removes the last clock change at 360 MHz.
+# Melodee Custom 1.3.3
 
-1.3.2 made 360 MHz the default, but still retuned the system clock once: on the first
-start after updating from a 1.3.0 or 1.3.1 that ran at 320 MHz, because the clock survives
-the update's restart. On the FM-1s that cannot take a retune (1.3.0 and 1.3.1 left them in
-UBOOT behind a black screen), that is the step that fails.
+The screens go back to the 1.2.8 layout; the TAPE palettes stay.
 
-- At 360 MHz Melodee never touches the clock. A 320 MHz left by an update stays until the
-  next power-off; the FM-1 starts at 360 MHz after that.
-- Switching OVERCLOCK to 360 MHz applies at the next power-on and says
-  **360 MHZ AT POWER-ON**. Switching to 320 MHz still offers a restart.
-- Everything from 1.3.2 stays: 360 MHz by default, the clock guard (**CPU FAULT** /
-  **PLL FAULT: 360 MHZ**, **360 ONLY**), and the retune only with a verified watchdog.
+- **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/)
+  (Chrome or Edge, USB).
+- **Edit:** [web editor](https://theidiotwizard.github.io/melodee_custom/webapp/editor/)
 
-If an FM-1 is stuck in UBOOT, restore it with the recovery tool from these downloads
-(`fm1-recover --info`, then a `.fwsc` backup run, then `--write`; see `RECOVERY.md` in the
-archive) or with M-VAVE's updater, then install 1.3.3. Running the recovery tool once
-without `--write` first saves a backup that shows why the FM-1 stopped; please attach it
-to a bug report.
+## What changed
 
-Firmware downloads include Standard (dual-core) and Single core variants.
-`BUILD_INFO.json` records the source commit and native executable smoke tests;
-`SHA256SUMS` covers all release assets.
+- **The 1.2.8 screens.** The banded sound pages of 1.3.0 and 1.3.2 (header, picture, tag line, knob strip, hints),
+  their engine pictures and their fonts are withdrawn. Every screen is as it was in 1.2.8.
+- **The palettes stay.** HOME → COLOR keeps all five:
+
+| Palette | Look |
+|---|---|
+| **TAPE A** (default) | Warm brown, off-white text; tracks yellow, orange, green, teal |
+| **TAPE B** | The same base; tracks blue, purple, tan, sage |
+| **LOOM A / LOOM B** | Black with LOOM-8 track colours |
+| **MONO** | White on black |
+
+A palette chosen in 1.3.0 or 1.3.2 stays chosen.
+
+## Upgrading
+
+Install as usual; projects, presets, settings and backups are kept. Tested on the computer build of the firmware.
+
+## Credits
+
+The TAPE and LOOM colours are from [LOOM-8](https://github.com/charlesvestal/fm1-loom) by Charles Vestal.

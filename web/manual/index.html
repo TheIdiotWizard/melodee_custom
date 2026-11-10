@@ -172,16 +172,6 @@
           <li>On Stage the octave buttons only shift the octave (both together reset). Everywhere else they are Enter / Esc.</li>
           <li>Named values often open a picker. Hold <kbd>HOME</kbd> and set <strong>PICKER POPUPS</strong> to <strong>OFF</strong> to edit those names on the knob instead. The choice is remembered. Sheets, and lists you open yourself, stay as they are. Short pages (CHORD, ENV DEST, LFO DEST, LFO 2, ARP 2) put their settings straight on the four knobs.</li>
         </ul>
-        <h3>How a sound page is laid out</h3>
-        <p>Sound pages (EDIT, ENV, LFO, FX slots, ARP, CHORD, GLO and the like) read top to bottom in five bands, after LOOM-8:</p>
-        <ul>
-          <li><strong>Header</strong>: the track’s level, its pill and the section chip on the left, then the page’s title (EDIT pages say <strong>Engine</strong>, FX slots <strong>Character</strong>); octave, the pattern, ROW, HOST/BLE, battery, REC, transport and BPM on the right.</li>
-          <li><strong>Picture</strong>: what the page does, in the track’s colour. On EDIT pages a title row (the engine, the sound), then the engine’s sound drawn from its live values (WAV the actual wavetable wave, SAW its detuned saws, FMTONE its routing, NOISE its spectrum, DUALVCO and ANALOG4 their waves, WHEEL its drawbars, DRUM its pads lighting as they play) and a caption that says what the values mean. FX slots show the effect’s name, what it does and its own curve (DRIVE and CRUSH their transfer, the rooms their tails, the sweeps their waves or notches).</li>
-          <li><strong>Tag line</strong>: where you are (T1 saw › unison › P1) and dots for the pages.</li>
-          <li><strong>Knob strip</strong>: the four values with a gauge under each.</li>
-          <li><strong>Hints</strong>: two rows of keys and what they do here (SELECT, ALGO, PRESETS or OCT±, KEYS).</li>
-        </ul>
-        <p>Stage, the mixer, lists, the browser and song pages keep their layout with the new colours and header.</p>
         <h3>Holds and locks</h3>
         <p>Hold <kbd>GLO</kbd> or <kbd>SCL</kbd> for a quick layer on the keys and knobs (hold time is set in the global settings menu as <strong>HOLD</strong>). Double-press the same button within about 300&nbsp;ms to lock the layer open with both hands free; press it again to close. Press <kbd>FX</kbd> to open the track effects rack. Its track insert slots also offer <strong>NOTE TAIL</strong> (its rack row's REL extends the envelope release) and <strong>NOTE ECHO</strong> (LEVEL sets repeat velocity, TIME selects a tempo division, DECAY sets velocity loss per repeat). Both save with the project and are available only on individual tracks. Hold <kbd>EDIT</kbd> to undo, <kbd>SAVE</kbd> to write the project back to its slot, <kbd>HOME</kbd> for the menu, <kbd>SEQ</kbd> for the PATTERNS grid, <kbd>REC</kbd> to capture.</p>
         <h3>Sheets and undo</h3>
@@ -843,7 +833,7 @@
         <table>
           <thead><tr><th>Item</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>COLOR</td><td><strong>TAPE A</strong> (default): LOOM-8’s tape-deck look, warm brown background and off-white text, tracks in yellow, orange, green and teal. <strong>TAPE B</strong>: the same base with blue, purple, tan and sage. <strong>LOOM A</strong> and <strong>LOOM B</strong>: black background with LOOM-8 track colours (pink, teal, yellow, blue / orange, green, purple, tan). <strong>MONO</strong>: white on black. Tracks 5–8 reuse the four colours. A track’s pages take its colour. Remembered; a project saved with the old MONO default opens in TAPE A.</td></tr>
+            <tr><td>COLOR</td><td><strong>TAPE A</strong> (default): after LOOM-8’s tape-deck look, warm brown background and off-white text, tracks in yellow, orange, green and teal. <strong>TAPE B</strong>: the same base with blue, purple, tan and sage. <strong>LOOM A</strong> and <strong>LOOM B</strong>: black background with LOOM-8 track colours (pink, teal, yellow, blue / orange, green, purple, tan). <strong>MONO</strong>: white on black. Tracks 5–8 reuse the four colours. A track’s pages take its colour. Remembered.</td></tr>
             <tr><td>FONT</td><td><strong>RUBIK</strong> (default) or <strong>PIXEL</strong> (Melodee Pixel, a block face). Pages keep the same layout in either. Remembered.</td></tr>
             <tr><td>HOLD</td><td>The duration of a long hold of a button or knob (0.3–0.6&nbsp;s) to pull up an additional menu or action.</td></tr>
             <tr><td>LIGHTS</td><td>Idle indicator brightness, OFF (only pressed / engaged / selectable) through FULL.</td></tr>

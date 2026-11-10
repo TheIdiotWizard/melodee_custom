@@ -35,7 +35,7 @@ LOWER = ["oeo", "coco", "eco", "nono", "minimum", "hello", "level", "decay", "re
 UPPER = ["CUTOFF", "RESO", "LEVEL", "DECAY", "RELEASE", "SOUND", "OCOE", "COCO", "NONO", "MINIMUM", "SUPER SAW",
          "MELODEE", "PRESETS", "ANALOG", "DIGITAL", "PITCH", "SWING", "AV AW LT TA YO"]
 RULE = ["gfx"]   # "gfx": src/gfx.c cv_text; "rounded": the earlier rule (each glyph at the rounded pen, 1 phase)
-LIMIT = {"XS": 0.61, "SM": 1.06, "MD": 1.06, "BV": 1.06, "BL": 1.06, "LB": 0.51, "TX": 0.51, "VL": 1.01, "HR": 1.01}   # a phase step (VL, HR: one phase, a pixel), plus raster noise (1.3.2: XS 12 px two phases; Barlow SM, MD, BV, BL one phase, its weights kerned as the SemiBold)
+LIMIT = {"LB": 0.51, "TX": 0.51, "VL": 1.01, "HR": 1.01}   # a phase step (VL, HR: one phase, a pixel), plus raster noise
 RES = r"(?: MELODEE_RES)?"   # (tables in the resource region, res.c, carry the section attribute)
 
 
@@ -185,15 +185,10 @@ def main():
     for name, f in faces.items():
         font, px = spec[name]
         font_hi = ar.open_font(font, px * SS)
-        low = f["last"] >= ord("z") or (glyph_at(f, ord("a")) is not None and glyph_at(f, ord("A")) is None)   # (BL)
-        words = LOWER if low else UPPER
-        # a sparse face (HR, BL): the words it can draw (the firmware draws no others in it)
-        words = [w for w in words if all(glyph_at(f, ord(ch if f["last"] < ord("z") and low else ch.upper())) is not None
-                                         for ch in w)]
+        words = LOWER if f["last"] >= ord("z") else UPPER
+        # a sparse face (HR): the words it can draw (the firmware draws no others in it)
+        words = [w for w in words if all(glyph_at(f, ord(ch.upper())) is not None for ch in w)]
         pairs = [p for s in words for p in measure(f, font_hi, s)]
-        if not pairs:                                   # (BL: the effects' names alone, in its extras)
-            print(f"  {name} {px}px: no sample word in its characters, skipped")
-            continue
         e = sorted(pairs, key=lambda p: -abs(p[1]))
         mx = abs(e[0][1])
         rms = (sum(v * v for _, v in pairs) / len(pairs)) ** 0.5

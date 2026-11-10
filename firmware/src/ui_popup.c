@@ -747,8 +747,7 @@ static void pick_draw(void)
         return;
     pop.sig = sig;
     {
-    int32_t rmax = head_band_page() ? 4 : 5;            /* (1.3.0: over the strip, under the header: four) */
-    int32_t rows = enum_rows(d) < rmax ? enum_rows(d) : rmax, h = 12 + rows * 28, now = enum_rank(d, v);
+    int32_t rows = enum_rows(d) < 5 ? enum_rows(d) : 5, h = 12 + rows * 28, now = enum_rank(d, v);
     int32_t first = clamp(now - 2, 0, enum_rows(d) - rows);   /* five names around it, the list's ends kept */
     int fx = fx_names(d);                               /* (the effects: wider, each its family's square, a rule
                                                          * between families) */
@@ -774,8 +773,7 @@ static void pick_draw(void)
             cv_free_text(tx, ty_y(y + 13, ty_fit(TY_TX, b, pw - tx - 8)), ty_fit(TY_TX, b, pw - tx - 8), b,
                          on ? hc : far ? T_MID : T_SEC, bg, pw - tx - 8);
         }
-        cv_blit_band((uint32_t)x, (uint32_t)(head_band_page() ? Y_STRIP - 2 - h : Y_LABEL + CARD_H + 2));   /* (1.3.0: over
-                                                         * the strip at the foot) */
+        cv_blit_band((uint32_t)x, Y_LABEL + CARD_H + 2);
     }
     }
 }

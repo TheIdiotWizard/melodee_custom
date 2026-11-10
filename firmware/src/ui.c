@@ -141,17 +141,6 @@ static uint8_t sync_reload;                  /* engine / preset / project / user
 #define H_GRAPH 124
 #define Y_FOOT 212                    /* the sound bar (pages of the old template: their one row) */
 #define H_FOOT 28
-/* 1.3.0 (LOOM-8's bands) on a sound page (ui_pages.c pv_band), 1.3.2 as the mockup: the header 0..29, the picture
- * 30..141 (a title row, the drawing, a caption), the tag line 142..157 (where you are, the pages' dots), the knobs' strip
- * 158..206 (a panel, a cell a knob), the hints 207..239 (two rows) */
-#define Y_PIC 30
-#define H_PIC 112
-#define Y_TAG 142
-#define H_TAG 16
-#define Y_STRIP 158
-#define H_STRIP 49
-#define Y_HINT 207
-#define H_HINT 33
 #define BOX_X 2                       /* panels and rows: x 2 .. 237 */
 #define BOX_W 236
 

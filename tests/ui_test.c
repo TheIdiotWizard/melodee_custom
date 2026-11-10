@@ -1894,7 +1894,7 @@ static int32_t roll_ink_row(const uint16_t *s, int32_t x0, int32_t x1, int32_t y
     int32_t x, y, n = 0, sum = 0;
     for (y = y0; y < y1; y++)
         for (x = x0; x < x1; x++)
-            if (s[y * 240 + x] != swap16(T_BG) && s[y * 240 + x] != swap16(T_LIFT) && s[y * 240 + x] != swap16(T_SURF)) {
+            if (s[y * 240 + x] != swap16(T_BG) && s[y * 240 + x] != swap16(T_LIFT)) {
                 n++;                                      /* (a ring's ground, plain or lifted while its knob turns) */
                 sum += y * 16;
             }
@@ -1909,9 +1909,8 @@ static int roll_static_now(void)                  /* the screen is the static re
 }
 /* the pages' knobs are rings (ui_pages.c): column c's cell, its value's row, where its value starts (centred) */
 #define RX(c) CARD_X(c)
-#define VY (Y_STRIP + (H_STRIP - COL_H) / 2 + 15)   /* (1.3.2: the strip's value row, 28 rows) */
-#define RH 28
-#define STRIP(c) RX(c), VY, RX(c) + 58, VY + RH
+#define VY (Y_LABEL + ROLL_Y)
+#define STRIP(c) RX(c), VY, RX(c) + 58, VY + ROLL_H
 static int32_t ring_vx(uint32_t c)
 {
     int16_t *vp;
@@ -1923,8 +1922,8 @@ static int32_t ring_vx(uint32_t c)
     param_format(d, *vp, v, &u);
     pv_words(d->label, v, u, lb, w, uu);
     if (str_eq(u, d->label)) uu[0] = 0;
-    uw = uu[0] ? text_w(TY_XS, uu) + 2 : 0;          /* (1.3.2: the strip's faces) */
-    return RX(c) + COL_W / 2 - (text_w(TY_BV, w) + uw) / 2;
+    uw = uu[0] ? text_w(TY_LB, uu) + 2 : 0;
+    return RX(c) + COL_W / 2 - (text_w(TY_TX, w) + uw) / 2;
 }
 static int test_roll(void)
 {
@@ -2000,27 +1999,26 @@ static int test_roll(void)
     ui.force = 1; ui_draw();
     n = roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 1);
     ok &= n > 20u && roll_diff(BPM_X, 0, BPM_X + BPM_W, H_HEAD, 0) == roll_diff(STRIP(0), 1);   /* (+ the card's strip) */
-    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_SM, "12"), H_HEAD, 1) == 0;   /* (1.3.2: the header's BPM in TY_SM) */
-    ok &= roll_diff(ring_vx(0), VY, ring_vx(0) + text_w(TY_BV, "12") - 1, VY + RH, 1) == 0;   /* (Barlow: a figure's ink reaches its cell's edge) */
+    ok &= roll_diff(BPM_X, 0, BPM_X + text_w(TY_TX, "12"), H_HEAD, 1) == 0;
+    ok &= roll_diff(ring_vx(0), VY, ring_vx(0) + text_w(TY_TX, "12"), VY + ROLL_H, 1) == 0;
     /* TUNE 10 -> 11 on a card: the 1 stays */
     ui_power_on(); song.g[G_TUNE] = 10; roll_settle();
     turn(EN_K4, 1); frame(); frame();
     memcpy(roll_shot, host_screen, sizeof roll_shot);
     ui.force = 1; ui_draw();
     ok &= song.g[G_TUNE] == 11 && roll_diff(STRIP(3), 1) > 20u && roll_diff(STRIP(3), 0) == 0;
-    ok &= roll_diff(ring_vx(3), VY, ring_vx(3) + text_w(TY_BV, "1"), VY + RH, 1) == 0;
+    ok &= roll_diff(ring_vx(3), VY, ring_vx(3) + text_w(TY_TX, "1"), VY + ROLL_H, 1) == 0;
     bad += check("roll: header BPM 120 -> 121 and a card 10 -> 11: only the strip changes, unchanged digits stay put", ok);
 
-    /* the direction: 5 -> 6 and -5 -> -6 at frame 4: the new digit comes from below (up) / above (down) (1.3.2: across
-     * the value, the strip's 23 px face) */
+    /* the direction: 5 -> 6 and -5 -> -6 at frame 4: the new digit comes from below (up) / above (down) */
     ui_power_on(); song.g[G_TUNE] = 5; roll_settle();
-    st = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
+    st = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
     turn(EN_K4, 1); frame(); frame(); frame();
-    up = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
+    up = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
     ok = ui.roll[3].dir == 1;
     ui_power_on(); song.g[G_TUNE] = 7; roll_settle();
     turn(EN_K4, -1); frame(); frame(); frame();
-    down = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + text_w(TY_BV, "+5"), VY, VY + RH);
+    down = roll_ink_row(host_screen, ring_vx(3), ring_vx(3) + 11, VY, VY + ROLL_H);
     ok &= ui.roll[3].dir == -1 && st > 0 && up > st + 16 && down < st - 16;
     ui_power_on(); song.g[G_TUNE] = -5; roll_settle();
     turn(EN_K4, -1);
@@ -2926,17 +2924,17 @@ static int test_product_ux(void)
     bad += check("PLAY and REC LEDs stay lit across time and audio block phase", ok);
     led_pos_init();
     ok = 1;
-    for (p = 0; p < NPALETTES; p++) for (b = 0; b < 1u; b++) {   /* (ENV: its knobs the strip at the foot, 1.3.0) */
-        uint16_t sound[240 * (240 - Y_HINT)], columns[240 * CARD_H];
+    for (p = 0; p < NPALETTES; p++) for (b = 0; b < 1u; b++) {   /* (ENV: its knobs the strip under the curve) */
+        uint16_t sound[240 * (240 - PV_SOUND_Y)], columns[240 * CARD_H];
         ui_power_on(); set_engine_of(TSEL, 3); palette_set(p); settings.zoom = 1;   /* (the generic ENV) */
         open_family(FAM_ENV); frame();
-        memcpy(sound, host_screen + Y_HINT * 240, sizeof sound);
-        memcpy(columns, host_screen + (Y_STRIP + (H_STRIP - CARD_H) / 2) * 240, sizeof columns);
+        memcpy(sound, host_screen + PV_SOUND_Y * 240, sizeof sound);
+        memcpy(columns, host_screen + Y_LABEL * 240, sizeof columns);
         ui.hot_col = 1; ui.hot_t = 40; ui.force = 1; ui_draw();
-        ok &= !memcmp(sound, host_screen + Y_HINT * 240, sizeof sound);
+        ok &= !memcmp(sound, host_screen + PV_SOUND_Y * 240, sizeof sound);
         int changed = 0;
         for (uint32_t y = 0; y < CARD_H; y++) for (uint32_t x = 0; x < 240; x++) {
-            uint16_t old = columns[y * 240 + x], now = host_screen[(Y_STRIP + (H_STRIP - CARD_H) / 2 + y) * 240 + x];
+            uint16_t old = columns[y * 240 + x], now = host_screen[(Y_LABEL + y) * 240 + x];
             if (x >= (uint32_t)CARD_X(1) && x < (uint32_t)(CARD_X(1) + CARD_W)) changed |= old != now;   /* (outlined) */
             else ok &= old == now;
         }

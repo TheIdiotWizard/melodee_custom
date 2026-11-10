@@ -52,14 +52,10 @@ static void draw_rec_mark(int32_t x, uint16_t bg)
 #define ROLL_FRAMES 9u
 #define ROLL_SNAP 3u                                    /* frames (~45 ms) */
 #define ROLL_BPM 4u                                     /* ui.roll[]: the four cards, then the header BPM */
-#define ROLL_Y (col_band ? 15 : 20)                     /* a cell's value strip: rows 20..43 (the text face; 1.3.2, the
-                                                         * strip's 23 px values: 15..42, under the label's 0..14) */
-#define ROLL_H (col_band ? 28 : 24)
-#define BPM_W 34                                        /* the header's BPM strip: 34 columns, every row (1.3.2: TY_MD) */
-#define BPM_X (238 - BPM_W)                             /* (1.3.0: at the right, after the transport's glyph) */
-#define HEAD_R (BPM_X - 16)                             /* the left part's end: the transport's glyph at HEAD_R + 2 */
-#define HEAD_MSG_X 4
-#define HEAD_PILL_X 11                                  /* (1.3.2: after the level's bar) */                                    /* a message: from the left (the track's pill gives way) */
+#define ROLL_Y 20                                       /* a cell's value strip: rows 20..43 (the text face) */
+#define ROLL_H 24
+#define BPM_X 26
+#define BPM_W 42                                        /* the header's BPM strip: 42 columns, every row (the text face) */
 static uint16_t roll_bg;                                /* what a card's value lies on (its fill: tinted while hot) */
 static const uint8_t ROLL_EASE[17] = {0, 45, 84, 118, 147, 172, 193, 210, 223, 234, 242, 247, 251, 253, 254, 255, 255};
 
@@ -96,10 +92,9 @@ static void roll_note(uint32_t k, const char *a, const char *b, int snap)
 /* s (the text face) at x, y with field k's roll: each character at its pen in s (the digits are tabular and never kerned,
  * so the old value has the same pens); a rolling digit has moved o of the strip's h rows (ROLL_EASE, one frame
  * later per place from the right), clipped to the strip. The roll's last frame clears it: the static text. */
-static uint8_t col_band;                                /* (below: the strip's cells) */
 static int32_t roll_text(uint32_t k, int32_t x, int32_t y, const char *s, uint16_t fg)
 {
-    const aafont_t *f = k == ROLL_BPM ? TY_SM : col_band ? TY_BV : TY_TX;   /* (1.3.2: the header's BPM in the title face) */
+    const aafont_t *f = TY_TX;
     uint32_t e = (uint8_t)(ui.frame - ui.roll[k].t0) + 1u, i, p = 0;
     const char *a = ui.roll[k].from;
     int32_t cy = k < ROLL_BPM ? y : 0, h = k < ROLL_BPM ? ROLL_H : H_HEAD;   /* (a card's value: at ROLL_Y) */
@@ -153,15 +148,6 @@ static uint16_t fx_fam_col(uint32_t f)
     return f == FXF_SPACE ? p->knob[3][2] : f == FXF_MOTION ? p->trk[3] : f == FXF_DIRT ? p->knob[0][2] :
            f == FXF_COLOUR ? p->trk[1] : f == FXF_NOTES ? p->trk[2] : T_DIM;
 }
-static int head_band_page(void);                        /* ui_pages.c: a page in LOOM-8's bands (the tag line) */
-/* the header's family chip (1.3.0, LOOM-8's: "T1 [EDIT] Unison"): the family of the page shown */
-static const char *head_fam(void)
-{
-    static const char *const FAM_CHIP[FAM_COUNT] = {"HOME", "ENV", "LFO", "SCL", "EDIT", "GLO", "SAVE", "ARP", "SEQ",
-                                                    "MIX", "FX"};
-    if (ui.menu) return "MENU";
-    return ui.home ? "HOME" : FAM_CHIP[cur_page()->fam % FAM_COUNT];
-}
 static int sec_on(void);                                /* ui_sections.c */
 static uint32_t sec_of(uint32_t i);
 static void sec_chip(uint32_t i, char *b, uint32_t n);
@@ -205,23 +191,6 @@ static void head_chip_text(char *b)
     }
 }
 /* the page's place in its family: a dot a page, the page's a pill in the track's colour (no room: "3/12") */
-static void page_dots(uint32_t *pn, uint32_t *pk)        /* the pages in the family (or section, or the designer's
-                                                         * stage): how many, which is shown */
-{
-    const page_t *pg = cur_page();
-    uint32_t i, n = 0, k = 0, sc = sec_on() ? sec_of(ui.page) + 1u : 0u;
-    if (designer_on() && !name_on())
-        designer_pages(&n, &k);
-    else for (i = 0; i < NPAGES; i++)
-        if (PAGES[i].fam == pg->fam && page_visible(i) &&
-            (!sc || (PAGES[i].scope == SC_FMOP ? PAGES[ui.page].scope == SC_FMOP : sec_of(i) + 1u == sc))) {
-            if (i == ui.page)
-                k = n;
-            n++;
-        }
-    *pn = n;
-    *pk = k;
-}
 static void head_pages(int32_t x, int32_t x1)          /* (x: after the transport's marks; x1: where the chip, or the
                                                          * battery, starts) */
 {
@@ -277,19 +246,7 @@ static int head_toast(int32_t x)
         w = kc_w((uint32_t)id) + KH_GAP + text_w(TY_TX, m + n + (m[n] == ' '));
     else if (m[0] && str_len(m) > 6u && m[str_len(m) - 1u] == ']')
         w += 40;                                        /* (a keycap: its pill wider than its word) */
-    {   /* the room the header's right part leaves (draw_head: REC, the battery, HOST / BLE, the song's row) */
-        int32_t rx = HEAD_R - 2;
-        if (song.rec) rx -= 15;
-        if (!(usb.config && !usb.suspended) && batt_level() <= 1) rx -= 15;
-#if MELODEE_USB_HOST
-        if (uh.on) rx -= text_w(TY_XS, "HOST") + 5;
-#endif
-#if MELODEE_BLE
-        if (mb.on) rx -= text_w(TY_XS, "BLE") + 5;
-#endif
-        if (chain.running) rx -= text_w(TY_XS, "ROW 88") + 5;
-        return m[0] && w > rx - x;
-    }
+    return m[0] && w > 236 - x;
 }
 #if MELODEE_BLE
 static void ble_head_text(char text[24])
@@ -321,19 +278,10 @@ static void draw_head(void)
     int16_t bpm = song.g[G_BPM];                        /* (read once: what is noted is what is drawn) */
     int32_t octave = input_octave(TSEL);
     head_chip_text(chip);
-    if (head_band_page() && !msg) {                     /* (1.3.2, the mockup's titles: the page itself is in the tag
-                                                         * line) */
-        const page_t *hp = cur_page();
-        if (hp->scope == SC_ENGINE)
-            str_cpy(chip, "Engine", sizeof chip);
-        else if (hp->fam == FAM_FX && hp->graph == GR_NONE)
-            str_cpy(chip, "Character", sizeof chip);
-    }
     sig = (uint32_t)seq_erase_active(TSEL) * 8191u + (uint32_t)song.playing * 3u + song.rec * 5u + song.rec_wait * 65537u + (uint32_t)(octave + 8) * 11u +
           song.sel * 13131u + (msg ? str_hash(7u, head_msg()) : str_hash(5u, chip)) +
           (ui.bpm_t != 0) * 31u + low * 7777u + (chain.running ? (chain.row + 1u) * 104729u : 0u) + ux.gen * 977u +
-          (ui.home ? ui.home_pg * 40503u : ui.page * 2654435761u) + page_sheet() * 524287u +
-          trk_level(song.sel) * 92821u + TSEL->pattern * 6151u;
+          (ui.home ? ui.home_pg * 40503u : ui.page * 2654435761u) + page_sheet() * 524287u;
 #if MELODEE_BLE
     sig ^= str_hash(mel_ble_signature() + 17u, ble_text);
 #endif
@@ -354,46 +302,98 @@ static void draw_head(void)
     if (!ui.force && sig == ui.head_sig) {
         if (ui.roll[ROLL_BPM].from[0] || moved) {       /* rolling, or snapped to the new value: the BPM's strip only */
             cv_begin(BPM_W, H_HEAD, T_BG);
-            roll_text(ROLL_BPM, 0, ty_y(H_HEAD / 2, TY_SM), b, ui.bpm_t ? T_ACCENT : T_TEXT);
+            roll_text(ROLL_BPM, 0, ty_y(H_HEAD / 2, TY_TX), b, ui.bpm_t ? T_ACCENT : T_TEXT);
             cv_blit(BPM_X, Y_HEAD);
         }
         return;
     }
     ui.head_sig = sig;
     cv_begin(240, H_HEAD, T_BG);
-    /* 1.3.0 (LOOM-8's header): at the right the transport's glyph and the BPM; before them, when they apply, REC, the
-     * octave, the song's row, the battery, HOST / BLE; at the left the track's pill ("T1", its colour), the family's
-     * chip ("EDIT") and where you are ("Unison"), or a message across them */
-    cv_icon_mid(HEAD_R + 1, H_HEAD / 2, 12, chain.running ? ICON_X_SONG : song.playing ? ICON_X_PLAY : ICON_X_STOP,
+    cv_icon_mid(5, H_HEAD / 2, 16, chain.running ? ICON_X_SONG : song.playing ? ICON_X_PLAY : ICON_X_STOP,
                 song.playing ? T_TEXT : T_MID, T_BG);
-    roll_text(ROLL_BPM, BPM_X, ty_y(H_HEAD / 2, TY_SM), b, ui.bpm_t ? T_ACCENT : T_TEXT);
-    if (msg && head_toast(HEAD_MSG_X))                  /* (too long for the header: a toast under it, draw_toast; the
+    roll_text(ROLL_BPM, BPM_X, ty_y(H_HEAD / 2, TY_TX), b, ui.bpm_t ? T_ACCENT : T_TEXT);
+    x = BPM_X + BPM_W;                                  /* (past the widest BPM) */
+    if (song.rec) {                                     /* (16 px, as the transport) */
+        cv_icon_mid(x, H_HEAD / 2, 16, ((song.rec & ~song.rec_wait) >> song.sel) & 1u ? ICON_X_REC : ICON_X_REC_O, T_REC, T_BG);
+        x += 18;
+    }
+    if (msg && head_toast(x + 6))                       /* (too long for the header: a toast under it, draw_toast; the
                                                          * header as it is) */
         msg = 0;
-    int ble_words = 0;                                  /* BLE's status shown in words (it takes the room of the tag,
-                                                         * the row and the octave) */
+    if (seq_erase_active(TSEL)) {
+        cv_text_r(236, ty_y(H_HEAD / 2, TY_TX), TY_TX, "ERASING", T_REC, T_BG);
+    } else if (head_waiting()) {
+        cv_text_r(236, ty_y(H_HEAD / 2, TY_TX), TY_TX, "WAIT LOOP", T_REC, T_BG);
 #if MELODEE_BLE
-    ble_words = ble_text[0] && !seq_erase_active(TSEL) && !head_waiting() && (!msg || mel_ble_code() != BLE_NO_PASSKEY);
+    } else if (ble_text[0] && (!msg || mel_ble_code() != BLE_NO_PASSKEY)) {
+        const aafont_t *f = ty_fit(TY_TX, ble_text, 236 - x - 6);
+        cv_text_r(236, ty_y(H_HEAD / 2, f), f, ble_text, T_THEME, T_BG);
 #endif
-    int32_t rx = HEAD_R - 2;                            /* (the right part grows leftwards from here) */
-    if (song.rec) {
-        cv_icon_mid(rx - 12, H_HEAD / 2, 12, ((song.rec & ~song.rec_wait) >> song.sel) & 1u ? ICON_X_REC : ICON_X_REC_O,
-                    T_REC, T_BG);
-        rx -= 15;
-    }
-    if (low) {                                          /* the battery, only when it runs low */
-        cv_icon_mid(rx - 12, H_HEAD / 2, 12, batt_level() ? ICON_X_BAT1 : ICON_X_BAT0, T_REC, T_BG);
-        rx -= 15;
-    }
-    {
+    } else if (msg) {                                   /* a message, or the layer's name (may hold a keycap) */
+        cv_free_hint(x + 6, ty_y(H_HEAD / 2, TY_TX), head_msg(), T_TEXT, T_BG, 236 - x - 6);
+    } else {
+        const aafont_t *cf = TY_TX;                     /* (where you are: plain words in the track's colour;
+                                                         * PATTERNS plain, the grid is in colour) */
         const char *tag = "";
 #if MELODEE_USB_HOST
         if (uh.on) tag = "HOST";
 #endif
 #if MELODEE_BLE
         if (mb.on) tag = tag[0] ? "HOST BLE" : "BLE";
-        if (ble_words) tag = "";                       /* (BLE's status in words: the left part and its room) */
 #endif
+        int32_t hw = tag[0] ? text_w(TY_LB, tag) + 10 : 0;
+
+        int32_t cw = text_w(cf, chip) + 4;
+        if (x + 6 + cw + (low ? 22 : 0) + hw > 236) { /* a long page name shares room with battery and host state */
+            cf = TY_LB;
+            cw = text_w(cf, chip) + 4;
+        }
+        if (hw && x + 6 + cw + (low ? 22 : 0) + hw > 236) {
+            /* Compact names retain the distinction from the original PHASER/CHORUS effects. */
+            if (!memcmp(chip, "PEDAL ", 6)) {
+                str_cpy(b, chip + 6, sizeof b);
+                str_cpy(chip, "P. ", sizeof chip);
+                str_cpy(chip + 3, b, sizeof chip - 3);
+                cw = text_w(cf, chip) + 4;
+            }
+        }
+        if (octave) {                                   /* selected MPC bank's octave, else the shared octave */
+            int32_t w;
+            b[0] = octave > 0 ? '+' : '-';
+            fmt_int(b + 1, octave < 0 ? -octave : octave);
+            w = text_w(TY_LB, b) + 12;
+            if (x + 2 + w + 8 > 236 - cw - (low ? 22 : 0) - hw - 6)
+                octave = 0;                             /* the HOST tag is status: the optional pill gives way */
+        }
+        if (octave) {
+            int32_t w;
+            b[0] = octave > 0 ? '+' : '-';
+            fmt_int(b + 1, octave < 0 ? -octave : octave);
+            w = text_w(TY_LB, b) + 12;
+            cv_rrect(x + 2, 4, w, 22, 6, T_MID, T_BG);
+            cv_rrect(x + 3, 5, w - 2, 20, 5, T_BG, T_MID);
+            cv_text_c(x + 2 + w / 2, ty_y(H_HEAD / 2, TY_LB), TY_LB, b, T_TEXT, T_BG);
+            x += w + 8;
+        }
+        if (chain.running) {                            /* the song's row (where there is room) */
+            str_cpy(b, "ROW ", 8);
+            fmt_int(b + 4, (int32_t)chain.row + 1);
+            if (x + 2 + text_w(TY_LB, b) + 6 <= 236 - cw - (low ? 22 : 0) - hw - 6)
+                x = cv_text_on(x + 2, ty_y(H_HEAD / 2, TY_LB), TY_LB, b, T_MID, T_BG) + 6;
+        }
+        if (!ui.home) {                                 /* a page: where it is in its family */
+            head_pages(x + 6, 236 - cw - (low ? 22 : 0) - hw);
+        } else if (x + 6 + 28 <= 236 - cw - (low ? 22 : 0) - hw - 6) {   /* HOME: its two pages (Stage, the chord view),
+                                                                   * where there is room */
+            uint32_t i;
+            for (i = 0, x += 6; i < 2u; i++) {
+                int32_t w = i == ui.home_pg ? 16 : 6;
+                cv_rrect(x, H_HEAD / 2 - 3, w, 6, 3, i == ui.home_pg ? T_THEME : T_LINE, T_BG);
+                x += w + 6;
+            }
+        }
+        if (low)                                        /* the battery, only when it runs low */
+            cv_icon_mid(236 - cw - 20, H_HEAD / 2, 16, batt_level() ? ICON_X_BAT1 : ICON_X_BAT0, T_REC, T_BG);
         uint16_t tag_color = T_THEME;
 #if MELODEE_USB_HOST
         if (uh.on && !uh.run) tag_color = T_MID;
@@ -401,82 +401,10 @@ static void draw_head(void)
 #if MELODEE_BLE
         if (mb.ready) tag_color = T_THEME;
 #endif
-        if (tag[0])                                     /* (status: always shown; the page's name gives way) */
-            rx = cv_text_r(rx, ty_y(H_HEAD / 2, TY_XS), TY_XS, tag, tag_color, T_BG) - 5;
-    }
-    if (!ble_words && !msg && !chain.running && rx > 150) {   /* (1.3.2, the mockup's: the pattern playing, dim) */
-        str_cpy(b, "P", 4);
-        pat_num(b + 1, TSEL->pattern);
-        rx = cv_text_r(rx, ty_y(H_HEAD / 2, TY_SM), TY_SM, b, T_MID, T_BG) - 5;
-    }
-    if (chain.running && !ble_words) {                  /* the song's row (where there is room) */
-        str_cpy(b, "ROW ", 8);
-        fmt_int(b + 4, (int32_t)chain.row + 1);
-        if (rx - text_w(TY_XS, b) - 4 > 120)
-            rx = cv_text_r(rx, ty_y(H_HEAD / 2, TY_XS), TY_XS, b, T_MID, T_BG) - 5;
-    }
-    if (ble_words) octave = 0;
-    if (octave && !msg) {                               /* the selected MPC bank's octave, else the shared octave */
-        int32_t w, lend = HEAD_PILL_X + text_w(TY_SM, "T1") + 10 + 5 + text_w(TY_XS, head_fam()) + 8 + 6;
-        b[0] = octave > 0 ? '+' : '-';
-        fmt_int(b + 1, octave < 0 ? -octave : octave);
-        w = text_w(TY_XS, b) + 10;
-        if (rx - w < lend)                              /* (no room past the pill and chip: the octave gives way) */
-            octave = 0;
-    }
-    if (octave && !msg) {
-        int32_t w;
-        b[0] = octave > 0 ? '+' : '-';
-        fmt_int(b + 1, octave < 0 ? -octave : octave);
-        w = text_w(TY_XS, b) + 10;
-        cv_outline(rx - w, H_HEAD / 2 - 8, w, 16, 3, T_DIM);
-        cv_text_c(rx - w / 2, ty_y(H_HEAD / 2, TY_XS), TY_XS, b, T_TEXT, T_BG);
-        rx -= w + 5;
-    }
-    x = HEAD_MSG_X;
-    {
-        int status = seq_erase_active(TSEL) || head_waiting();   /* (a status, a message: the whole left part) */
-#if MELODEE_BLE
-        status |= ble_text[0] != 0;
-#endif
-        if (status) msg = msg ? msg : 2u;
-    }
-    if (!msg) {                                         /* the track's pill, the family's chip */
-        char tn[4] = {'T', (char)('1' + song.sel % 8u), 0, 0};
-        const char *fam = head_fam();
-        int32_t w = text_w(TY_SM, tn) + 10, fw = text_w(TY_XS, fam) + 8, lh = (int32_t)trk_level(song.sel) * 14 / 127;
-        /* (1.3.2, the mockup's: the track's level as a bar, its pill, the family's outlined chip, the page's name) */
-        cv_rrect(x, H_HEAD / 2 - 7, 3, 14, 1, T_RAISE, T_BG);
-        if (lh > 0)
-            cv_rect(x, H_HEAD / 2 + 7 - lh, 3, lh, T_THEME);
-        x = HEAD_PILL_X;
-        cv_rrect(x, H_HEAD / 2 - 8, w, 16, 8, T_THEME, T_BG);
-        cv_text_c(x + w / 2, ty_y(H_HEAD / 2, TY_SM), TY_SM, tn, T_INK, T_THEME);
-        x += w + 5;
-        cv_outline(x, H_HEAD / 2 - 8, fw, 16, 3, T_DIM);
-        cv_text_c(x + fw / 2, ty_y(H_HEAD / 2, TY_XS), TY_XS, fam, T_MID, T_BG);
-        x += fw + 6;
-    }
-    if (seq_erase_active(TSEL)) {
-        cv_text_on(x, ty_y(H_HEAD / 2, TY_TX), TY_TX, "ERASING", T_REC, T_BG);
-    } else if (head_waiting()) {
-        cv_text_on(x, ty_y(H_HEAD / 2, TY_TX), TY_TX, "WAIT LOOP", T_REC, T_BG);
-#if MELODEE_BLE
-    } else if (ble_text[0] && (msg == 2u || mel_ble_code() != BLE_NO_PASSKEY)) {
-        const aafont_t *f = ty_fit(TY_TX, ble_text, rx - x);
-        cv_text_on(x, ty_y(H_HEAD / 2, f), f, ble_text, T_THEME, T_BG);
-#endif
-    } else if (msg == 1u) {                                   /* a message, or the layer's name (may hold a keycap) */
-        cv_free_hint(x, ty_y(H_HEAD / 2, TY_TX), head_msg(), T_TEXT, T_BG, rx - x);
-    } else {
-        const aafont_t *cf = ty_fit(TY_MD, chip, rx - x);   /* where you are, in words ("Unison", "808 KIT"; no room:
-                                                         * nothing, never cut) */
-        int32_t ex = x;
-        if (text_w(cf, chip) <= rx - x - 6)
-            ex = cv_text_on(x, ty_y(H_HEAD / 2, cf), cf, chip,
-                            !ui.home && cur_page()->graph == GR_PATGRID && !ptc_on() ? T_MID : T_TEXT, T_BG);
-        if (!ui.home && !head_band_page())              /* a page without the tag line: its place in the family here */
-            head_pages(ex + 8, rx);
+        if (hw)
+            cv_text_on(236 - cw - (low ? 22 : 0) - hw + 4, ty_y(H_HEAD / 2, TY_LB), TY_LB, tag, tag_color, T_BG);
+        cv_text_r(236, ty_y(H_HEAD / 2, cf), cf, chip,
+                  !ui.home && cur_page()->graph == GR_PATGRID && !ptc_on() ? T_MID : T_THEME, T_BG);
     }
     cv_blit(0, Y_HEAD);
 }
@@ -534,9 +462,6 @@ enum { CS_CARD, CS_RING, CS_CAPTURE };               /* how draw_column draws a 
 static void list_capture(uint32_t c, const char *label, const char *val, const char *unit, uint16_t vc);
 static uint8_t col_style;
 static int32_t card_y = Y_LABEL;                        /* the strip's row (sections' tabs: lower) */
-/* col_band (above), 1.3.0: the cells in LOOM-8's knob strip (pv_band): on the
-                                                         * panel, the label MID, the value TEXT (a word in the label
-                                                         * face), the gauge in the track's colour */
 static uint16_t card_tc[4];                             /* a cell's label colour (0: the track's; the GLO layer: each's) */
 static void pv_words(const char *label, const char *val, const char *unit, char *lb, char *v, char *u);   /* ui_pages.c */
 static void pv_value_c(uint32_t c, int32_t xc, int32_t y, const char *val, const char *unit, uint16_t vc, uint16_t bg, int32_t room);
@@ -566,12 +491,9 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
     char key[48], label[12], val[16], unit[8];
     int hot = c == ui.hot_col && ui.hot_t, named = fmt_named, strip, snap;
     uint8_t sig;
-    uint16_t lc = vc == T_DIM ? T_DIM : card_tc[c & 3u] ? card_tc[c & 3u] : T_KNOB(c), cbg = col_band ? T_SURF : T_BG;
+    uint16_t lc = vc == T_DIM ? T_DIM : card_tc[c & 3u] ? card_tc[c & 3u] : T_KNOB(c), cbg = T_BG;   /* (knob c's colour) */
     int32_t x, uw, room = COL_W;                        /* (the 3 px between cells keep values apart) */
-    const aafont_t *vf = col_band ? TY_BV : TY_TX, *lf = col_band ? TY_XS : TY_LB;   /* (1.3.2, the strip: LOOM-8's
-                                                         * faces: labels 12 px, values 23 px) */
-    const aafont_t *rf = vf;                            /* (the face values roll in) */
-    int32_t vy = ROLL_Y, vb;                            /* (the value's line box, its baseline) */
+    const aafont_t *vf = TY_TX, *lf = TY_LB;
     uint32_t n, kn;
     int32_t kid;
     if (col_style == CS_CAPTURE) {                      /* a list's row (ui_list.c) */
@@ -599,27 +521,21 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
     key[n + 3] = (char)('A' + (vc >> 12));
     key[n + 4] = (char)(' ' + (ratio < 0 ? 0 : 1 + ratio / 20));
     key[n + 5] = (char)(icon == ICON_NONE ? '~' : '!' + icon % 90u);
-    key[n + 6] = (char)('0' + hot + 2 * col_band);
+    key[n + 6] = (char)('0' + hot);
     key[n + 7] = 0;
     uw = unit[0] ? text_w(lf, unit) + 2 : 0;
     if (uw && text_w(vf, val) + uw > room)              /* ("1.0 ms"): the value keeps its size, the unit goes */
         unit[0] = 0, uw = 0;
     if (text_w(vf, val) > room)                         /* ("HARM MIN"): the label face before it is cut */
-        vf = col_band && text_w(TY_MD, val) <= room ? TY_MD : col_band ? TY_SM : lf;
-    if (col_band && val[0] && !(val[0] >= '0' && val[0] <= '9') && !(val[0] == '-' && val[1] >= '0' && val[1] <= '9') &&
-        !(val[0] == '+' && val[1] >= '0' && val[1] <= '9') && !(val[0] == '.' ))
-        vf = text_w(TY_MD, val) <= room ? TY_MD : TY_SM;   /* (the strip: a word smaller than a number, as LOOM-8's) */
+        vf = lf;
     sig = (uint8_t)str_hash(str_hash(song.sel + TSEL->eng_req * 4u + ux.gen * 64u, label), unit);
     snap = ui.force || sig != ui.roll[c].sig;           /* what the value is of: label, unit, track, engine, palette */
     strip = !snap && str_eq(key, ui.col[c]);
     if (strip && !ui.roll[c].from[0])
         return;
     roll_bg = cbg;
-    if (hot && vc != T_DIM)                             /* the knob turning: its value in the track's colour (the
-                                                         * strip: the track's own, never a knob's shade) */
-        vc = col_band ? T_THEME : lc;
-    else if (col_band && vc != T_DIM && vc != T_ACCENT && vc != T_REC)
-        vc = T_TEXT;                                    /* (1.3.2: the strip's values in the text colour alone) */
+    if (hot && vc != T_DIM)                             /* the knob turning: its value in the track's colour */
+        vc = lc;
     if (strip) {                                        /* rolling: the value strip only */
         cv_begin(COL_W, ROLL_H, cbg);
         cv_oy = -ROLL_Y;
@@ -628,37 +544,23 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         col_old_value(c, ov);
         ui.roll[c].sig = sig;
         if (!str_eq(ov, val))
-            roll_note(c, ov, val, snap || named || vf != rf || kid >= 0);
+            roll_note(c, ov, val, snap || named || vf != TY_TX || kid >= 0);
         else if (snap)
             ui.roll[c].from[0] = 0;
         str_cpy(ui.col[c], key, sizeof ui.col[c]);
-        cv_begin(COL_W, COL_H, cbg);
-        if (col_band && ratio >= 0) {                   /* the gauge: the track's colour over a raised track (44 px) */
-            int32_t gw = COL_W - 16, gx = (COL_W - gw) / 2, fw = ratio * gw / 1000;
-            cv_rrect(gx, COL_H - 3, gw, 3, 1, T_RAISE, cbg);
-            if (fw > 0)
-                cv_rrect(gx, COL_H - 3, fw < 3 ? 3 : fw, 3, 1, T_THEME, T_RAISE);
-        } else if (hot)                                 /* (and a bar under it) */
-            cv_rrect(COL_W / 2 - 14, COL_H - 4, 28, 3, 1, lc, cbg);
+        cv_begin(COL_W, COL_H, T_BG);
+        if (hot)                                        /* (and a bar under it) */
+            cv_rrect(COL_W / 2 - 14, COL_H - 4, 28, 3, 1, lc, T_BG);
     }
     if (label[0] || val[0]) {
         /* the label: capitals in the track's colour, centred, rows 3..21; the value under it (the text face, rolling),
          * the unit (label face, mid) on its baseline, both centred; the gauge: 3 px at row 44 */
         int32_t vw = text_w(vf, val) + uw, vx = COL_W / 2 - (vw < room ? vw : room) / 2;
-        vb = vy + rf->asc;
         (void)icon;                                     /* (the design draws no card icons) */
         if (!strip && label[0]) {
             const char *ls = cell_label(label, COL_W - 2);
-            char lw[16];
-            if (col_band) {                             /* (1.3.2: the strip's labels in small letters, as the mockup) */
-                uint32_t j;
-                for (j = 0; ls[j] && j + 1u < sizeof lw; j++)
-                    lw[j] = ls[j] >= 'A' && ls[j] <= 'Z' ? (char)(ls[j] + 32) : ls[j];
-                lw[j] = 0;
-                ls = lw;
-            }
-            cv_text_fit(COL_W / 2 - (text_w(lf, ls) < COL_W - 2 ? text_w(lf, ls) : COL_W - 2) / 2, col_band ? 0 : 3, lf,
-                        ls, col_band ? (vc == T_DIM ? T_DIM : hot ? T_THEME : T_MID) : lc, cbg, COL_W - 2);
+            cv_text_fit(COL_W / 2 - (text_w(lf, ls) < COL_W - 2 ? text_w(lf, ls) : COL_W - 2) / 2, 3, lf, ls, lc,
+                        cbg, COL_W - 2);
         }
         if (kid >= 0)                                   /* "[OCT+]": the keycap (accent: it would act; DIM: it would not) */
             x = cv_keycap(COL_W / 2 - kc_w((uint32_t)kid) / 2, 21, (uint32_t)kid,
@@ -666,14 +568,14 @@ static void draw_column(uint32_t c, const char *label0, const char *val0, const 
         else if (binary_value(val) >= 0) {
             binary_badge(COL_W / 2, 21, 22, val, cbg);
             x = COL_W - 6;
-        } else if (vf == rf)                            /* the value rolls */
-            x = roll_text(c, vx, vy, val, vc);
+        } else if (vf == TY_TX)                         /* the value rolls */
+            x = roll_text(c, vx, ROLL_Y, val, vc);
         else if (val[0] >= 'A' && val[0] <= 'Z' && val[1] >= 'a' && val[1] <= 'z')   /* a name ("Chorus"): free text */
-            x = cv_free_text(vx, vb - vf->asc, vf, val, vc, cbg, room - uw);
+            x = cv_free_text(vx, ROLL_Y + TY_TX->asc - vf->asc, vf, val, vc, cbg, room - uw);
         else
-            x = cv_text_fit(vx, vb - vf->asc, vf, val, vc, cbg, room - uw);
+            x = cv_text_fit(vx, ROLL_Y + TY_TX->asc - vf->asc, vf, val, vc, cbg, room - uw);
         if (unit[0])                                    /* the unit on the value's baseline */
-            cv_text_on(x + 2, vb - lf->asc, lf, unit, T_MID, cbg);
+            cv_text_on(x + 2, ROLL_Y + TY_TX->asc - lf->asc, lf, unit, T_MID, cbg);
     }
     cv_oy = 0;
     if (stage_drop_rows && !strip)                      /* (rows r0 .. under the header: Y_LABEL - r0 wraps, + r0 back) */
@@ -1292,17 +1194,6 @@ static int own_screen(void)                             /* a page drawn whole by
     return !ui.home && (g == GR_BROWSE || g == GR_PATGRID || g == GR_SONG || g == GR_SCALE_PICKER);
 }
 /* the page (or Stage): its own screen, the redesign's, else its cards, panel and footer */
-/* 1.3.0: a page in LOOM-8's bands (the header, the picture, the tag line, the knobs' strip, the hints): a sound page
- * (RINGS, CURVE) as draw_page reaches it */
-static int head_band_page(void)
-{
-    uint32_t k;
-    if (ui.home || ui.menu || ui.confirm || song_punch_on() || designer_screen() || own_screen() || slot_kind() ||
-        motion_page() || list_on())
-        return 0;
-    k = pv_kind();
-    return k == PV_RINGS || k == PV_CURVE;
-}
 static void draw_page(void)
 {
     /* SCALES opens explicitly from the Scale row, outside the SCL/SELECT cycle.
@@ -1363,7 +1254,7 @@ static void draw_toast(void)
     const char *m = head_msg();
     uint32_t n, i;
     int32_t h;
-    if (!(ui.msg_t || ui.layer) || !head_toast(HEAD_MSG_X))
+    if (!(ui.msg_t || ui.layer) || !head_toast(BPM_X + BPM_W + 6))
         return;
     n = text_lines(m, l, 3u, BOX_W - 20, TY_TX);
     h = 10 + (int32_t)n * 24;
@@ -1407,7 +1298,7 @@ static void ui_draw_frame(void)
 
     /* Restore a departing toast before drawing the page beneath it. A force
      * requested by draw_toast after the page was drawn is cleared this frame. */
-    if (toast_shown && !head_toast(HEAD_MSG_X)) {
+    if (toast_shown && !head_toast(BPM_X + BPM_W + 6)) {
         toast_shown = 0;
         ui.force = 1;
     }
