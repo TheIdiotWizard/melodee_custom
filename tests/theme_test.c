@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     static const uint8_t pd[] = {0x08, 0xf0};
     const aafont_t probe = {1, 1, 'A', 'A', 0, 0, pg, pd, 0, 0, 0};
     double worst = 100;
-    assert(UI_NPALETTES == 1u && NPALETTES == 2u && !strcmp(UI_PALETTES[0].name, "MONO") && !strcmp(UI_PALETTES[UI_GRAY_INDEX].name, "GRAY"));
+    assert(UI_NPALETTES == 3u && NPALETTES == 4u && !strcmp(UI_PALETTES[0].name, "MONO") && !strcmp(UI_PALETTES[1].name, "LOOM A") && !strcmp(UI_PALETTES[2].name, "LOOM B") && !strcmp(UI_PALETTES[UI_GRAY_INDEX].name, "GRAY"));
     for (unsigned pt = 0; pt < UI_PAL_ENTRIES * 4u; pt++) {
         unsigned p = pt / 4u, t = pt % 4u;
         uint16_t *tok = &ux.bg;

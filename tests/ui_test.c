@@ -1735,14 +1735,14 @@ static int test_display_preferences(void)
     hold(B_HOME);
     ui.menu_sel = MI_COLOR;
     settings.palette = 0; palette_set(0);
-    ui.force = 1; ui_draw();                       /* (in MONO: the suite draws in GRAY, the palette OCT+ goes to) */
+    ui.force = 1; ui_draw();                       /* (in MONO; OCT+ goes to LOOM A) */
     memcpy(before, host_screen, sizeof before);
     press(B_OCTUP);
-    bad += check("COLOR OCT+ previews the next palette (MONO, then the test GRAY) without closing the menu",
+    bad += check("COLOR OCT+ previews the next palette (MONO, then LOOM A) without closing the menu",
                  settings.palette == 1 && T_BG == UI_PALETTES[1].bg && !ux.light && ui.menu == 1 && !song.octave &&
                  memcmp(before, host_screen, sizeof before) && !memcmp(sounds, trk, sizeof sounds));
-    turn(EN_K1, 1);
-    bad += check("COLOR KNOB 1 wraps back to MONO", settings.palette == UI_DEFAULT_INDEX && NPALETTES == 2u);
+    for (uint32_t k = 1; k < NPALETTES; k++) turn(EN_K1, 1);   /* (LOOM B, the test GRAY, then MONO again) */
+    bad += check("COLOR KNOB 1 wraps back to MONO", settings.palette == UI_DEFAULT_INDEX && NPALETTES == 4u);
     press(B_OCTDN);
     bad += check("OCT- leaves display preferences without changing musical state",
                  !ui.menu && settings.palette == UI_DEFAULT_INDEX && !memcmp(sounds, trk, sizeof sounds));

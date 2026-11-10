@@ -6,8 +6,10 @@
 
   gen_ui_palettes.py OUT.h [--report]
 
-Melodee Custom has one palette, MONO: white on black, no colour (Melodee's NIGHT, DAY, CONTRAST and the rest
-retired; a stored id of theirs reads as MONO). A palette is BG
+Melodee Custom has three palettes: MONO, white on black, no colour (the default), and LOOM A and LOOM B (1.2.7), MONO
+with a colour for each track from LOOM-8's b/w theme (Charles Vestal, https://github.com/charlesvestal/fm1-loom):
+LOOM A its tracks 1..4's (pink, teal, yellow, blue), LOOM B its 5..8's (orange, green, purple, tan). Melodee's NIGHT, DAY, CONTRAST and the rest are retired; a stored id of theirs reads as MONO.
+A palette is BG
 (background), SURF (surface: cards, dialogs, menu rows), TEXT, ACCENT (the one active thing: hot knob, cursor,
 playhead) and four track colours: the selected track's is THEME (values, curves, gauges, selection), so the screen
 takes the colour of the track ALGORITHM picks (src/gfx.c palette_track). The firmware derives the rest with fixed
@@ -34,6 +36,10 @@ from pathlib import Path
 PALETTES = [
     ("MONO",     (0, 0, 0),       (0, 0, 0),       (255, 255, 255), (255, 255, 255),   # Melodee Custom: black and white
      ((255, 255, 255), (255, 255, 255), (255, 255, 255), (255, 255, 255))),          # only, tracks told apart by text
+    ("LOOM A",   (0, 0, 0),       (0, 0, 0),       (255, 255, 255), (255, 255, 255),   # MONO with LOOM-8's track colours,
+     ((255, 92, 170), (40, 204, 192), (244, 200, 60), (104, 152, 255))),             # its 1..4: pink, teal, yellow, blue
+    ("LOOM B",   (0, 0, 0),       (0, 0, 0),       (255, 255, 255), (255, 255, 255),   # its 5..8: orange, green,
+     ((255, 136, 64), (110, 216, 110), (178, 136, 255), (214, 176, 136))),           # purple, tan
 ]
 TEST_GRAY = ("GRAY", (14, 14, 14), (36, 36, 36), (204, 204, 204), (255, 255, 255),
              ((232, 232, 232), (220, 220, 220), (208, 208, 208), (244, 244, 244)))
