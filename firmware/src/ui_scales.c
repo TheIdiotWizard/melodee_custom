@@ -35,7 +35,7 @@ static void scales_draw(void)
 {
     uint32_t scale = (uint32_t)clamp(TSEL->p[P_SCALE], 0, SCALE_TOTAL - 1u), total = scale_picker_count();
     uint32_t rank = scale_picker_rank(), r, sig, fav = 0;
-    int message = ui.msg_t && !head_toast(BPM_X + BPM_W + 6);   /* longer statuses use draw_toast */
+    int message = ui.msg_t && !head_toast(HEAD_MSG_X);   /* longer statuses use draw_toast */
     const aafont_t *tf = TY_TX, *lf = TY_LB;
     char b[32];
     for (r = 0; r < SCALE_TOTAL; r++)

@@ -1735,14 +1735,14 @@ static int test_display_preferences(void)
     hold(B_HOME);
     ui.menu_sel = MI_COLOR;
     settings.palette = 0; palette_set(0);
-    ui.force = 1; ui_draw();                       /* (in MONO; OCT+ goes to LOOM A) */
+    ui.force = 1; ui_draw();                       /* (in TAPE A; OCT+ goes to LOOM A) */
     memcpy(before, host_screen, sizeof before);
     press(B_OCTUP);
-    bad += check("COLOR OCT+ previews the next palette (MONO, then LOOM A) without closing the menu",
+    bad += check("COLOR OCT+ previews the next palette (TAPE A, then LOOM A) without closing the menu",
                  settings.palette == 1 && T_BG == UI_PALETTES[1].bg && !ux.light && ui.menu == 1 && !song.octave &&
                  memcmp(before, host_screen, sizeof before) && !memcmp(sounds, trk, sizeof sounds));
-    for (uint32_t k = 1; k < NPALETTES; k++) turn(EN_K1, 1);   /* (LOOM B, the test GRAY, then MONO again) */
-    bad += check("COLOR KNOB 1 wraps back to MONO", settings.palette == UI_DEFAULT_INDEX && NPALETTES == 4u);
+    for (uint32_t k = 1; k < NPALETTES; k++) turn(EN_K1, 1);   /* (LOOM B, TAPE B, MONO, the test GRAY, then TAPE A) */
+    bad += check("COLOR KNOB 1 wraps back to TAPE A", settings.palette == UI_DEFAULT_INDEX && NPALETTES == 6u);
     press(B_OCTDN);
     bad += check("OCT- leaves display preferences without changing musical state",
                  !ui.menu && settings.palette == UI_DEFAULT_INDEX && !memcmp(sounds, trk, sizeof sounds));
@@ -1894,7 +1894,7 @@ static int32_t roll_ink_row(const uint16_t *s, int32_t x0, int32_t x1, int32_t y
     int32_t x, y, n = 0, sum = 0;
     for (y = y0; y < y1; y++)
         for (x = x0; x < x1; x++)
-            if (s[y * 240 + x] != swap16(T_BG) && s[y * 240 + x] != swap16(T_LIFT)) {
+            if (s[y * 240 + x] != swap16(T_BG) && s[y * 240 + x] != swap16(T_LIFT) && s[y * 240 + x] != swap16(T_SURF)) {
                 n++;                                      /* (a ring's ground, plain or lifted while its knob turns) */
                 sum += y * 16;
             }
@@ -1909,7 +1909,7 @@ static int roll_static_now(void)                  /* the screen is the static re
 }
 /* the pages' knobs are rings (ui_pages.c): column c's cell, its value's row, where its value starts (centred) */
 #define RX(c) CARD_X(c)
-#define VY (Y_LABEL + ROLL_Y)
+#define VY (Y_STRIP + (H_STRIP - COL_H) / 2 + ROLL_Y)   /* (1.3.0: the knobs' strip at the foot, LOOM-8's bands) */
 #define STRIP(c) RX(c), VY, RX(c) + 58, VY + ROLL_H
 static int32_t ring_vx(uint32_t c)
 {
@@ -2924,17 +2924,17 @@ static int test_product_ux(void)
     bad += check("PLAY and REC LEDs stay lit across time and audio block phase", ok);
     led_pos_init();
     ok = 1;
-    for (p = 0; p < NPALETTES; p++) for (b = 0; b < 1u; b++) {   /* (ENV: its knobs the strip under the curve) */
-        uint16_t sound[240 * (240 - PV_SOUND_Y)], columns[240 * CARD_H];
+    for (p = 0; p < NPALETTES; p++) for (b = 0; b < 1u; b++) {   /* (ENV: its knobs the strip at the foot, 1.3.0) */
+        uint16_t sound[240 * (240 - Y_HINT)], columns[240 * CARD_H];
         ui_power_on(); set_engine_of(TSEL, 3); palette_set(p); settings.zoom = 1;   /* (the generic ENV) */
         open_family(FAM_ENV); frame();
-        memcpy(sound, host_screen + PV_SOUND_Y * 240, sizeof sound);
-        memcpy(columns, host_screen + Y_LABEL * 240, sizeof columns);
+        memcpy(sound, host_screen + Y_HINT * 240, sizeof sound);
+        memcpy(columns, host_screen + (Y_STRIP + (H_STRIP - CARD_H) / 2) * 240, sizeof columns);
         ui.hot_col = 1; ui.hot_t = 40; ui.force = 1; ui_draw();
-        ok &= !memcmp(sound, host_screen + PV_SOUND_Y * 240, sizeof sound);
+        ok &= !memcmp(sound, host_screen + Y_HINT * 240, sizeof sound);
         int changed = 0;
         for (uint32_t y = 0; y < CARD_H; y++) for (uint32_t x = 0; x < 240; x++) {
-            uint16_t old = columns[y * 240 + x], now = host_screen[(Y_LABEL + y) * 240 + x];
+            uint16_t old = columns[y * 240 + x], now = host_screen[(Y_STRIP + (H_STRIP - CARD_H) / 2 + y) * 240 + x];
             if (x >= (uint32_t)CARD_X(1) && x < (uint32_t)(CARD_X(1) + CARD_W)) changed |= old != now;   /* (outlined) */
             else ok &= old == now;
         }

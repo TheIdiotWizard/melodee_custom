@@ -38,6 +38,7 @@ static int32_t pv_tab_h;                                /* an engine in sections
 static struct { int16_t x0, y0, x1, y1; } pv_box[6];   /* the labels on a panel (pv_text) */
 static uint32_t pv_nbox;
 
+static int ep_has(uint32_t e);                          /* ui_engpic.c */
 static uint32_t pv_kind(void)
 {
     const page_t *pg = cur_page();
@@ -600,6 +601,11 @@ static uint32_t pv_pic(int32_t *cut, int32_t *res)
         return 8u;
     if ((pg->scope == SC_ENGINE || pg->scope == SC_FM6 || pg->scope == SC_FMOP) && e == ENGI_FM6)
         return 4;
+    if (pg->fam == FAM_EDIT && pg->scope != SC_TRACK && ep_has(e))   /* an engine's own pages: its picture (FILTER, a
+                                                                      * track page: theirs) */
+        return 10u;
+    if (pg->fam == FAM_EDIT && pg->own && ep_has(e))    /* FMTONE's, ANALOG4's own pages */
+        return 10u;
     for (c = 0; c < 4u; c++) {
         int16_t *vp;
         const param_desc_t *d = page_desc(pg, c, &vp);
@@ -761,12 +767,130 @@ static void pv_fx(int32_t h)
         pv_fx_strip(sy, ly, a, b, tone < 0 ? b : a, tone ? hz : 0, T_KNOB(3), !tone);
     }
 }
+#include "ui_engpic.c"                                  /* the engines' pictures (1.3.0) */
+/* ---------------------------------------------------- the bands (1.3.0) --- */
+/* the knobs' strip's panel: rows Y_STRIP .. + H_STRIP, a cell a knob (draw_column: col_band), a line between them */
+static void pv_band_panel(void)
+{
+    uint32_t c;
+    for (uint32_t band = 0; band < (uint32_t)H_STRIP; band += CV_MAX / BOX_W) {
+        cv_begin_band(BOX_W, H_STRIP, T_BG, band);
+        cv_rrect(0, 0, BOX_W, H_STRIP, 8, T_SURF, T_BG);
+        for (c = 1; c < 4u; c++)
+            cv_rect(CARD_X(c) - 2 - BOX_X, 8, 1, H_STRIP - 16, T_LINE);
+        cv_blit_band(BOX_X, Y_STRIP);
+    }
+}
+/* the tag line: a rule, then where you are ("SUPERSAW > SAW > P3": the sound, the engine, its pattern; an FX slot:
+ * the effect, its slot), then the pages' dots */
+static uint32_t pv_tag_sig;
+static void pv_tag(void)
+{
+    char nm[20], pt[8], s[48];
+    const char *en = ENGINES[eng_idx(TSEL->eng_req)]->name;
+    const page_t *pg = cur_page();
+    uint32_t n, k, sig, i, shared = pg->fam == FAM_FX && pg->scope == SC_GLOBAL;
+    int32_t x, dw;
+    page_dots(&n, &k);
+    sound_name(TSEL, nm);
+    str_cpy(pt, "P", sizeof pt);
+    pat_num(pt + 1, TSEL->pattern);
+    sig = str_hash(str_hash(str_hash(song.sel * 7u + ux.gen * 977u + ux.pal * 31u + n * 131u + k * 7919u + shared, en), nm), pt);
+    if (!ui.force && sig == pv_tag_sig)
+        return;
+    pv_tag_sig = sig;
+    cv_begin(240, H_TAG, T_BG);
+    dw = n > 1u ? (int32_t)n * 9 + 2 : 0;               /* (the dots: 6 px, 3 apart; the page's in TEXT) */
+    if (dw > 90) dw = 0;
+    {
+        int32_t room = 236 - 24 - dw, tw, form;
+        for (form = 0; form < 3; form++) {              /* the sound > the engine > the pattern; then without the engine,
+                                                         * then the sound alone (never cut) */
+            if (shared) {
+                str_cpy(s, form ? "SHARED FX" : "ALL TRACKS > SHARED FX", sizeof s);
+            } else {
+                str_cpy(s, nm[0] ? nm : en, sizeof s);
+                if (!form && nm[0] && !str_eq(nm, en)) {
+                    str_cpy(s + str_len(s), " > ", 4);
+                    str_cpy(s + str_len(s), en, sizeof s - str_len(s));
+                }
+                if (form < 2) {
+                    str_cpy(s + str_len(s), " > ", 4);
+                    str_cpy(s + str_len(s), pt, sizeof s - str_len(s));
+                }
+            }
+            if (text_w(TY_LB, s) <= room)
+                break;
+        }
+        const aafont_t *f = ty_fit(TY_LB, s, room);
+        tw = text_w(f, s) < room ? text_w(f, s) : room;
+        x = 236 - dw - tw;
+        cv_rect(6, H_TAG / 2, x - 12 > 0 ? x - 12 : 0, 1, T_LINE);
+        cv_text_fit(x, ty_y(H_TAG / 2, f), f, s, T_MID, T_BG, room);
+    }
+    if (dw)
+        for (i = 0, x = 236 - dw + 4; i < n; i++, x += 9)
+            cv_rrect(x, H_TAG / 2 - 3, 6, 6, 3, i == k ? T_TEXT : T_RAISE, T_BG);
+    cv_blit(0, Y_TAG);
+}
+/* the hints: what SELECT, PRESETS and OCT+ / OCT- do here */
+static uint32_t pv_hint_sig;
+static void pv_hints(void)
+{
+    const page_t *pg = cur_page();
+    khint_t h[3];
+    uint32_t n = 0, sig;
+    if (designer_on() && designer_foot())                /* the sound designer: its keys (ui_designer.c) */
+        return;
+    if (pg->fam == FAM_FX && pg->graph == GR_NONE) {    /* an FX slot */
+        h[n++] = (khint_t){KC_SELECT, "next"};
+        h[n++] = (khint_t){KC_OCTDN, "rack"};
+    } else {
+        h[n++] = (khint_t){KC_SELECT, "page"};
+        if (sec_on())
+            h[n++] = (khint_t){KC_PRESETS, "section"};
+        else
+            h[n++] = (khint_t){KC_OCTUP, "sheet"};
+    }
+    sig = n * 7u + (uint32_t)sec_on() * 131u + (uint32_t)pg->fam * 977u + ux.gen * 31u + ux.pal * 7919u;
+    if (!ui.force && sig == pv_hint_sig)
+        return;
+    pv_hint_sig = sig;
+    cv_begin(240, H_HINT, T_BG);
+    {   /* LOOM-8's hints: an outlined keycap, its word after it; the first at the left, the last flush right; too
+         * wide: the first's word goes, then all words (the keycaps never shrink) */
+        int32_t x = 6, y = (H_HINT - KC_PH) / 2, tot = 0;
+        uint32_t i, drop = 0;
+        for (i = 0; i < n; i++)
+            tot += kc_w(h[i].key) + KH_GAP + text_w(TY_LB, h[i].act) + 12;
+        if (tot - 12 > 228)
+            drop = 1;
+        if (drop && tot - 12 - KH_GAP - text_w(TY_LB, h[0].act) > 228)
+            drop = n;
+        for (i = 0; i < n; i++) {
+            const char *act = i < drop ? "" : h[i].act;
+            int32_t kw = kc_w(h[i].key), w = kw + (act[0] ? KH_GAP + text_w(TY_LB, act) : 0);
+            if (i + 1u == n && n > 1u)
+                x = 234 - w;
+            cv_rrect(x, y, kw, KC_PH, 11, T_MID, T_BG);
+            cv_rrect(x + 1, y + 1, kw - 2, KC_PH - 2, 10, T_BG, T_MID);
+            cv_text_on(x + 4, ty_y(y + KC_PH / 2, TY_LB), TY_LB, KC[h[i].key].label, T_TEXT, T_BG);
+            if (act[0])
+                cv_text_on(x + kw + KH_GAP, ty_y(y + KC_PH / 2, TY_LB), TY_LB, act, T_TEXT, T_BG);
+            x += w + 12;
+        }
+    }
+    cv_blit(0, Y_HINT);
+}
+
 static void pv_picture(void)
 {
-    int32_t cut, res, y = PV_PIC_Y + pv_tab_h, h = PV_PIC_H - pv_tab_h;
+    int32_t cut, res, y = Y_PIC + pv_tab_h, h = H_PIC - pv_tab_h;
     uint32_t pic = pv_pic(&cut, &res), sig = pv_curve_sig() ^ pic * 131u ^ (uint32_t)(cut + 1) * 7919u ^ (uint32_t)h * 613u, i;
     int32_t pp = pic == 6u && song.playing ? (int32_t)(TSEL->seq_idx % (uint32_t)clamp(TSEL->p[P_SLEN], 1, NSTEP)) : -1;
     sig ^= pic == 0u ? (ui.frame >> 1) * 2654435761u : 0u;   /* (the scope: every other frame) */
+    if (pic == 10u)                                     /* an engine's picture: its values (DRUM: the lanes lit) */
+        sig ^= ep_sig(TSEL->eng_req % NENGINES) * 2246822519u;
     if (pic == 9u) {                                    /* FX: the slot's effect (no column) and its buffer */
         uint32_t m = cur_page()->scope == SC_GLOBAL, id = cur_page()->id[0];
         sig ^= (uint32_t)(m ? song.g : TSEL->p)[id - 1u] * 7919u +
@@ -781,7 +905,7 @@ static void pv_picture(void)
     if (pic == 4u || pic == 8u) {                       /* FM6: its chart, CHORD: its chord, as the panel draws them */
         graph_y = y;
         graph_h = h;
-        graph_oy = h < H_GRAPH ? GOY - 8 : GOY;         /* (under the designer's tabs: the chart a little higher) */
+        graph_oy = h >= 100 ? (h - 100) / 2 : 0;        /* (1.3.0: the 100 px scale centred in the picture's band) */
         draw_graph();
         graph_y = Y_GRAPH;
         graph_h = H_GRAPH;
@@ -800,6 +924,7 @@ static void pv_picture(void)
         else if (pic == 6u) pv_steps(h);
         else if (pic == 3u) pv_filter(cut, res, h);
         else if (pic == 9u) pv_fx(h);
+        else if (pic == 10u) ep_draw(TSEL->eng_req % NENGINES, h);
         else stage_wave(T_THEME, 8, h - 16);
         cv_blit_band(0, (uint32_t)y);
     }
@@ -990,9 +1115,11 @@ static void pv_draw(void)
     pv_tab_h = (kind == PV_RINGS || kind == PV_CURVE) && designer_on() && designer_tabs_on() ? SEC_TAB_H : 0;
     if (kind == PV_CURVE && cur_page()->graph == GR_FMEG)   /* (EG RATE / LVL: the operators' tabs) */
         pv_tab_h = SEC_TAB_H;
-    /* RINGS, CURVE: the header, the sections' tabs, the strip, the sound, then the picture (the busiest last) */
+    /* RINGS, CURVE (1.3.0, LOOM-8's bands): the header, the sections' tabs, the strip, the tag line, the hints, then
+     * the picture (the busiest last) */
     if (ui.force) {                                     /* (the parts then cover what they draw) */
-        lcd_fill(0, H_HEAD, 240, PV_SOUND_Y - H_HEAD, T_BG);
+        lcd_fill(0, H_HEAD, 240, 240 - H_HEAD, T_BG);
+        pv_band_panel();
         ui.graph_sig = 0;
     }
     draw_head();
@@ -1004,11 +1131,14 @@ static void pv_draw(void)
     if (sec_on())                                       /* an engine in sections: the page noted (the header says where:
                                                          * the section's page, its dots) */
         sec_note();
-    card_y = Y_LABEL + pv_tab_h;
+    card_y = Y_STRIP + (H_STRIP - COL_H) / 2;
     col_style = CS_CARD;
+    col_band = 1;
     draw_columns();
+    col_band = 0;
     card_y = Y_LABEL;
-    pv_sound();
+    pv_tag();
+    pv_hints();
     {   /* the picture straight on the background (no panel: the screen calm) */
         uint16_t panel = ux.panel;
         ux.panel = ux.bg;
@@ -1018,7 +1148,7 @@ static void pv_draw(void)
             sig = pv_curve_sig();
             if (ui.force || sig != pv.panel) {
                 pv.panel = sig;
-                pv_panel(PV_CURVE_Y + pv_tab_h, PV_CURVE_H - pv_tab_h, pv_curve);
+                pv_panel(Y_PIC + pv_tab_h, H_PIC - pv_tab_h, pv_curve);
             }
         }
         ux.panel = panel;

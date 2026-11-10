@@ -1982,7 +1982,7 @@ static void roll_frames(const char *dir)
             }
             for (k = 0; k < 8u; k++) ui_draw();
         }
-        if (dir && (!strcmp(UI_PALETTES[p].name, "MONO") || !strcmp(UI_PALETTES[p].name, "GRAY"))) {
+        if (dir && (p == 0u || !strcmp(UI_PALETTES[p].name, "GRAY"))) {
             roll_film_save(dir, UI_PALETTES[p].name, "bpm_roll", bimg, biw, bih);
             roll_film_save(dir, UI_PALETTES[p].name, "card_roll", cimg, ciw, cih);
         }
@@ -2223,7 +2223,7 @@ static void designer_sweep(const char *out)
 {
     char name[96],file[64];
     for(uint32_t palid=0;palid<UI_PAL_ENTRIES;palid++)for(uint32_t eng=0;eng<NENG_SHOWN;eng++){
-        int night=str_eq(UI_PALETTES[palid].name,"MONO");
+        int night=palid==0u;
         state();sound_init_of(TSEL,eng_vis(eng));pal(palid);designer_open();
         snprintf(name,sizeof name,"%s/designer %s START",UI_PALETTES[palid].name,ENGINES[TSEL->eng_req]->name);cur_name=name;
         nscr=npend=0;ui.force=1;ui_draw();lint();if(palid==UI_GRAY_INDEX)mono_check();
@@ -2354,7 +2354,7 @@ int main(int argc, char **argv)
     const char *out = argc > 1 ? argv[1] : "build/ui_new";
     char path[600];
     uint32_t p, s;
-    static const char *const SHOW[] = {"MONO", "GRAY"};
+    static const char *const SHOW[] = {"TAPE A", "GRAY"};
     snprintf(path, sizeof path, "%s/report.txt", out);
     rep = fopen(path, "w");
     if (!rep) { fprintf(stderr, "cannot write %s\n", path); return 1; }
