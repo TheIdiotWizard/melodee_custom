@@ -53,6 +53,9 @@ static const engine_t ENG_RETIRED = {         /* 13 without MELODEE_SLICE: reser
 #include "eng_uflt.c"         /* the FILTER page: TRIO's filter for MONO2K's and Mini-Tone's engines */
 #include "eng_m2k.c"          /* SAW ENS WAV NOIS: MONO2K's machines, a copy a voice */
 #include "eng_mt.c"           /* FMTONE DUALVCO ANALOG4: Mini-Tone's engines */
+#if MELODEE_M2K_ENGINES
+#include "eng_vox.c"          /* VOX: MONO2K's VOX-6 (1.3.4) */
+#endif
 static uint32_t eng_state_size(uint32_t e)
 {
     switch (e) {
@@ -86,6 +89,9 @@ static uint32_t eng_state_size(uint32_t e)
     case ENGI_FMTONE: case ENGI_DUAL: case ENGI_ANA4:
         return mt_state_size(e);
     case ENGI_SAW + 1u: return M2K_PART_BYTES(M2K_ENS);
+#if MELODEE_M2K_ENGINES
+    case ENGI_VOX: return sizeof(vox_part_t);
+#endif
 #if MELODEE_SLICE
     case ENGI_SLICE: return sizeof(slc_rb_t);
 #endif
@@ -184,7 +190,12 @@ static const engine_t *const ENGINES[NENGINES] = {
 #else
     &ENG_RETIRED,                /* 15: retired CZ-1; stored ID reserved */
 #endif
-    &ENG_RETIRED, &ENG_RETIRED, &ENG_RETIRED, /* 16..18 reserved */
+#if MELODEE_M2K_ENGINES
+    &ENG_VOX,                    /* 16: VOX, MONO2K's VOX-6 (1.3.4; reserved and never used before) */
+#else
+    &ENG_RETIRED,                /* 16: reserved (VOX in the MONO2K build) */
+#endif
+    &ENG_RETIRED, &ENG_RETIRED,  /* 17, 18 reserved */
     &ENG_P5_TEST,                /* 19: Prophet (ANALOG's ID 0 stays reserved) */
     &ENG_RETIRED,                /* 20: Prophet user-preset namespace */
     &ENG_MIDI,                   /* 21: USB MIDI Track */
@@ -232,6 +243,7 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if MELODEE_M2K_ENGINES
     ENGI_SAW, ENGI_SAW + 1, ENGI_WAV, 11,   /* SAW ENS WAV (MONO2K's), NOISE (1.2.8, in NOIS's place) */
     ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4,             /* FMTONE DUALVCO ANALOG4 (Mini-Tone's) */
+    ENGI_VOX,                                      /* VOX (MONO2K's VOX-6, 1.3.4) */
 #else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */
@@ -290,7 +302,7 @@ static int eng_extra_retired(uint32_t e)
  * eng_vis(n), e's place among them eng_rank(e), the next / previous one eng_step(e, dir) (wraps) */
 static int eng_ok(uint32_t e)
 {
-    return e < NENGINES && e != USER_NATIVE_P5 && !(e >= 16u && e <= 18u) && !eng_extra_retired(e) && e != 4u && e != 8u && e != 14u && (MELODEE_SLICE || e != ENGI_SLICE);
+    return e < NENGINES && e != USER_NATIVE_P5 && !(e >= 16u + MELODEE_M2K_ENGINES && e <= 18u) && !eng_extra_retired(e) && e != 4u && e != 8u && e != 14u && (MELODEE_SLICE || e != ENGI_SLICE);
 }
 static uint32_t eng_sound_idx(uint32_t e)
 {

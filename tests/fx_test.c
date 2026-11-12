@@ -446,7 +446,7 @@ static void tone_test(void)
 static void grouped_fx_test(void)
 {
     static const uint8_t order[] = {FX_OFF, FX_ROOM, FX_REVERB, FX_WIDTH, FX_PHASER, FX_CHORUS,
-        FX_FLANGER, FX_PEDAL_PHASER, FX_PEDAL_CHORUS, FX_SOFT, FX_CRUSH, FX_FORMANT, FX_TAPE, FX_SPIT,
+        FX_FLANGER, FX_PEDAL_PHASER, FX_PEDAL_CHORUS, FX_CRUSH, FX_FORMANT, FX_TAPE, FX_SPIT,
         FX_MIDIDELAY, FX_MIDIVERB};
     ui_power_on();
     for (uint32_t shared = 0; shared < 2; shared++) {              /* (the track's rack lists audio effects again) */

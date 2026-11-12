@@ -89,6 +89,7 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define ENGI_FMTONE 29u          /* Mini-Tone's FMTONE, DUALVCO and ANALOG4 (1.2.6: eng_mt.c) */
 #define ENGI_DUAL 30u
 #define ENGI_ANA4 31u
+#define ENGI_VOX 16u              /* VOX: MONO2K's VOX-6 (1.3.4, eng_vox.c), in a number reserved and never used */
 #define NENGINES 32               /* append engines without reusing preset namespaces */
 #define USER_NATIVE_FM 17u
 #define USER_NATIVE_CZ 18u
@@ -111,8 +112,8 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
 #define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
 #if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
-#define NENG_SHOWN (11u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS))
-                                                /* SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 LOFI [WHEEL] PHYS DRUM MIDI */
+#define NENG_SHOWN (12u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS))
+                                                /* SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 VOX LOFI [WHEEL] PHYS DRUM MIDI */
 #elif MELODEE_FELUCCA_ENGINES
 #define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
                                                 /* PROPHET FM6 PHASE LOFI VOICE TRIO [WHEEL] PHYS [NOISE] DRUM MIDI */
@@ -303,8 +304,14 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define P_FMODE P_RESERVED33
 #define P_FCUT P_RESERVED34
 #define P_FRES P_RESERVED35
+/* the voice's DRIVE (1.3.4, ENV > DRIVE; voice.c, dsp.c voice_drive): after the engine (and its FILTER), before the amp
+ * envelope, each voice its own, in three of the reserved four (zero in every older store: no drive) */
+#define P_DRIVE P_RESERVED45
+#define P_DSHAPE P_RESERVED46
+#define P_DVEL P_RESERVED47
+enum { DS_SOFT, DS_HARD, DS_FOLD, DS_FUZZ };     /* P_DSHAPE */
 static int param_reserved(uint32_t id)
-{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) || (id>=P_RESERVED45 && id<=P_RESERVED48); }
+{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) || id==P_RESERVED48; }
 static int global_reserved(uint32_t id)
 { return (id>=G_RESERVED4 && id<=G_RESERVED11) || (id>=G_RESERVED24 && id<=G_RESERVED26); }
 
@@ -361,6 +368,7 @@ typedef struct {
     uint32_t age;
     uint8_t mvel;                /* mod.c: the note-on velocity (before UNISON scaling) and RAND of the note */
     int16_t mrnd;
+    int32_t drv_dc;              /* the DRIVE's DC blocker (FUZZ's lopsided halves), Q8 */
 } voice_t;
 
 typedef struct {                 /* per-voice control-rate modulation, computed in voice.c */
@@ -373,6 +381,8 @@ typedef struct {                 /* per-voice control-rate modulation, computed 
     int32_t fine;                /* the residual below 1/16 semitone in inc: unison detune, TUNE, bend (1/4096) */
     int32_t plog;                /* the voice's own pitch offset without TUNE and bend (glide, LFO and ENV pitch, the
                                   * matrix's, unison detune), Q24 octaves: for engines that figure their pitch (FM6) */
+    uint32_t drv;                /* the DRIVE (1.3.4): its gain, Q12, in bits 0..15 (0: no drive), its shape (DS_*) in 16..17; */
+    int32_t *dst;                /* its DC state (voice_t drv_dc) */
 } vmod_t;
 
 typedef struct {

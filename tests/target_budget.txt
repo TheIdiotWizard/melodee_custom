@@ -19,7 +19,7 @@ wheel_render 267
 wheel_block 102
 # PHYS restored (MELODEE_FELUCCA_ENGINES): Felucca's loop as it builds now, against the retired one's 61
 phys_render 68
-drum_render 72
+drum_render 83
 # SID-kit renderer baseline before the 2026-10-25 channel/filter split.
 # KIT SID without the SID engine: its envelope helper has one caller left and is inlined into the loop (2 calls
 # there before): the same work counted as loop instructions, not a slower kit

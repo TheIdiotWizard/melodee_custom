@@ -8,13 +8,13 @@
  * and inactive FM6 updates share the workers; events and part-wide control
  * preparation remain on CPU0. Private PCM preserves addition order. */
 typedef void (*audio_batch_fn)(const void *,int32_t *);
-/* Prophet is largest: 148 bytes on FM-1, 168 on the 64-bit host. Producer
- * assertions enforce both bounds. Keep host pointers/alignment intact while
- * target slots avoid reserving space for pointers twice their size. */
+/* Prophet is largest: 156 bytes on FM-1, 184 on the 64-bit host (1.3.4: vmod_t's DRIVE, a word and a pointer, +8 and
+ * +16). Producer assertions enforce both bounds. Keep host pointers/alignment intact while target slots avoid
+ * reserving space for pointers twice their size. */
 #ifdef FM1_IRQ_TARGET
-#define AUDIO_BATCH_BYTES 148u
+#define AUDIO_BATCH_BYTES 156u
 #else
-#define AUDIO_BATCH_BYTES 168u
+#define AUDIO_BATCH_BYTES 184u
 #endif
 #define AUDIO_BATCH_JOBS 24u
 _Static_assert(AUDIO_BATCH_JOBS<=32u,"Batch worker mask must cover every descriptor");

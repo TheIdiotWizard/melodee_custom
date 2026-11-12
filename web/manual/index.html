@@ -101,6 +101,7 @@
       <a class="sub" href="#m2k">SAW, ENS, WAV</a>
       <a class="sub" href="#noise">NOISE</a>
       <a class="sub" href="#minitone">FMTONE, DUALVCO, ANALOG4</a>
+      <a class="sub" href="#vox">VOX</a>
       <a class="sub" href="#filter">FILTER</a>
       <a class="sub" href="#lofi">LoFi</a>
       <a class="sub" href="#wheel">Wheel</a>
@@ -137,7 +138,7 @@
       <section id="about">
         <h2>About</h2>
         <p>Melodee is multi-engine synthesizer and sequencer firmware for the M-VAVE FM-1. After you install it, the unit runs Melodee instead of the official firmware: up to eight tracks (four that play an instrument, four more for external MIDI gear), a 64-step sequencer with patterns and songs, effects, USB MIDI and audio, Bluetooth MIDI and USB Host.</p>
-        <p>The selectable engines are <strong>SAW</strong>, <strong>ENS</strong> and <strong>WAV</strong> from MONO2K, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong> and <strong>ANALOG4</strong> from Mini-Tone, Felucca’s <strong>LoFi</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
+        <p>The selectable engines are <strong>SAW</strong>, <strong>ENS</strong> and <strong>WAV</strong> from MONO2K, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong> and <strong>ANALOG4</strong> from Mini-Tone, <strong>VOX</strong> (MONO2K’s VOX-6), Felucca’s <strong>LoFi</strong>, <strong>Wheel</strong> and <strong>Phys</strong>, and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
       </section>
 
       <section id="before">
@@ -230,6 +231,7 @@
             <tr><td>FMTONE</td><td>LEV A</td><td>LEV B</td><td>FB</td><td>HARM</td></tr>
             <tr><td>DUALVCO</td><td>DET</td><td>CNFG</td><td>BEND</td><td>OVER</td></tr>
             <tr><td>ANALOG4</td><td>WAV1</td><td>PW1</td><td>WAV2</td><td>FIN2</td></tr>
+            <tr><td>VOX</td><td>VOC1</td><td>VOC2</td><td>VOIC</td><td>TUNE</td></tr>
             <tr><td>LoFi</td><td>WAVE</td><td>DUTY</td><td>CRSH</td><td>release</td></tr>
             <tr><td>Wheel</td><td>REG</td><td>PERC</td><td>DRV</td><td>ROTR</td></tr>
             <tr><td>Phys</td><td>STRC</td><td>BRIT</td><td>DAMP</td><td>POS</td></tr>
@@ -337,7 +339,7 @@
 
       <section id="engines">
         <h2>Engines</h2>
-        <p>Selectable instruments: <strong>SAW</strong>, <strong>ENS</strong>, <strong>WAV</strong>, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong>, <strong>ANALOG4</strong>, <strong>LOFI</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
+        <p>Selectable instruments: <strong>SAW</strong>, <strong>ENS</strong>, <strong>WAV</strong>, <strong>NOISE</strong>, <strong>FMTONE</strong>, <strong>DUALVCO</strong>, <strong>ANALOG4</strong>, <strong>VOX</strong>, <strong>LOFI</strong>, <strong>WHEEL</strong>, <strong>PHYS</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
         <p>Retired engines (ANALOG, DIGITAL, NOISE, CZ-1, and others) stay silent if an old project still names them; a track saved with SID plays as LOFI, which has SID’s engine number; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
 
         <section id="m2k">
@@ -379,6 +381,10 @@
             </tbody>
           </table>
           <p>The FILTER is OFF on most FMTONE and DUALVCO presets (as Mini-Tone without its filter); RESO PLUCK, FIFTH RING and RESO LEAD start with it on, and every ANALOG4 preset does (its filter 1).</p>
+        </section>
+        <section id="vox">
+          <h3>VOX</h3>
+          <p>MONO2K’s VOX-6, after the Elektron Monomachine’s VO-6 as measured on its OS: a singing voice. A buzz (one impulse a period) and noise go through a high-pass and four formant resonators in series; the first two set the vowel. <strong>VOC1</strong> moves the first formant (199–702 Hz: higher is a more open vowel, as in “ah”), <strong>VOC2</strong> the second (457–2757 Hz: higher is a brighter, more forward vowel, as in “ee”). <strong>VOIC</strong> turns the buzz to a whisper (0 voiced, 127 whispered). <strong>TUNE</strong> moves it ±2 semitones; its pitch is whole hertz, as on the Monomachine. A level control keeps every vowel about as loud, and a new note fades in quickly; a legato note keeps its level and glides from the last vowel. The track’s ENV and LFO <strong>FLT</strong> amounts move VOC2 (a wah), <strong>SHP</strong> moves VOC1. Up to four voices. Presets: AAH, EH, EE, OH, OO, WAH LEAD, WHISPER. VO-6’s consonant controls are not in MONO2K yet, so they are left out.</p>
         </section>
         <section id="filter">
           <h3>FILTER</h3>
@@ -435,7 +441,7 @@
               <tr><td></td><td>TOP</td><td>−8 to +8 on the upper bars (2⅔′ to 1′).</td></tr>
               <tr><td>TONE</td><td>PERC</td><td>Percussion on the 2nd (4′) or 3rd (2⅔′) harmonic: OFF, 2ND, 3RD, 2SOFT, 3SOFT, 2SLOW, 3SLOW. Single trigger: it strikes only when no other key of the track is held. With PERC on, the 1′ bar is silent; at normal level the bars drop about 3 dB.</td></tr>
               <tr><td></td><td>CLICK</td><td>Key click: a short burst of high-passed noise at key-down (half as loud at release).</td></tr>
-              <tr><td></td><td>DRV</td><td>Per-voice soft overdrive. For chord growl, add a DRIVE in the track’s FX rack.</td></tr>
+              <tr><td></td><td>DRV</td><td>Per-voice soft overdrive (the organ’s own). ENV &gt; DRIVE adds the track’s drive after it.</td></tr>
               <tr><td></td><td>ROTR</td><td>Rotary speaker: OFF, SLOW or FAST. Two rotors (bass and treble, split near 800 Hz) ramp between speeds, the treble in about 1 s and the bass in about 4 s.</td></tr>
             </tbody>
           </table>
@@ -540,6 +546,7 @@
           <tbody>
             <tr><td>ENV</td><td>ATK (Attack - how long the sound takes to reach its peak), DEC (Decay - how the sound went down after its initial peak), SUS (Sustain - how loud to play the note while the key is pressed down), REL (Release - how long to fade the sound out after a note is released) — shared amp envelope.</td></tr>
             <tr><td>ENV DEST</td><td>FLT, PIT, SHP — envelope amount to filter, pitch and wave shape (±).</td></tr>
+            <tr><td>DRIVE</td><td><strong>DRIVE</strong> (0 off), <strong>SHAPE</strong> (SOFT, HARD, FOLD, FUZZ) and <strong>VEL</strong>: each voice is driven on its own, after the engine and its FILTER and before the amp envelope, so chords stay clean and a fading note keeps its grit. VEL sets how much a note’s velocity sets the drive: at 0 every note is driven the same; turned up, soft notes drive less (at 127 the softest are clean). The FILTER before it is its tone. Loading a factory sound sets DRIVE to 0.</td></tr>
             <tr><td>LFO</td><td>RATE (speed), WAVE (SIN / TRI / SAW / SQR / S&amp;H) (type of wave), PHS (phase), FADE (fade-in).</td></tr>
             <tr><td>LFO 2</td><td>SYNC (OFF, 4BAR…1/32 tempo divisions), TRIG (NOTE / FREE), Polarity (Bidirectional up and down in amount, or Unidirectional only).</td></tr>
             <tr><td>LFO DEST</td><td>pitch, filter, wave shape (±), amp amount .</td></tr>
@@ -567,7 +574,7 @@
           <figure class="shot"><img src="fx_tone_dark.png" alt="Effect tone filter set to dark" width="240" height="240"><figcaption>TONE: the lit band reaches the effect.</figcaption></figure>
         </div>
         <p>On the rack, <kbd>KNOB 2</kbd> picks a row, <kbd>KNOB 1</kbd> chooses its effect, and <kbd>KNOB 4</kbd> sets its amount (an audio effect’s MIX, NOTE TAIL’s REL, NOTE ECHO’s LEVEL, or the track’s SEND on the Shared row in CHAIN mode). Empty slots show <strong>--</strong>. <kbd>OCT+</kbd> opens the selected slot, its effect picker if empty, or the SHARED rack. <kbd>SELECT</kbd> visits the racks and occupied slots; empty slot pages are skipped. Pressing <kbd>FX</kbd> from a slot returns to its rack.</p>
-        <p>The effect picker groups choices into Space, Motion, Dirt and Colour; a track’s slots add Notes. On an empty slot, <kbd>OCT+</kbd> opens the browser: <kbd>KNOB 1</kbd> picks a family, <kbd>KNOB 2</kbd> an effect, and <kbd>OCT+</kbd> confirms. On an audio slot’s page, <kbd>KNOB 1</kbd> is MIX, <kbd>KNOB 2</kbd> is RATE / TIME / SIZE / DRIVE / BITS, and <kbd>KNOB 3</kbd> shapes its character. <kbd>KNOB 4</kbd> is TONE for ROOM and REVERB, SHAPE for DRIVE, or RESO for the swept pedals:</p>
+        <p>The effect picker groups choices into Space, Motion, Dirt and Colour; a track’s slots add Notes. On an empty slot, <kbd>OCT+</kbd> opens the browser: <kbd>KNOB 1</kbd> picks a family, <kbd>KNOB 2</kbd> an effect, and <kbd>OCT+</kbd> confirms. On an audio slot’s page, <kbd>KNOB 1</kbd> is MIX, <kbd>KNOB 2</kbd> is RATE / TIME / SIZE / DRIVE / BITS, and <kbd>KNOB 3</kbd> shapes its character. <kbd>KNOB 4</kbd> is TONE for ROOM and REVERB, or RESO for the swept pedals. DRIVE is no longer an effect: it is each voice’s, on ENV &gt; DRIVE (a project that has one in a slot keeps it):</p>
         <table>
           <thead><tr><th>Effect</th><th><kbd>KNOB 2</kbd></th><th><kbd>KNOB 3</kbd></th></tr></thead>
           <tbody>
@@ -578,7 +585,7 @@
             <tr><td>SPIT</td><td>RATE</td><td>BITE — a resonant band that jumps and saturates.</td></tr>
             <tr><td>ROOM</td><td>SIZE</td><td>DECAY — a small space.</td></tr>
             <tr><td>REVERB</td><td>SIZE</td><td>DAMP — SLOOP’s stereo reverb; TONE shapes its input.</td></tr>
-            <tr><td>DRIVE</td><td>DRIVE</td><td>TONE, and SHAPE on KNOB 4: Soft, Hard, Fold or Fuzz — SLOOP drive processors, unity output gain.</td></tr>
+            <tr><td>DRIVE</td><td>DRIVE</td><td>TONE, and SHAPE on KNOB 4: Soft, Hard, Fold or Fuzz — kept only in projects that already have one; new drives go on ENV &gt; DRIVE.</td></tr>
             <tr><td>CRUSH</td><td>BITS</td><td>ALIAS — bit reduction and sample hold (the held rate in kHz).</td></tr>
             <tr><td>FLANGER / PEDAL PHASER / PEDAL CHORUS</td><td>RATE</td><td>DEPTH and signed RESO — feedback pedals; shared returns exclude their dry half.</td></tr>
             <tr><td>CHORUS</td><td>RATE</td><td>DEPTH — stereo pitch movement. Start MIX near 50%.</td></tr>
@@ -833,7 +840,7 @@
         <table>
           <thead><tr><th>Item</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td>COLOR</td><td><strong>TAPE A</strong> (default): after LOOM-8’s tape-deck look, warm brown background and off-white text, tracks in yellow, orange, green and teal. <strong>TAPE B</strong>: the same base with blue, purple, tan and sage. <strong>LOOM A</strong> and <strong>LOOM B</strong>: black background with LOOM-8 track colours (pink, teal, yellow, blue / orange, green, purple, tan). <strong>MONO</strong>: white on black. Tracks 5–8 reuse the four colours. A track’s pages take its colour. Remembered.</td></tr>
+            <tr><td>COLOR</td><td><strong>TAPE A</strong> (default): after LOOM-8’s tape-deck look, a dark brown background and off-white text, tracks in yellow, orange, green and teal. <strong>TAPE B</strong>: the same base with blue, purple, tan and sage. <strong>LOOM A</strong> and <strong>LOOM B</strong>: the same track colours as TAPE A and TAPE B on a black background. <strong>MONO</strong>: white on black. Tracks 5–8 reuse the four colours. A track’s pages take its colour. Remembered.</td></tr>
             <tr><td>FONT</td><td><strong>RUBIK</strong> (default) or <strong>PIXEL</strong> (Melodee Pixel, a block face). Pages keep the same layout in either. Remembered.</td></tr>
             <tr><td>HOLD</td><td>The duration of a long hold of a button or knob (0.3–0.6&nbsp;s) to pull up an additional menu or action.</td></tr>
             <tr><td>LIGHTS</td><td>Idle indicator brightness, OFF (only pressed / engaged / selectable) through FULL.</td></tr>

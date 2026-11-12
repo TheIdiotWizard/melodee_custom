@@ -181,8 +181,32 @@ static inline __attribute__((always_inline)) int32_t amp_at(const vmod_t *m, uin
 /* a voice's sample s (Q15) at the amplitude ramp's sample i, scaled to the voice level (VOICE_FS);
  * engines whose signal peaks near half scale add it << 1. One dithered cut (the ramp's end picks the voice's
  * place in the table) */
+/* the voice's DRIVE (ENV > DRIVE, 1.3.4), before its amp: the gain (Q12), then the shape of the former DRIVE effects
+ * (fx_sloop_insert.h ins_shape: a voice's full scale 32768); FUZZ's lopsided halves through a DC blocker (~14 Hz) of
+ * the voice's own. No tone after it: the FILTER before it is the tone (MONO2K's order) */
+static __attribute__((noinline,section(".audio_text"))) int32_t voice_drive(int32_t s, const vmod_t *m)
+{
+    int32_t v = ((clamp(s, -230000, 230000) >> 3) * (int32_t)(m->drv & 0xFFFFu)) >> 9, y;   /* (32 bits: 28750 x 52483) */
+    switch (m->drv >> 16) {
+    case DS_HARD:
+        return clamp(v, -24000, 24000);
+    case DS_FOLD: {
+        int32_t u = (int32_t)((uint32_t)(clamp(v, -1 << 24, 1 << 24) + 16384) & 0xFFFFu) - 32768;
+        u = 16384 - (u < 0 ? -u : u);
+        return u + (u >> 1);
+    }
+    case DS_FUZZ:
+        y = v > 0 ? (v > 20000 ? 20000 : v) : softclip(v) >> 1;
+        *m->dst += ((y * 256) - *m->dst) >> 9;
+        return y - (*m->dst >> 8);
+    default:
+        return softclip(v);
+    }
+}
 static inline int32_t voice_amp(int32_t s, const vmod_t *m, uint32_t i)
 {
+    if (m->drv)
+        s = voice_drive(s, m);
     return dith_cut(s * mulq15(amp_at(m, i), VOICE_FS), 15, i + (uint32_t)m->amp1);
 }
 

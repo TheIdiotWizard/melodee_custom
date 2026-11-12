@@ -317,6 +317,8 @@ if core; then
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
     t "shipping engines: LOFI WHEEL PHYS NOISE, MONO2K's and Mini-Tone's; CZ-1 VOICE TRIO STAT PAR DYN NOIS retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
     t "MONO2K, NOISE and Mini-Tone engines: presets, the first note after silence, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
+    t "ENV > DRIVE: each voice's drive before its amp, its shapes, VEL, FUZZ's DC, the FX picker without DRIVE" drive_test -O2 $FWS
+    t "VOX (MONO2K's VOX-6): its presets' levels, VOC2's formant, VOIC's whisper, the fade-in and legato" vox_test -O2 $FWS
     t "MONO2K and Mini-Tone engines in the UI: the FILTER page (theirs only, not NOISE), FMTONE / ANALOG4's own pages" m2k_ui_test $FWS
     t "capture gating, derived caches and silent-track clocks" performance_test -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "canvas drawing overlaps DMA without changing pending pixels" lcd_overlap_test -O1 -w -Ibuild/gen

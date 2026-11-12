@@ -397,6 +397,8 @@ static void voice_start(track_t *t, voice_t *v, uint32_t note, uint32_t vel, int
     v->note = (uint8_t)note;
     v->vel = (uint8_t)vel;
     v->gate = 1;
+    if (!v->active)
+        v->drv_dc = 0;                                  /* (a voice from silence: no DC left from its last note) */
     v->active = 1;
     v->stage = 1;
     v->age = ++vage;
@@ -897,6 +899,13 @@ static __attribute__((noinline)) uint32_t track_render_audio(track_t *t, int32_t
         }
         /* 1/16 st and 1/4096 -> Q24 octaves: the voice's own offset (the matrix's pitch too), without TUNE and bend */
         m.plog = (m.pitch16 - tune - bend16 - (int32_t)v->note * 16) * 87381 + (m.fine - tune_fine - bend_fine) * 5909;
+        m.drv = 0;                                      /* ENV > DRIVE: DRIVE, less on a soft note by VEL */
+        if (p[P_DRIVE] && !e->ownenv) {
+            int32_t d = p[P_DRIVE] * (16129 - p[P_DVEL] * (127 - (v->vel & 127))) / 16129;
+            if (d > 0)                                  /* Q12: 1 x .. 12.8 x, gentle at first (the DRIVE effect's) */
+                m.drv = (uint32_t)(4096 + d * d * 3) | ((uint32_t)p[P_DSHAPE] & 3u) << 16;
+            m.dst = &v->drv_dc;
+        }
         engine_render(t,v,e,spread_on>v->side?spread_buf:out,n,&m);
         nr++;
     }

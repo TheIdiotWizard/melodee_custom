@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.3.3](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.3)**
-([release notes](docs/RELEASE_1.3.3.md); earlier: [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+Current release: **[Melodee Custom 1.3.4](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.4)**
+([release notes](docs/RELEASE_1.3.4.md); earlier: [1.3.3](docs/RELEASE_1.3.3.md), [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
 [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
@@ -36,8 +36,12 @@ Current release: **[Melodee Custom 1.3.3](https://github.com/TheIdiotWizard/melo
   chorus, room, reverb and so on) as well as NOTE TAIL and NOTE ECHO, alongside the shared sends. Melodee's own
   insert code, restored. One REVERB runs across all racks: choosing it in a slot turns it off where it was.
 - **Screens (1.3.3):** the 1.2.8 layout again; the band layout of 1.3.0 and 1.3.2 is withdrawn.
+- **VOX (1.3.4):** MONO2K's VOX-6, after the Monomachine's VO-6: a formant voice with VOC1, VOC2 (the vowel), VOIC
+  (voiced to whispered) and TUNE; seven presets.
+- **ENV > DRIVE (1.3.4):** each voice driven on its own, after the engine and its FILTER and before the amp (MONO2K's
+  order): DRIVE, SHAPE (SOFT, HARD, FOLD, FUZZ) and VEL (soft notes drive less). The DRIVE effects leave the FX picker.
 - **Palettes:** **TAPE A** (1.3.0, the default): brown with off-white text, tracks yellow, orange, green, teal;
-  **TAPE B**: blue, purple, tan, sage; **LOOM A / LOOM B** (1.2.7): black with LOOM-8 track colours; **MONO**: white
+  **TAPE B**: blue, purple, tan, sage; **LOOM A / LOOM B**: black with TAPE A's and TAPE B's track colours (1.3.4); **MONO**: white
   on black (HOME menu → COLOR).
 - **GLO > WEIGHTS:** voice weights for SAW, ENS, FMT (FMTONE), WAV+ (WAV, NOISE), DRUM, LOFI, DUAL (DUALVCO), A4
   (ANALOG4), WHEEL and PHYS on three pages.

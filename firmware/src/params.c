@@ -14,12 +14,14 @@ static const char *const N_LPOL[] = {"BI", "UNI"};
 static const char *const N_FX[] = {"OFF", "PHASER", "WIDTH", "FORMANT", "TAPE", "SPIT", "", "ROOM", "REVERB", "CHORUS", "NOTE TAIL", "NOTE ECHO", "DRIVE", "DRIVE", "DRIVE", "DRIVE", "CRUSH", "FLANGER", "PEDAL PHASER", "PEDAL CHORUS"};
 static const char *const N_NOTE_FX[FX_COUNT] = {"OFF", "", "", "", "", "", "", "", "", "", "NOTE TAIL", "NOTE ECHO", "", "", "", "", "", "", "", ""};
 static const char *const N_AUDIO_FX[] = {"OFF", "PHASER", "WIDTH", "FORMANT", "TAPE", "SPIT", "", "ROOM", "REVERB", "CHORUS", "", "", "DRIVE", "DRIVE", "DRIVE", "DRIVE", "CRUSH", "FLANGER", "PEDAL PHASER", "PEDAL CHORUS"};
+static const char *const N_DSHAPE[] = {"SOFT", "HARD", "FOLD", "FUZZ"};   /* ENV > DRIVE's SHAPE (P_DSHAPE) */
 static const char *const N_SHAPE[FX_FUZZ + 1u] = {[FX_SOFT] = "SOFT", [FX_HARD] = "HARD", [FX_FOLD] = "FOLD", [FX_FUZZ] = "FUZZ"};
 /* the effects as the picker and the list give them (README "FX rack"), in families: Space, Motion, Dirt, Colour,
- * Notes (the track's racks only: the last two); DRIVE stands for SOFT .. FUZZ. The stored IDs keep their numbers */
+ * Notes (the track's racks only: the last two). The stored IDs keep their numbers. DRIVE (SOFT .. FUZZ) is no longer
+ * offered (1.3.4: each voice's, ENV > DRIVE); a slot that holds one keeps it, in Dirt's place */
 static const uint8_t FX_ORDER[] = {FX_OFF, FX_ROOM, FX_REVERB, FX_WIDTH, FX_PHASER, FX_CHORUS, FX_FLANGER, FX_PEDAL_PHASER,
-                                   FX_PEDAL_CHORUS, FX_SOFT, FX_CRUSH, FX_FORMANT, FX_TAPE, FX_SPIT, FX_MIDIDELAY, FX_MIDIVERB};
-static const uint8_t FX_FAM_FIRST[] = {0, 1, 4, 9, 11, 14, 16};   /* each family's first place in FX_ORDER */
+                                   FX_PEDAL_CHORUS, FX_CRUSH, FX_FORMANT, FX_TAPE, FX_SPIT, FX_MIDIDELAY, FX_MIDIVERB};
+static const uint8_t FX_FAM_FIRST[] = {0, 1, 4, 9, 10, 13, 15};   /* each family's first place in FX_ORDER */
 static const char *const FX_FAM_NAME[] = {"Off", "Space", "Motion", "Dirt", "Colour", "Notes"};
 enum { FXF_OFF, FXF_SPACE, FXF_MOTION, FXF_DIRT, FXF_COLOUR, FXF_NOTES };
 static int fx_names(const param_desc_t *d) { return d->names == N_FX || d->names == N_AUDIO_FX; }
@@ -27,8 +29,8 @@ static uint32_t fx_order_n(const param_desc_t *d) { return d->names == N_AUDIO_F
 static uint32_t fx_rank(int32_t type)                   /* its place in FX_ORDER */
 {
     uint32_t i;
-    if (type >= FX_SOFT && type <= FX_FUZZ)
-        type = FX_SOFT;
+    if (type >= FX_SOFT && type <= FX_FUZZ)             /* (a kept DRIVE: in Dirt, as CRUSH) */
+        type = FX_CRUSH;
     for (i = 0; i < NELEM(FX_ORDER); i++)
         if (FX_ORDER[i] == type)
             return i;
@@ -44,8 +46,11 @@ static uint32_t fx_family(int32_t type)
 /* steps places on from an effect in FX_ORDER (its ends kept; no step: the effect as it is, a DRIVE's shape too) */
 static int32_t fx_step(const param_desc_t *d, int32_t from, int32_t steps)
 {
-    int32_t r = (int32_t)fx_rank(from), to = clamp(r + steps, 0, (int32_t)fx_order_n(d) - 1);
-    return to == r ? from : FX_ORDER[to];
+    int32_t r = (int32_t)fx_rank(from), to;
+    if (from >= FX_SOFT && from <= FX_FUZZ && steps > 0)   /* (a kept DRIVE sits just before CRUSH) */
+        r--;
+    to = clamp(r + steps, 0, (int32_t)fx_order_n(d) - 1);
+    return to == r || !steps ? from : FX_ORDER[to];
 }
 static const char *const N_ONOFF[] = {"OFF", "ON"};
 static const char *const N_VPOINTS[] = {"AUTO", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
@@ -121,7 +126,7 @@ static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN",
 #define ENGNAME_F(n) (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES ? n : "-")   /* Felucca's restored engines */
 #define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6, PHASE (1.2.0), VOICE, TRIO, STAT, PAR, DYN (1.2.6): retired */
 static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", ENGNAME_R(ENGNAME_F("VOICE")), ENGNAME_R(ENGNAME_F("TRIO")), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
-                                             "DRUM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
+                                             "DRUM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", MELODEE_M2K_ENGINES ? "VOX" : "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
                                              "SAW", "ENS", "-", "-", "-", "WAV", "-", "FMTONE", "DUALVCO", "ANALOG4"};
 _Static_assert(NELEM(N_ENGNAME) == NENGINES, "an engine name each");
 
@@ -271,9 +276,9 @@ static const param_desc_t TP[P_COUNT] = {
     [P_DETUNE] = PD("DTUNE", F_INT, 0, 127, 40),
     [P_PAN] = PD("PAN", F_BIPCT, -64, 63, 0),
     [P_MUTE] = PE("MUTE", N_ONOFF, 0),
-    [P_RESERVED45] = PD("", F_INT, 0, 127, 0),
-    [P_RESERVED46] = PD("", F_INT, 0, 127, 0),
-    [P_RESERVED47] = PD("", F_INT, 0, 127, 0),
+    [P_DRIVE] = PD("DRIVE", F_PCT, 0, 127, 0),     /* ENV > DRIVE (1.3.4): each voice, before its amp */
+    [P_DSHAPE] = PE("SHAPE", N_DSHAPE, 0),
+    [P_DVEL] = PD("VEL", F_PCT, 0, 127, 0),         /* how far a soft note drives less (0: every note alike) */
     [P_RESERVED48] = PD("", F_INT, 0, 127, 0),
 #define MSLOT(k) [P_M##k##SRC] = PE("SRC" #k, N_MSRC, 0), [P_M##k##DST] = PE("DST" #k, N_MDST, 0), \
                  [P_M##k##AMT] = PD("AMT" #k, F_BIPCT, -64, 63, 0)
@@ -655,6 +660,7 @@ static const page_t PAGES[] = {
     {"SEND FX 3", FAM_FX, SC_GLOBAL, GR_NONE, {G_MFX3MIX, G_MFX3RATE, G_MFX3CHAR, G_MFX3TONE}},
     {"ENV", FAM_ENV, SC_TRACK, GR_ADSR, {P_ATK, P_DEC, P_SUS, P_REL}},
     {"ENV DEST", FAM_ENV, SC_TRACK, GR_NONE, {P_ED_FLT, P_ED_PIT, P_ED_SHP, 0xFF}},   /* the former fourth slot: SEQ > TEMPO's QNT */
+    {"DRIVE", FAM_ENV, SC_TRACK, GR_NONE, {P_DRIVE, P_DSHAPE, P_DVEL, 0xFF}},   /* 1.3.4: each voice's, before its amp */
     {"LFO", FAM_LFO, SC_TRACK, GR_LFO, {P_LRATE, P_LWAVE, P_LPHASE, P_LFADE}},
     {"LFO 2", FAM_LFO, SC_TRACK, GR_LFO, {P_LSYNC, P_LTRIG, P_LPOL, 0xFF}},
     {"LFO DEST", FAM_LFO, SC_TRACK, GR_NONE, {P_LD_PIT, P_LD_FLT, P_LD_SHP, P_LD_AMP}},
