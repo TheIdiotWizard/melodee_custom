@@ -305,7 +305,7 @@ static __attribute__((noinline)) void midi_parameter(track_t *t,uint32_t cc,uint
     case 74:case 71:{
 #if MELODEE_FELUCCA_ENGINES   /* CC 74 / 71 (high / low nibble): E0 + n - 1. PHASE DCW / FOLD, LOFI TONE / CRSH, VOICE Q,
                                * TRIO CUT / RES, PHYS BRIT / DAMP */
-        static const uint8_t map[NENGINES]={0,0,0x38,0x84,0,0x07,0x67,0,0,0x34,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
+        static const uint8_t map[NENGINES]={0,0,0x38,0x84,0,MELODEE_M2K_ENGINES?0x21:0x07,0x67,0,0,0x34,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
 #else
         static const uint8_t map[NENGINES]={0,0,0x30,0x56,0,0x07,0,0,0,0,0x30,0x34,0x30,0,0,0,0,0,0,0x12};
 #endif

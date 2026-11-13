@@ -125,8 +125,8 @@ static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH"};
 #define ENGNAME_F(n) (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES ? n : "-")   /* Felucca's restored engines */
 #define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6, PHASE (1.2.0), VOICE, TRIO, STAT, PAR, DYN (1.2.6): retired */
-static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", ENGNAME_R(ENGNAME_F("VOICE")), ENGNAME_R(ENGNAME_F("TRIO")), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
-                                             "DRUM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", MELODEE_M2K_ENGINES ? "VOX" : "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
+static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", MELODEE_M2K_ENGINES ? "VOX" : ENGNAME_F("VOICE"), ENGNAME_R(ENGNAME_F("TRIO")), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
+                                             "DRUM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
                                              "SAW", "ENS", "-", "-", "-", "WAV", "-", "FMTONE", "DUALVCO", "ANALOG4"};
 _Static_assert(NELEM(N_ENGNAME) == NENGINES, "an engine name each");
 

@@ -12,7 +12,7 @@ int main(void)
 #if MELODEE_M2K_ENGINES
     /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's engines at 22..28.
      * 1.2.6: VOICE (5), TRIO (6) and MONO2K's STAT PAR DYN (24..26) retired; Mini-Tone's FMTONE DUALVCO ANALOG4 at 29..31 */
-    const uint8_t retired[]={2,5,6,12,15,19,24,25,26,28};   /* (1.2.8: NOIS 28 retired, NOISE 11 back) */
+    const uint8_t retired[]={2,6,12,15,19,24,25,26,28};   /* (1.2.8: NOIS 28 retired, NOISE 11 back; 1.3.5: VOX in 5) */
 #else
     const uint8_t retired[]={11,15};
 #endif
@@ -20,7 +20,7 @@ int main(void)
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
             {22, 5, "SAW"}, {23, 5, "ENS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
-            {29, 8, "FMTONE"}, {30, 9, "DUALVCO"}, {31, 8, "ANALOG4"},
+            {29, 8, "FMTONE"}, {30, 9, "DUALVCO"}, {31, 8, "ANALOG4"}, {5, 7, "VOX"},
 #else
             {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
 #endif
@@ -36,8 +36,8 @@ int main(void)
             bad+=check("Felucca engine: a saved project restores the engine and its preset",
                        !project_restore_runtime(&fsaved) && TSEL->eng_req==e && TSEL->preset==back[j].n-1u);
         }
-        bad+=check("PHYS keeps its part state; PHASE, LOFI, VOICE and TRIO need none",
-                   eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && !eng_state_size(5) && !eng_state_size(6));
+        bad+=check("PHYS and VOX (5, shipping) keep their part state; PHASE, LOFI, VOICE and TRIO need none",
+                   eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && (MELODEE_M2K_ENGINES ? eng_state_size(5)==sizeof(vox_part_t) : !eng_state_size(5)) && !eng_state_size(6));
         bad+=check("track 3 powers on with LOFI PULSE LD", trk_def_engine(2)==3u && trk_def_preset(2)==0u);
 #if MELODEE_M2K_ENGINES
         bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and FMTONE FM BASS",
@@ -118,5 +118,26 @@ int main(void)
         bad+=check("retirement does not clear existing favorite identifiers",favorite_has(e,3));
     }
     for(uint32_t k=0;k<NENG_SHOWN;k++)bad+=check("browser lists only available engines",eng_ok(eng_vis(k)));
+    for(uint32_t k=0;k<NENG_SHOWN;k++)bad+=check("no shown engine takes a preset namespace (16..18, 20)",
+        eng_vis(k)!=USER_GENERAL&&eng_vis(k)!=USER_NATIVE_FM&&eng_vis(k)!=USER_NATIVE_CZ&&eng_vis(k)!=USER_NATIVE_P5);
+    {   /* (1.3.4: VOX as engine 16 read as user slots: PRESETS skipped about and went back and forth to other sounds) */
+        uint32_t total,n,ok=1,src,k;
+        list_set(LM_ALL);preset_all_pos(&total);
+        for(n=0;n<total;n++){
+            src=preset_all_at(n,&k);
+            if(src==USER_GENERAL)break;                 /* (the user slots: none stored here) */
+            preset_go(n);
+            uint32_t at=preset_all_pos(&total);
+            if(at!=n||TSEL->eng_req!=src||TSEL->preset!=k){printf("  entry %u (%s %u) came back as %u\n",n,ENGINES[src%NENGINES]->name,k,at);ok=0;}
+        }
+        bad+=check("PRESETS: every factory entry loads its own sound and the browser finds it at the same place",ok&&n>0);
+#if MELODEE_M2K_ENGINES
+        static const uint8_t order[]={ENGI_FMTONE,ENGI_ANA4,ENGI_SAW,ENGI_SAW+1u,3,ENGI_DUAL,ENGI_WAV,7,ENGI_VOX,9,11,ENGI_DRUM,ENGI_MIDI};
+        bad+=check("1.3.5 order: FMTONE ANALOG4 SAW ENS LOFI DUALVCO WAV WHEEL VOX PHYS NOISE DRUM, MIDI",
+                   NENG_SHOWN==NELEM(order)&&!memcmp(ENGINE_ORDER,order,sizeof order));
+        set_engine_of(TSEL,ENGI_SAW);project_capture(&proj_scratch);proj_scratch.t[song.sel].engine=16;proj_scratch.t[song.sel].preset=2;proj_scratch.sum=proj_sum(&proj_scratch);
+        bad+=check("a 1.3.4 project's VOX (engine 16) loads as VOX",!project_restore_runtime(&proj_scratch)&&TSEL->eng_req==ENGI_VOX&&TSEL->preset==2);
+#endif
+    }
     printf("Engine retirement test %s\n",bad?"FAILED":"passed");return !!bad;
 }

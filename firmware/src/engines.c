@@ -147,7 +147,9 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_LOFI,                   /* 3: LOFI, Felucca's (restored; SID's tracks while it shipped play as LOFI) */
 #endif
     &ENG_RETIRED,                /* 4: retired SAMPLE; reserved to preserve stored indices */
-#if (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES) && MELODEE_RETIRED_CODE
+#if MELODEE_M2K_ENGINES
+    &ENG_VOX,                    /* 5: VOX, MONO2K's VOX-6 (1.3.5, in retired VOICE's number; 16 in 1.3.4) */
+#elif (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES) && MELODEE_RETIRED_CODE
     &ENG_FORMANT,                /* 5 VOICE (eng_formant.c: "voice" is a sounding note in voice.c) */
 #else
     &ENG_RETIRED,                /* 5: retired VOICE; stored ID reserved */
@@ -190,11 +192,7 @@ static const engine_t *const ENGINES[NENGINES] = {
 #else
     &ENG_RETIRED,                /* 15: retired CZ-1; stored ID reserved */
 #endif
-#if MELODEE_M2K_ENGINES
-    &ENG_VOX,                    /* 16: VOX, MONO2K's VOX-6 (1.3.4; reserved and never used before) */
-#else
-    &ENG_RETIRED,                /* 16: reserved (VOX in the MONO2K build) */
-#endif
+    &ENG_RETIRED,                /* 16: reserved (USER_GENERAL's namespace; VOX's number in 1.3.4: eng_stored) */
     &ENG_RETIRED, &ENG_RETIRED,  /* 17, 18 reserved */
     &ENG_P5_TEST,                /* 19: Prophet (ANALOG's ID 0 stays reserved) */
     &ENG_RETIRED,                /* 20: Prophet user-preset namespace */
@@ -240,14 +238,20 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * engine indices, never a retired one. The indices stay as they are (the
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
-#if MELODEE_M2K_ENGINES
-    ENGI_SAW, ENGI_SAW + 1, ENGI_WAV, 11,   /* SAW ENS WAV (MONO2K's), NOISE (1.2.8, in NOIS's place) */
-    ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4,             /* FMTONE DUALVCO ANALOG4 (Mini-Tone's) */
-    ENGI_VOX,                                      /* VOX (MONO2K's VOX-6, 1.3.4) */
+#if MELODEE_M2K_ENGINES                          /* (1.3.5: the user's order) */
+    ENGI_FMTONE, ENGI_ANA4, ENGI_SAW, ENGI_SAW + 1, 3,   /* FMTONE ANALOG4 SAW ENS LOFI */
+    ENGI_DUAL, ENGI_WAV,                                  /* DUALVCO WAV */
+#if MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS
+    7,                                                    /* WHEEL */
+#endif
+    ENGI_VOX, 9, 11,                                      /* VOX PHYS NOISE */
+#if MELODEE_SLICE
+    13,                                                   /* SLICE */
+#endif
+    ENGI_DRUM, ENGI_MIDI,
 #else
     ENGI_PROPHET,                /* Prophet replaces ANALOG in new-sound browsing */
     12,                          /* FM6 */
-#endif
 #if MELODEE_FELUCCA_ENGINES
 #if !MELODEE_M2K_ENGINES
     2,                           /* PHASE */
@@ -279,6 +283,7 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #endif
     10,                          /* DRUM */
     ENGI_MIDI,
+#endif
 };
 
 /* Retired synth records (ANALOG and DIGITAL since 2.0 too) retain their stored identity and render silence.
@@ -292,8 +297,9 @@ static int eng_extra_retired(uint32_t e)
     if (MELODEE_M2K_ENGINES && (e == ENGI_PROPHET || e == ENGI_FM6 || e == 2u)) return 1;   /* their sounds: silent */
     if ((e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u) || e == ENGI_NOIS)
         return 1;                /* STAT, PAR, DYN (retired for Mini-Tone's three), NOIS (for NOISE), in every build: silent */
-    if (MELODEE_M2K_ENGINES && (e == 5u || e == 6u))
-        return 1;                /* VOICE, TRIO (the shipping build's; the fixture build still plays them): silent */
+    if (MELODEE_M2K_ENGINES && e == 6u)
+        return 1;                /* TRIO (the shipping build's; the fixture build still plays it, and VOICE): silent */
+    if (MELODEE_M2K_ENGINES && e == ENGI_VOX) return 0;   /* 5: VOX since 1.3.5 (VOICE's sounds play as VOX) */
     if (MELODEE_M2K_ENGINES && e == 11u) return 0;   /* NOISE: the shipping build's since 1.2.8 */
     if (MELODEE_FELUCCA_ENGINES && (e == 2u || e == 5u || e == 6u || e == 9u)) return 0;
     return e == ENGI_DIGITAL || (!MELODEE_LEGACY_EXTRAS && (e == 2u || e == 5u || e == 6u || (e == 7u && !MELODEE_WHEEL) || e == 9u || e == 11u));
@@ -302,10 +308,12 @@ static int eng_extra_retired(uint32_t e)
  * eng_vis(n), e's place among them eng_rank(e), the next / previous one eng_step(e, dir) (wraps) */
 static int eng_ok(uint32_t e)
 {
-    return e < NENGINES && e != USER_NATIVE_P5 && !(e >= 16u + MELODEE_M2K_ENGINES && e <= 18u) && !eng_extra_retired(e) && e != 4u && e != 8u && e != 14u && (MELODEE_SLICE || e != ENGI_SLICE);
+    return e < NENGINES && e != USER_NATIVE_P5 && !(e >= 16u && e <= 18u) && !eng_extra_retired(e) && e != 4u && e != 8u && e != 14u && (MELODEE_SLICE || e != ENGI_SLICE);
 }
+static inline uint32_t eng_stored(uint32_t e) { return MELODEE_M2K_ENGINES && e == 16u ? ENGI_VOX : e; }
 static uint32_t eng_sound_idx(uint32_t e)
 {
+    e = eng_stored(e);
     return eng_extra_retired(e) || eng_ok(e) ? e : MELODEE_M2K_ENGINES ? ENGI_SAW : ENGI_FM6;
 }
 static uint32_t eng_vis(uint32_t n) { return ENGINE_ORDER[n % NENG_SHOWN]; }

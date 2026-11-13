@@ -315,7 +315,7 @@ if core; then
     run "CPU live takes: native replay comparison, timed input, failure cleanup and guarded restoration" "$PY" tests/audio_cpu_take_test.py
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
-    t "shipping engines: LOFI WHEEL PHYS NOISE, MONO2K's and Mini-Tone's; CZ-1 VOICE TRIO STAT PAR DYN NOIS retired (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
+    t "shipping engines: LOFI WHEEL PHYS NOISE VOX (5), MONO2K's and Mini-Tone's; CZ-1 TRIO STAT PAR DYN NOIS retired; PRESETS round trip (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
     t "MONO2K, NOISE and Mini-Tone engines: presets, the first note after silence, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
     t "ENV > DRIVE: each voice's drive before its amp, its shapes, VEL, FUZZ's DC, the FX picker without DRIVE" drive_test -O2 $FWS
     t "VOX (MONO2K's VOX-6): its presets' levels, VOC2's formant, VOIC's whisper, the fade-in and legato" vox_test -O2 $FWS

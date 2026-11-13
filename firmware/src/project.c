@@ -967,7 +967,7 @@ static int project_restore_runtime(const project_t *input)
     for (k = 0; k < PROJ_TRK; k++) {
         track_t *t = &trk[k];
         const proj_trk_t *s = &p->t[k];
-        uint32_t e = s->engine % NENGINES;
+        uint32_t e = eng_stored(s->engine % NENGINES);
         t->eng_req = (uint8_t)e;
         t->mpc_octave = (int8_t)clamp(s->mpc_octave, -3, 3);
         t->user = 0; t->user_native=0;                                    /* (no user preset slot is saved) */

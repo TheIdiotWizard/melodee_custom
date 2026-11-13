@@ -67,7 +67,6 @@ static int m2k_fav_byte(uint32_t engine, uint32_t preset)
 {
 #if MELODEE_M2K_ENGINES
     if (engine == 11u && preset < 8u) return 7;
-    if (engine == ENGI_VOX && preset < 8u) return 16;   /* (VOX, 1.3.4: a byte never used in the row) */
 #endif
     if (engine >= ENGI_SAW && engine < ENGI_SAW + 7u && preset < 8u) return (int)(engine - ENGI_SAW);
     if (engine > ENGI_SAW + 6u && engine <= ENGI_ANA4 && preset < 16u) return 10 + (int)(engine - ENGI_SAW - 7u) * 2 + (int)(preset >> 3);

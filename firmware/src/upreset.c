@@ -607,7 +607,7 @@ static int up_load_to(uint32_t k,uint32_t tr)
     panic_req |= (uint8_t)(1u << tr);
     {
         fm1_irq_off();                                  /* the audio ISR must not see half a sound */
-        t->eng_req = up_native_cz(r)?ENGI_CZ:r->engine;
+        t->eng_req = up_native_cz(r)?ENGI_CZ:eng_stored(r->engine);
         for (i = 0; i < P_COUNT; i++)
             if (!param_kept(i))
                 t->p[i] = param_reserved(i) ? 0 : v[i];

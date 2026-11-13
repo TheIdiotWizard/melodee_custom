@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio) */
-/* VOX (1.3.4, src/eng_vox.c: MONO2K's VOX-6): engine 16, in the shown order after ANALOG4; every preset sounds (a
+/* VOX (src/eng_vox.c: MONO2K's VOX-6): engine 5, retired VOICE's (16 in 1.3.4), in the shown order between WHEEL and PHYS; every preset sounds (a
  * level near the other engines', no clipping); VOC2 moves F2 (its brightness), VOIC turns the buzz to a whisper (the
  * pitch's harmonics give way to noise); a fresh note fades in, a legato note keeps its level; the vowels' presets
  * stand apart. */
@@ -78,9 +78,9 @@ int main(void)
     int shown = 0, after = 0;
     for (uint32_t k = 0; k < NENG_SHOWN; k++) {
         if (ENGINE_ORDER[k] == ENGI_VOX) shown = 1;
-        if (k && ENGINE_ORDER[k] == ENGI_VOX && ENGINE_ORDER[k - 1] == ENGI_ANA4) after = 1;
+        if (k && ENGINE_ORDER[k] == ENGI_VOX && ENGINE_ORDER[k - 1] == 7u && ENGINE_ORDER[k + 1] == 9u) after = 1;
     }
-    check("VOX is engine 16, named VOX, shown after ANALOG4, VOC1 VOC2 VOIC TUNE on its first page",
+    check("VOX is engine 5, named VOX, shown between WHEEL and PHYS, VOC1 VOC2 VOIC TUNE on its first page",
           !strcmp(e->name, "VOX") && shown && after && !strcmp(e->edit[0].label, "VOC1") && !strcmp(e->edit[3].label, "TUNE"));
     /* every preset sounds, near the others' level, without clipping */
     {

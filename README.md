@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.3.4](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.4)**
-([release notes](docs/RELEASE_1.3.4.md); earlier: [1.3.3](docs/RELEASE_1.3.3.md), [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+Current release: **[Melodee Custom 1.3.5](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.5)**
+([release notes](docs/RELEASE_1.3.5.md); earlier: [1.3.4](docs/RELEASE_1.3.4.md), [1.3.3](docs/RELEASE_1.3.3.md), [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
 [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
@@ -230,6 +230,13 @@ See the [release notes](docs/RELEASE_1.4.0.md) for compatibility and upgrade det
   defaults, including stereo USB audio. Compatible Melodee preferences survive.
 - **Project compatibility:** unknown layouts and engine IDs cannot load at boot.
   Incompatible projects remain recoverable as OLD FORMAT.
+
+## What's new in 1.3.5
+
+- **PRESETS browsing fixed:** in 1.3.4 VOX's number (16) was also the browser's mark for a user preset, so turning
+  PRESETS jumped between unrelated sounds and did not come back the same way. VOX now uses retired VOICE's number (5);
+  songs saved in 1.3.4 with VOX load as VOX.
+- **Engine order:** FMTONE, ANALOG4, SAW, ENS, LOFI, DUALVCO, WAV, WHEEL, VOX, PHYS, NOISE, DRUM, then MIDI Track.
 
 ## What's new in 1.3.4
 

@@ -24,7 +24,11 @@ static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_MIDI] = "O",                                  /* non-audio destination: OTHER */
 #if MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES     /* (PHASE VOICE: Felucca's) */
     [2] = "RGSLEU",                                     /* PHASE: BRASS ORGAN STRING RESO BELL WIRE */
+#if MELODEE_M2K_ENGINES
+    [5] = "PPPPPLF",                                    /* VOX: AAH EH EE OH OO (PAD), WAH LEAD, WHISPER */
+#else
     [5] = "PLBF",                                       /* VOICE: CHOIR AAH, VOX LEAD, WOW BASS, WHISPER */
+#endif
 #endif
 #if MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES
     [11] = "FFFF",                                      /* NOISE */

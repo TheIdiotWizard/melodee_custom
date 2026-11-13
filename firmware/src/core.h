@@ -89,7 +89,10 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define ENGI_FMTONE 29u          /* Mini-Tone's FMTONE, DUALVCO and ANALOG4 (1.2.6: eng_mt.c) */
 #define ENGI_DUAL 30u
 #define ENGI_ANA4 31u
-#define ENGI_VOX 16u              /* VOX: MONO2K's VOX-6 (1.3.4, eng_vox.c), in a number reserved and never used */
+#define ENGI_VOX 5u               /* VOX: MONO2K's VOX-6 (eng_vox.c), in retired VOICE's number (1.3.5; the shipping build).
+                                  * 1.3.4 stored it as 16, which is USER_GENERAL to the browser (16..18, 20: preset
+                                  * namespaces, never engines); eng_stored reads 16 as VOX */
+static inline uint32_t eng_stored(uint32_t e);   /* a stored engine number as this firmware reads it */
 #define NENGINES 32               /* append engines without reusing preset namespaces */
 #define USER_NATIVE_FM 17u
 #define USER_NATIVE_CZ 18u

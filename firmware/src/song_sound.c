@@ -77,7 +77,7 @@ static void song_sound_apply(uint32_t k, const song_sound_t *s)
 {
     track_t *t = &trk[k];
     for (uint32_t i = 0; i < P_COUNT; i++) if (!param_kept(i)) t->p[i] = (int16_t)s->p[i] - 64;
-    t->eng_req = s->engine; t->preset = s->preset;
+    t->eng_req = eng_stored(s->engine); t->preset = s->preset;
     t->user = s->user[0] | (uint16_t)s->user[1] << 8; t->user_native = s->user_native;
     if (s->engine == ENGI_FM6) { fm6_put_patch(k, s->patch.fm, 1); fm6_on[k] = s->fm_on; }
     else if (s->engine == ENGI_CZ) { *cz_patch_of(k) = s->patch.cz; cz_track_accept(t); }
