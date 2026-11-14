@@ -119,7 +119,7 @@ static int16_t settings_safety;
 #include "midi_knobs.h"
 static int16_t boot_cell;
 /* modulation matrix (mod.c): sources, destinations (E1..E8 = P_E0..P_E7: shown with the engine's labels) */
-static const char *const N_FMODE[] = {"OFF", "LP", "BP", "HP", "NOT", "M2K"};   /* the FILTER page's MODE (M2K: MONO2K's chain, 1.3.6) */
+static const char *const N_FMODE[] = {"OFF", "LP", "HP"};   /* the FILTER page's MODE (1.3.8: both MONO2K's chain) */
 static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", "MODW", "AT", "EXPR", "S&H", "SLEW"};
 static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "", "", "", "", "RATE",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH"};
@@ -260,9 +260,9 @@ static const param_desc_t TP[P_COUNT] = {
     [P_SGATE] = PD("GATE", F_PCT, 1, 127, 64),
 #if MELODEE_M2K_ENGINES                           /* the FILTER page (MONO2K's seven): TRIO's filter */
     [P_FMODE] = PE("MODE", N_FMODE, 0),
-    [P_FCUT] = PD("CUT", F_CUTOFF, 0, 127, 127),
+    [P_FCUT] = PD("CUT", F_INT, 0, 127, 127),      /* (1.3.8: steps over the note, MONO2K's WDTH / BASE) */
     [P_FRES] = PD("RES", F_PCT, 0, 127, 0),
-    [P_FDIST] = PD("DIST", F_INT, -64, 63, 0),     /* MODE M2K's DIST (1.3.6): MONO2K's less 64 (0 its neutral, as an older store) */
+    [P_FDIST] = PD("DIST", F_INT, -64, 63, 0),     /* DIST (1.3.7): MONO2K's less 64 (0 its neutral, as an older store) */
 #else
     [P_RESERVED33] = PD("", F_INT, 0, 127, 0),
     [P_RESERVED34] = PD("", F_INT, 0, 127, 0),

@@ -2267,7 +2267,7 @@ static void mlearn_poll(void)
 static void drm_upgrade_poll(void)
 {
     for (uint32_t k = 0; k < NPART; k++)
-        if (trk[k].eng_req == ENGI_DRUM && trk[k].p[P_DRMFMT] != DRM_FMT) {
+        if ((trk[k].eng_req == ENGI_DRUM && trk[k].p[P_DRMFMT] != DRM_FMT) || trk[k].p[P_FMODE] > 2) {
             fm1_irq_off();
             drm_upgrade_all();
             fm1_irq_on();

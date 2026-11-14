@@ -1,19 +1,17 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio)
  * Portions Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
-/* The FILTER page (EDIT > FILTER, P_FMODE P_FCUT P_FRES and ENV's P_ED_FLT): TRIO's filter (eng_trio.c's tsvf and mix,
- * Felucca's) as one filter for the engines that have the page: MONO2K's SAW ENS WAV NOIS (eng_m2k.c, 1.2.4) and
- * Mini-Tone's FMTONE DUALVCO ANALOG4 (eng_mt.c, 1.2.6), after the engine's oscillators and before the voice's amp.
- * MODE OFF LP BP HP NOT, CUT (plus what moves it: the track's LFO / ENV -> FLT, an engine's own filter envelope), RES
- * (damping 2 .. 0.25: no self-oscillation); the cutoff wanders a little, block by block; the input saturates above
- * 16000, the output is linear to half scale, as TRIO's. MODE OFF: nothing (the engine as it was).
- * MODE M2K (1.3.6): MONO2K's chain instead (m2k_dsp.c track_block and chain_filter, Sequencist's, GPL-3.0-only): DIST
- * (P_FDIST, its law and each machine's ceiling) into LP1, a resonant two-pole clipped at that ceiling (the scream), the
- * HP's two-pole (states held by the ceiling too), its one-pole and LP2's two; the cutoffs follow the note as MONO2K's
- * (BASE 0, HPQ 0: the HP below the note), CUT its WDTH (plus what moves it, a step a step), RES its LPQ. The engine's
- * voice scaled back to the machine's level in (MONO2K's), out at SAW's level of it (M2K_FOUT: MONO2K's sounds beside
- * Melodee's), its peaks rounded over 16000. Its
- * laws MONO2K's tables (m2k_tables.h; T_FG and T_FG1 every fourth entry, read between them). */
+/* The FILTER page (EDIT > FILTER: P_FMODE P_FCUT P_FRES P_FDIST) for the engines that have it: MONO2K's SAW PULS ENS
+ * WAV (eng_m2k.c) and Mini-Tone's FMTONE DUALVCO ANALOG4 (eng_mt.c), after the engine's oscillators and before the
+ * voice's amp. Since 1.3.8 both modes are MONO2K's chain (m2k_dsp.c track_block and chain_filter, Sequencist's,
+ * GPL-3.0-only): DIST (P_FDIST, less 64: its law and each machine's ceiling) into LP1, a resonant two-pole clipped at
+ * that ceiling (the scream), the HP's two-pole (its states held by the ceiling too), its one-pole and LP2's two; the
+ * cutoffs follow the note as MONO2K's. LP: CUT its WDTH (BASE 0), RES its LPQ. HP: CUT its BASE (WDTH 127 above it),
+ * RES its HPQ. CUT plus what moves it (the LFO / ENV -> FLT, an engine's own filter envelope), a step a step. The
+ * engine's voice scaled back to the machine's level in (MONO2K's), out at SAW's level of it (M2K_FOUT), its peaks
+ * rounded over 16000. Its laws MONO2K's tables (m2k_tables.h; T_FG and T_FG1 every fourth entry, read between them).
+ * TRIO's filter (uflt_coef / uflt_run) stays for ANALOG4's filter 2. Until 1.3.7: MODE OFF LP BP HP NOT (TRIO's) and
+ * M2K (1.3.7: the chain's LP), uflt_mode. */
 #include "m2k_tables.h"
 #define M2K_FOUT 10240                 /* the chain's machine sample out as a voice's (Q12, every engine: SWAV-SAW's 2.5 x) */
 typedef struct { int32_t s1, s2; uint32_t r1, r2; } m2kz_t;          /* a two-pole's states, its remainders */
@@ -26,7 +24,7 @@ typedef struct {
     int32_t g1, g2, dh, ceil, gin, gout;   /* HP1's and LP2's G, DIST's gain, the ceiling, the machine's level in and out */
     uint8_t m2k;
 } uflt_t;
-enum { UF_OFF, UF_LP, UF_BP, UF_HP, UF_NOT, UF_M2K };
+enum { UF_OFF, UF_LP, UF_HP };      /* MODE (1.3.8: LP and HP MONO2K's chain; until 1.3.7 OFF LP BP HP NOT M2K, TRIO's four) */
 
 /* the engines with the FILTER page (ui.c page_visible, midi_control.c's CC 74 / 71) */
 static int uflt_engine(uint32_t e)
@@ -77,16 +75,18 @@ static void m2k_zset(int32_t *a, uint32_t g, uint32_t k)
  * pitch (1/16 semitone), mach MONO2K's machine (its DIST ceiling: T_DIST_M), gain the engine's voice level a machine
  * sample (Q12: SAW's 10240, 2.5 x), gin the input's (4096: the machine's own sample, MONO2K's engines) */
 static __attribute__((noinline)) void uflt_m2k_coef(uflt_t *f, int32_t cut8, int32_t res, int32_t dist, int32_t pitch16,
-                                                    uint32_t mach, int32_t gin, int32_t gain)
+                                                    uint32_t mach, int32_t gin, int32_t gain, int hp)
 {
     int32_t a[3];
     res = clamp(res, 0, 127); dist = clamp(dist, 0, 127);
     int32_t key = pitch16 * 128;                                   /* note x 8 x 256 */
-    int32_t ph = key + 12 * (0 - 16 * 256), pl = key + 12 * (clamp(cut8, 0, 127 << 8) - 16 * 256);
-    m2k_zset(a, m2k_fg_at(T_FG4, pl + T_LPC[res]), T_LPK[res]);
+    int32_t lq = hp ? 0 : res, hq = hp ? res : 0;                  /* LP: WDTH and LPQ (BASE 0); HP: BASE and HPQ (WDTH 127) */
+    int32_t sb = hp ? clamp(cut8, 0, 127 << 8) : 0, sl = hp ? sb + (127 << 8) : clamp(cut8, 0, 127 << 8);
+    int32_t ph = key + 12 * (sb - 16 * 256), pl = key + 12 * (sl - 16 * 256);
+    m2k_zset(a, m2k_fg_at(T_FG4, pl + T_LPC[lq]), T_LPK[lq]);
     f->a1 = a[0]; f->a2 = a[1]; f->a3 = a[2];
-    m2k_zset(a, m2k_fg_at(T_FG4, ph + T_HPC[0]), T_HPK[0]);
-    f->b1 = a[0]; f->b2 = a[1]; f->b3 = a[2]; f->hk = (int32_t)T_HPK[0];
+    m2k_zset(a, m2k_fg_at(T_FG4, ph + T_HPC[hq]), T_HPK[hq]);
+    f->b1 = a[0]; f->b2 = a[1]; f->b3 = a[2]; f->hk = (int32_t)T_HPK[hq];
     f->g2 = (int32_t)m2k_fg_at(T_FG14, pl + F_LP2 * 256);
     f->g1 = (int32_t)m2k_fg_at(T_FG14, ph + F_HP1 * 256);
     f->dh = (int32_t)T_DIST_H[dist];
@@ -136,13 +136,16 @@ static __attribute__((noinline)) int32_t uflt_m2k_run(const uflt_t *f, int32_t *
     return v > 32767 ? 32767 : v < -32767 ? -32767 : v;
 }
 
-/* this block's, by MODE: MONO2K's chain (M2K: the voice's pitch, the machine, the engine's level a machine sample) or
- * TRIO's filter */
+/* MODE as it plays: a store of 1.3.7 or before (OFF LP BP HP NOT M2K) the nearest of today's: BP and HP HP, NOT and
+ * M2K LP (eng_drum.c drm_upgrade puts it in the track, at every load) */
+static inline int32_t uflt_mode(int32_t m) { return m == 3 ? UF_HP : m >= 4 ? UF_LP : m; }
+
+/* this block's: MONO2K's chain, LP or HP (the voice's pitch, the machine, the level in and out) */
 static void uflt_set(uflt_t *f, const int16_t *p, int32_t cut8, int32_t pitch16, uint32_t mach, int32_t gin, int32_t gain,
                      int32_t *drift, int32_t *nst, uint32_t seed)
 {
-    if (p[P_FMODE] == UF_M2K) uflt_m2k_coef(f, cut8, p[P_FRES], p[P_FDIST] + 64, pitch16, mach, gin, gain);
-    else uflt_coef(f, (uint32_t)p[P_FMODE], cut8, p[P_FRES], drift, nst, seed);
+    (void)drift; (void)nst; (void)seed;
+    uflt_m2k_coef(f, cut8, p[P_FRES], p[P_FDIST] + 64, pitch16, mach, gin, gain, uflt_mode(p[P_FMODE]) == UF_HP);
 }
 
 /* one sample through it: st its two states (a voice's, a side's) */
@@ -167,27 +170,27 @@ static inline int32_t uflt_run(const uflt_t *f, int32_t *st, int32_t x)
 static void uflt_preset_loaded(track_t *t, uint32_t pi)
 {
     static const struct { uint8_t eng, preset, mode, cut, res; int8_t dist; uint8_t glide; } F[] = {
-        {ENGI_SAW, 0, UF_M2K, 27, 104, 20, 0},   /* MONO2K's SAW and PULS sounds (1.3.6): their chains, DIST less 64 */
-        {ENGI_SAW, 1, UF_M2K, 27, 24, 0, 0},
-        {ENGI_SAW, 2, UF_M2K, 28, 24, 26, 0},
-        {ENGI_SAW, 3, UF_M2K, 33, 16, 0, 0},
-        {ENGI_SAW, 4, UF_M2K, 8, 20, 20, 0},
-        {ENGI_SAW, 5, UF_M2K, 44, 10, 0, 0},
-        {ENGI_SAW, 6, UF_M2K, 32, 20, 0, 0},
-        {ENGI_PULS, 0, UF_M2K, 24, 20, 0, 0},
-        {ENGI_PULS, 1, UF_M2K, 33, 20, 0, 30},  /* SQUARE: gliding */
-        {ENGI_PULS, 2, UF_M2K, 44, 16, 0, 0},
-        {ENGI_PULS, 3, UF_M2K, 45, 12, 0, 0},
-        {ENGI_FMTONE, 6, 1, 60, 90, 0, 0},     /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
-        {ENGI_FMTONE, 7, 2, 76, 110, 0, 0},    /* FIFTH RING: a band-pass ringing above the bell */
-        {ENGI_FMTONE, 8, 1, 51, 5, 0, 0},      /* GROWL (MONO2K's): a low-pass the envelope opens */
-        {ENGI_FMTONE, 10, 1, 43, 5, 0, 0},     /* FMPAD (MONO2K's): the same, darker */
-        {ENGI_DUAL, 5, 1, 60, 90, 0, 0},       /* RESO LEAD */
-        {ENGI_ANA4, 0, 1, 100, 30, 0, 0},      /* SAW BASS (filter 1 as Mini-Tone's, on this filter) */
-        {ENGI_ANA4, 1, 1, 110, 20, 0, 0},      /* PWM LEAD */
-        {ENGI_ANA4, 2, 1, 100, 25, 0, 0},      /* SYNC LEAD */
-        {ENGI_ANA4, 3, 1, 95, 110, 0, 0},      /* ACID */
-        {ENGI_ANA4, 4, 1, 85, 20, 0, 0},       /* WARM PAD */
+        {ENGI_SAW, 0, UF_LP, 27, 104, 20, 0},   /* MONO2K's SAW and PULS sounds (1.3.6): their chains, DIST less 64 */
+        {ENGI_SAW, 1, UF_LP, 27, 24, 0, 0},
+        {ENGI_SAW, 2, UF_LP, 28, 24, 26, 0},
+        {ENGI_SAW, 3, UF_LP, 33, 16, 0, 0},
+        {ENGI_SAW, 4, UF_LP, 8, 20, 20, 0},
+        {ENGI_SAW, 5, UF_LP, 44, 10, 0, 0},
+        {ENGI_SAW, 6, UF_LP, 32, 20, 0, 0},
+        {ENGI_PULS, 0, UF_LP, 24, 20, 0, 0},
+        {ENGI_PULS, 1, UF_LP, 33, 20, 0, 30},  /* SQUARE: gliding */
+        {ENGI_PULS, 2, UF_LP, 44, 16, 0, 0},
+        {ENGI_PULS, 3, UF_LP, 45, 12, 0, 0},
+        {ENGI_FMTONE, 6, 1, 33, 54, 0, 0},     /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
+        {ENGI_FMTONE, 7, 1, 42, 66, 0, 0},    /* FIFTH RING: a resonant low-pass ringing above the bell */
+        {ENGI_FMTONE, 8, 1, 28, 3, 0, 0},      /* GROWL (MONO2K's): a low-pass the envelope opens */
+        {ENGI_FMTONE, 10, 1, 24, 3, 0, 0},     /* FMPAD (MONO2K's): the same, darker */
+        {ENGI_DUAL, 5, 1, 33, 54, 0, 0},  /* (1.3.8: TRIO's cutoffs as steps over C3, its RES x 0.6) */       /* RESO LEAD */
+        {ENGI_ANA4, 0, 1, 56, 18, 0, 0},      /* SAW BASS (filter 1 as Mini-Tone's, on this filter) */
+        {ENGI_ANA4, 1, 1, 62, 12, 0, 0},      /* PWM LEAD */
+        {ENGI_ANA4, 2, 1, 56, 15, 0, 0},      /* SYNC LEAD */
+        {ENGI_ANA4, 3, 1, 53, 66, 0, 0},      /* ACID */
+        {ENGI_ANA4, 4, 1, 48, 12, 0, 0},       /* WARM PAD */
     };
     for (uint32_t k = 0; k < NELEM(F); k++)
         if (F[k].eng == t->eng_req && F[k].preset == pi) {

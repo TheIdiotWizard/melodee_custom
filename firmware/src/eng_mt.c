@@ -713,7 +713,7 @@ static void a4_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const vm
     pw = (uint32_t)pw12 << 20;
     f1on = p[P_FMODE] != 0;
     if (f1on)
-        uflt_set(&f1, p, a4_cut(p[P_FCUT], fe15, p[AP_F1EN], p[P_FMODE] == UF_M2K ? 0 : key, m->cutoff), m->pitch16,
+        uflt_set(&f1, p, a4_cut(p[P_FCUT], fe15, p[AP_F1EN], 0, m->cutoff), m->pitch16,
                  MT_M2K_VCO, MT_M2K_GAIN, MT_M2K_GAIN, &s1->drift, &s1->nst, MT_VFLT_SEED(t, vk));   /* (M2K: its own key) */
     cut2 = (p[AP_CUT2] << 8) + key + m->cutoff + c2x;
     f2on = par || f2ty || p[AP_RES2] || cut2 < (127 << 8);   /* (an open low-pass in series: nothing to do) */

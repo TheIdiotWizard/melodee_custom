@@ -178,6 +178,9 @@ static void drm_upgrade(track_t *t)
 {
     static const uint8_t SOUND[DV_NLANE] = {0, 1, 6, 7, 8, 3, 5, 10};
     uint32_t k = (uint32_t)(t - trk);
+    if (t->p[P_FMODE] > 2)                         /* (also any track's FILTER MODE of 1.3.7 or before, BP HP NOT M2K:
+                                                    * HP, HP, LP, LP: eng_uflt.c uflt_mode) */
+        t->p[P_FMODE] = (int16_t)(t->p[P_FMODE] == 3 ? 2 : 1);
     if (k >= NPART || t->eng_req != ENGI_DRUM || t->p[P_DRMFMT] == DRM_FMT)
         return;
     drum_patch_t old = *drum_patch_of(k);
