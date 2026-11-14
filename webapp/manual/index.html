@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.3.5</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.3.6</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -138,7 +138,7 @@
       <section id="about">
         <h2>About</h2>
         <p>Melodee is multi-engine synthesizer and sequencer firmware for the M-VAVE FM-1. After you install it, the unit runs Melodee instead of the official firmware: up to eight tracks (four that play an instrument, four more for external MIDI gear), a 64-step sequencer with patterns and songs, effects, USB MIDI and audio, Bluetooth MIDI and USB Host.</p>
-        <p>The selectable engines, in the order the device lists them, are <strong>FMTONE</strong> and <strong>ANALOG4</strong> from Mini-Tone, <strong>SAW</strong> and <strong>ENS</strong> from MONO2K, Felucca’s <strong>LoFi</strong>, <strong>DUALVCO</strong> (Mini-Tone), <strong>WAV</strong> (MONO2K), Felucca’s <strong>Wheel</strong>, <strong>VOX</strong> (MONO2K’s VOX-6), Felucca’s <strong>Phys</strong>, <strong>NOISE</strong> and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
+        <p>The selectable engines, in the order the device lists them, are <strong>FMTONE</strong> and <strong>ANALOG4</strong> from Mini-Tone, <strong>SAW</strong>, <strong>PULS</strong> and <strong>ENS</strong> from MONO2K, Felucca’s <strong>LoFi</strong>, <strong>DUALVCO</strong> (Mini-Tone), <strong>WAV</strong> (MONO2K), Felucca’s <strong>Wheel</strong>, <strong>VOX</strong> (MONO2K’s VOX-6), Felucca’s <strong>Phys</strong>, <strong>NOISE</strong> and <strong>Drum</strong>, plus <strong>MIDI Track</strong> for external gear. Melodee is based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a>; it is not affiliated with or endorsed by M-VAVE or Hügelton Instruments. Report Melodee problems on the <a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee GitHub</a>, not to Felucca.</p>
       </section>
 
       <section id="before">
@@ -225,6 +225,7 @@
           <thead><tr><th>Engine</th><th><kbd>KNOB 1</kbd></th><th><kbd>KNOB 2</kbd></th><th><kbd>KNOB 3</kbd></th><th><kbd>KNOB 4</kbd></th></tr></thead>
           <tbody>
             <tr><td>SAW</td><td>UNIL</td><td>UNIW</td><td>SUB1</td><td>release</td></tr>
+            <tr><td>PULS</td><td>PW</td><td>PWAD</td><td>UNIL</td><td>release</td></tr>
             <tr><td>ENS</td><td>WAVE</td><td>PW</td><td>CHRL</td><td>release</td></tr>
             <tr><td>WAV</td><td>WAVE</td><td>SCAN</td><td>SYNC</td><td>release</td></tr>
             <tr><td>NOISE</td><td>FREQ</td><td>RES</td><td>COLR</td><td>release</td></tr>
@@ -235,7 +236,7 @@
             <tr><td>LoFi</td><td>WAVE</td><td>DUTY</td><td>CRSH</td><td>release</td></tr>
             <tr><td>Wheel</td><td>REG</td><td>PERC</td><td>DRV</td><td>ROTR</td></tr>
             <tr><td>Phys</td><td>STRC</td><td>BRIT</td><td>DAMP</td><td>POS</td></tr>
-            <tr><td>Drum</td><td>TUNE</td><td>TONE</td><td>DECY</td><td>SNAP</td></tr>
+            <tr><td>DRM</td><td>TUNE</td><td>DECY</td><td>ACC</td><td>DRV</td></tr>
             <tr><td>MIDI Track</td><td>CH</td><td>TRS</td><td>—</td><td>—</td></tr>
           </tbody>
         </table>
@@ -270,7 +271,7 @@
             <tr><td><kbd>KNOB 1</kbd> LIST</td><td>Choose the list — ALL, FAV, RECENT, or a category (BASS, LEAD, PAD, …). Each track remembers its own list.</td></tr>
             <tr><td><kbd>KNOB 2</kbd> / <kbd>PRESETS</kbd></td><td>Scroll sounds. While the list moves fast, the sound loads when the knob rests.</td></tr>
             <tr><td><kbd>KNOB 3</kbd> FAV</td><td>Mark or unmark the current sound as a favourite (device favourites survive power-off).</td></tr>
-            <tr><td><kbd>KNOB 4</kbd> ENGINE</td><td>Change the engine and start from its <strong>init</strong> sound (dry, nothing changed): the 808 kit, or the first preset of an engine without an INIT (SUPERSAW, LOFI PULSE LD and so on). MIDI Track is one of the choices on tracks 1–4.</td></tr>
+            <tr><td><kbd>KNOB 4</kbd> ENGINE</td><td>Change the engine and start from its <strong>init</strong> sound (dry, nothing changed): the SUB kit, or the first preset of an engine without an INIT (SUPERSAW, LOFI PULSE LD and so on). MIDI Track is one of the choices on tracks 1–4.</td></tr>
             <tr><td><kbd>OCT+</kbd> / <kbd>OCT−</kbd></td><td>Keep the browsed sound / revert to the one you had.</td></tr>
           </tbody>
         </table>
@@ -331,7 +332,7 @@
           <li><strong>Storage:</strong> projects and user sound banks share one pool. A project takes only what it holds, typically about two 4&nbsp;KB sectors, and an empty slot takes nothing. The selected slot shows the room left in KB. A full pool refuses a save with <strong>STORAGE FULL</strong>; erasing a project frees its space. A save finishes writing before it replaces the old version, so an interrupted save keeps the previous one.</li>
           <li><strong>Limits:</strong> about 1,450 set steps fit across a project’s patterns. An edit past that is refused with <strong>PATTERN STORAGE FULL</strong>, so the music can always be saved. A save that does not fit says <strong>PROJECT FULL</strong> and the saved copy stays. A project saved by earlier firmware keeps its full size until it is saved again.</li>
           <li><strong>New song</strong> opens the wizard, stopped only. Set key, scale and tempo (<kbd>KNOB 1</kbd> ROOT, <kbd>KNOB 2</kbd> SCALE, <kbd>KNOB 3</kbd> TEMPO), then a role on each of the four knobs: <strong>--</strong> (no track), <strong>KEEP</strong>, <strong>DRUMS</strong>, <strong>BASS</strong>, <strong>CHORDS</strong>, <strong>LEAD</strong> or <strong>PAD</strong>. The song keeps the places that have a role, in order, with empty patterns. With no template, all four start as KEEP. A saved template starts KEEP on as many of the four as it has tracks. A role’s first factory sound is used when the template’s sound does not already fit that role. Add MIDI tracks from Stage’s sheet afterwards.</li>
-          <li><strong>Template</strong>: save your current sounds, settings and number of tracks as the template for new projects (empty patterns). With no boot project and no template, power-on is four tracks with the default sounds: SAW SUPERSAW, FMTONE FM BASS, LOFI PULSE LD and the 808 kit.</li>
+          <li><strong>Template</strong>: save your current sounds, settings and number of tracks as the template for new projects (empty patterns). With no boot project and no template, power-on is four tracks with the default sounds: SAW SUPERSAW, FMTONE DXBASS, LOFI PULSE LD and the DRM kit SUB.</li>
           <li>Holding <kbd>SAVE</kbd>, or <kbd>SAVE</kbd>+<kbd>REC</kbd>, writes the project back to its slot (<code>SAVED 02</code>, and so on). If it is playing, the screen says <strong>STOPPING TO SAVE</strong> and the transport stops first. A project with no slot yet opens PROJECT on a free slot (<strong>NEW PROJECT: PICK SLOT</strong>).</li>
           <li><strong>Autosave:</strong> stopped and untouched for five seconds (no key, button, knob or MIDI), a project that already has a slot saves itself when it changed. Hold <kbd>HOME</kbd> and set <strong>AUTOSAVE</strong> to <strong>OFF</strong> to save only by hand. It defaults <strong>ON</strong>, and the choice survives power-off. Manual <kbd>SAVE</kbd> stays available either way.</li>
         </ul>
@@ -339,17 +340,18 @@
 
       <section id="engines">
         <h2>Engines</h2>
-        <p>Selectable instruments: <strong>FMTONE</strong>, <strong>ANALOG4</strong>, <strong>SAW</strong>, <strong>ENS</strong>, <strong>LOFI</strong>, <strong>DUALVCO</strong>, <strong>WAV</strong>, <strong>WHEEL</strong>, <strong>VOX</strong>, <strong>PHYS</strong>, <strong>NOISE</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
+        <p>Selectable instruments: <strong>FMTONE</strong>, <strong>ANALOG4</strong>, <strong>SAW</strong>, <strong>PULS</strong>, <strong>ENS</strong>, <strong>LOFI</strong>, <strong>DUALVCO</strong>, <strong>WAV</strong>, <strong>WHEEL</strong>, <strong>VOX</strong>, <strong>PHYS</strong>, <strong>NOISE</strong>, <strong>DRUM</strong>, and <strong>MIDI Track</strong> for external gear. Press <kbd>EDIT</kbd> for that engine’s pages; press again or use <kbd>SELECT</kbd> to move through them. On engines with several sections, <kbd>PRESETS</kbd> jumps between sections. On an EDIT page, tap <kbd>EDIT</kbd> again for the section map. In that map, <kbd>KNOB 2</kbd> moves by category, and <kbd>KNOB 1</kbd> or <kbd>SELECT</kbd> picks a page within it, one step per detent. Each category remembers its page. <kbd>OCT+</kbd> opens the page; <kbd>OCT−</kbd> or <kbd>EDIT</kbd> closes the map. Hold <kbd>EDIT</kbd> to undo.</p>
         <p>Retired engines (ANALOG, DIGITAL, NOISE, CZ-1, and others) stay silent if an old project still names them; a track saved with SID plays as LOFI, which has SID’s engine number; their saved values remain. Choose another sound to play again. Ranges below are the device’s own; the same values appear in the <a href="../editor/">web editor</a>.</p>
 
         <section id="m2k">
           <h3>SAW, ENS and WAV</h3>
-          <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-ENS and DIGI-WAV machines.</p>
+          <p class="small">Ported from <a href="https://github.com/InigoHernandez/mono2k" target="_blank" rel="noopener">MONO2K</a> by Sequencist: its SWAV-SAW, SWAV-PUL, SWAV-ENS and DIGI-WAV machines.</p>
           <p>Three polyphonic engines: six voices a track (ENS three). Each has two pages of four controls (0–127; TUNE, SCAN, DTUN and the signed controls show −64…+63) and five presets, plus the <a href="#filter">FILTER</a> page. The track’s shape modulation moves one control of each engine; its filter modulation (ENV and LFO → FLT) moves the FILTER’s cutoff when the FILTER is on, and one engine control when it is OFF. Each voice counts 2 points of the BUDGET (ENS 3).</p>
           <table>
             <thead><tr><th>Engine</th><th>Page 1</th><th>Page 2</th><th>Presets</th></tr></thead>
             <tbody>
               <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS</td></tr>
+              <tr><td>PULS</td><td>UNISON: UNIL (unison level), UNIW (width), SUB1, SUB2 (sine subs an octave and two below)</td><td>PULSE: PW (pulse width: a square at 64), PWAD (the width’s sweep speed, back and forth), PWRS (ON: the sweep starts again at each note), TUNE<br>FLT moves UNIL and SHP the width.</td><td>PWM BASS, SQUARE, PWM PAD, THIN LEAD, PWM STAB</td></tr>
               <tr><td>ENS</td><td>CHORD: PCH2, PCH3, PCH4 (each oscillator’s interval: −12…+12 semitones or a ratio such as 3:2), WAVE</td><td>CHORUS: PW (pulse width), CHRL (chorus level), CHRW (chorus width), TUNE</td><td>MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS</td></tr>
               <tr><td>WAV</td><td>WAVE: WAVE (OS01–OS64), SCAN (through the table), STIM (scan time), SYNC</td><td>SHAPE: BITS (reduction), DTUN (second oscillator), MIX2, STEP</td><td>WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS</td></tr>
             </tbody>
@@ -375,12 +377,12 @@
           <table>
             <thead><tr><th>Engine</th><th>Pages</th><th>Presets</th></tr></thead>
             <tbody>
-              <tr><td>FMTONE<br><span class="small">four-operator FM, six voices</span></td><td>OPS: ALGO (1–8), RAT C, RAT A, RAT B (the operators’ ratios, 0.25–16; B2 an octave above B1).<br>TONE: HARM (+ adds harmonics to A and B1’s waves, − to C’s), DTN (A up, B2 down), FB (B2’s feedback), MIX (the other carriers, algorithms 5–8).<br>A ENV, B ENV: ATK, DEC, END (the level it decays to), LEV A / LEV B (the operator’s level).<br>DEL TRK: DEL A, DEL B (each envelope’s delay), TRK A, TRK B (key tracking).<br>FINE: FT A, FT B1, FT B2 (fine tuning, cents).<br>The track’s ENV is the carrier’s amplitude. SHP moves the modulation levels; so does FLT while the FILTER is OFF.</td><td>TINE EP, BELL, FM BASS, BRASS, GLASS PAD, PLUCK LEAD, RESO PLUCK, FIFTH RING</td></tr>
-              <tr><td>DUALVCO<br><span class="small">two oscillators, four voices</span></td><td>OSC: TUNE (osc 1, ±24 semitones), DET (osc 2 against osc 1, ±48), DEC1, DEC2 (each oscillator’s decay; the track’s ADSR still gates the note).<br>MIX: CNFG (80 settings: osc 1 sine S or sinesaw Z; then + mix, R ring, FM or F+R; then osc 2 S sine, K skewed sine, T triangle, Z sinesaw, A saw; a leading * restarts the phases at each note), BEND (a pitch sweep at the start of the note, up to +24 semitones), BAL (the balance), OVER (overdrive).<br>FLT moves the FILTER’s cutoff when it is on; SHP does nothing.</td><td>808 KICK, FM BELL, RING METAL, SAW+SINE BASS, DUAL LEAD, FM BASS, F+R GLASS, TOM, RESO LEAD</td></tr>
-              <tr><td>ANALOG4<br><span class="small">two oscillators, two filters, four voices</span></td><td>OSC 1: WAV1 (SIN, TRI, SAW, PLS), PW1, TUN1, SUB (a sine an octave below).<br>OSC 2: WAV2, PW2, TUN2, FIN2.<br>MIX: LEV1, LEV2, NOIS, SYNC (osc 2 synced to osc 1).<br>F1 ENV: FATK, FDEC, FSUS, FREL: the filter envelope on the FILTER page’s cutoff.<br>F1 MOD: F1EN (how far the envelope closes the cutoff below CUT), DRV (drive into the filters).<br>FLT 2: F2MD (LP, BP or HP, -S in series after the FILTER, -P in parallel), CUT2, RES2, KEY (both filters’ key tracking).<br>ENV 2: E2AT, E2DC, E2AM (amount), E2DS (OFF, PTCH+, PTCH−, PW, F2: filter 2’s cutoff).<br>SHP moves the pulse widths; FLT both cutoffs.</td><td>SAW BASS, PWM LEAD, SYNC LEAD, ACID, WARM PAD, KICK, ZAP TOM, NOISE HAT</td></tr>
+              <tr><td>FMTONE<br><span class="small">four-operator FM, six voices</span></td><td>OPS: ALGO (1–8), RAT C, RAT A, RAT B (the operators’ ratios, 0.25–16; B2 an octave above B1).<br>TONE: HARM (+ adds harmonics to A and B1’s waves, − to C’s), DTN (A up, B2 down), FB (B2’s feedback), MIX (the other carriers, algorithms 5–8).<br>A ENV, B ENV: ATK, DEC, END (the level it decays to), LEV A / LEV B (the operator’s level).<br>DEL TRK: DEL A, DEL B (each envelope’s delay), TRK A, TRK B (key tracking).<br>FINE: FT A, FT B1, FT B2 (fine tuning, cents).<br>The track’s ENV is the carrier’s amplitude. SHP moves the modulation levels; so does FLT while the FILTER is OFF.</td><td>EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK LEAD, RESO PLUCK, FIFTH RING, GROWL, GLASSKY, FMPAD, DRONE, BUBBLES, ZAP (EPIANO, FMBELL, DXBASS, GLASPAD and the last six: MONO2K’s FM sounds, remade on FMTONE; some also set the LFO, DRIVE and ENV’s PIT / SHP)</td></tr>
+              <tr><td>DUALVCO<br><span class="small">two oscillators, four voices</span></td><td>OSC: TUNE (osc 1, ±24 semitones), DET (osc 2 against osc 1, ±48), DEC1, DEC2 (each oscillator’s decay; the track’s ADSR still gates the note).<br>MIX: CNFG (80 settings: osc 1 sine S or sinesaw Z; then + mix, R ring, FM or F+R; then osc 2 S sine, K skewed sine, T triangle, Z sinesaw, A saw; a leading * restarts the phases at each note), BEND (a pitch sweep at the start of the note, up to +24 semitones), BAL (the balance), OVER (overdrive).<br>FLT moves the FILTER’s cutoff when it is on; SHP does nothing.</td><td>FM BELL, SAW+SINE BASS, DUAL LEAD, FM BASS, F+R GLASS, RESO LEAD</td></tr>
+              <tr><td>ANALOG4<br><span class="small">two oscillators, two filters, four voices</span></td><td>OSC 1: WAV1 (SIN, TRI, SAW, PLS), PW1, TUN1, SUB (a sine an octave below).<br>OSC 2: WAV2, PW2, TUN2, FIN2.<br>MIX: LEV1, LEV2, NOIS, SYNC (osc 2 synced to osc 1).<br>F1 ENV: FATK, FDEC, FSUS, FREL: the filter envelope on the FILTER page’s cutoff.<br>F1 MOD: F1EN (how far the envelope closes the cutoff below CUT), DRV (drive into the filters).<br>FLT 2: F2MD (LP, BP or HP, -S in series after the FILTER, -P in parallel), CUT2, RES2, KEY (both filters’ key tracking).<br>ENV 2: E2AT, E2DC, E2AM (amount), E2DS (OFF, PTCH+, PTCH−, PW, F2: filter 2’s cutoff).<br>SHP moves the pulse widths; FLT both cutoffs.</td><td>SAW BASS, PWM LEAD, SYNC LEAD, ACID, WARM PAD</td></tr>
             </tbody>
           </table>
-          <p>The FILTER is OFF on most FMTONE and DUALVCO presets (as Mini-Tone without its filter); RESO PLUCK, FIFTH RING and RESO LEAD start with it on, and every ANALOG4 preset does (its filter 1).</p>
+          <p>The FILTER is OFF on most FMTONE and DUALVCO presets (as Mini-Tone without its filter); RESO PLUCK, FIFTH RING, GROWL, FMPAD and RESO LEAD start with it on, and every ANALOG4 preset does (its filter 1).</p>
         </section>
         <section id="vox">
           <h3>VOX</h3>
@@ -388,7 +390,7 @@
         </section>
         <section id="filter">
           <h3>FILTER</h3>
-          <p>An EDIT page on SAW, ENS, WAV, FMTONE, DUALVCO and ANALOG4 (not NOISE, LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
+          <p>An EDIT page on SAW, PULS, ENS, WAV, FMTONE, DUALVCO and ANALOG4 (not NOISE, LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
           <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0, STAT, PAR, DYN, TRIO and VOICE in 1.2.6, NOIS in 1.2.8. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
         </section>
         <section id="lofi">
@@ -412,7 +414,7 @@
         <section id="phys">
           <h3>Phys</h3>
           <p class="small">Ported from <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> by Leo Kuroshita (Hügelton Instruments). DSP from DaisySP (Electrosmith, Emilie Gillet) and Rings’ sympathetic strings (Emilie Gillet), MIT.</p>
-          <p>Physical models, three voices per track. Nine presets, BELL TREE to HARP. Stage knobs: STRC, BRIT, DAMP, POS. Some controls take another name and meaning with MEMB and SYMP; the screen shows which.</p>
+          <p>Physical models, three voices per track. Eight presets, BELL TREE to HARP. Stage knobs: STRC, BRIT, DAMP, POS. Some controls take another name and meaning with MEMB and SYMP; the screen shows which.</p>
           <table>
             <thead><tr><th>Page</th><th>Control</th><th>What it means</th></tr></thead>
             <tbody>
@@ -448,37 +450,64 @@
         </section>
 
         <section id="drum">
-          <h3>Drum</h3>
-          <p class="small">808 kit: Hügelton’s TR-808 circuit models. 909 kit: the schwung module <a href="https://github.com/athousanddetails/schwung-9W9" target="_blank" rel="noopener">9W9</a> by AThousandDetails (after ER-99), ported via Charles Vestal’s x0x. CR78 kit: designed after the CompuRhythm CR-78’s voice list, not measured from a unit.</p>
-          <p>Synthesized TR-808, TR-909, SID, CR78 and FM kits on the General MIDI key map. SID KIT uses a single 6581 chip whose three voices share the hits; SID DIGI also plays its synthesized kick and snare through the chip’s four-bit volume register. In SID mode, DIGI replaces KICK on the HIT page and RES replaces DRV. <strong>CR78</strong> is a late-1970s rhythm box built from the 808’s circuit pieces, with tambourine, cowbell, conga, bongos, claves and maracas; HATS (HAT or METAL, its metal beat) replaces KICK on the HIT page. <strong>FM</strong> is two-operator FM drums with noise. Both play all eight lanes on one voice, like the SID kit. The DRUM EDIT pages have <strong>Sound</strong> (KIT / HIT macros), <strong>Drum</strong> (per-instrument Sound and Mix), <strong>Lanes</strong> and <strong>Voice</strong> tabs. On DRUM SOUND and DRUM MIX, black keys pick the drum lane and white keys pick a drum within it; the knobs then shape that drum.</p>
+          <h3>DRM (drums)</h3>
+          <p class="small">DRM’s drum models come from <a href="https://github.com/DeadActive/hortator" target="_blank" rel="noopener">Hortator</a> by DEADACTIVE: its TRX and EFM voices (built from measurements of a classic digital drum machine), SKIN, FM, and its ports of Mutable Instruments Plaits’ drums. DRM replaced the DRUM engine in 1.3.6.</p>
+          <p>Eight lanes, KICK, SNARE, CLAP, HATCL (closed hat), HATOP (open hat), TOM, RIM and BELL, on the General MIDI key map, the whole kit on the track’s one voice. Each lane plays one of 29 <strong>models</strong> with its own knobs; a lane struck again takes over smoothly, a closed hat cuts the open one, and a recorded hit can keep its own pitch and length. The DRM EDIT pages have <strong>Sound</strong> (the kit’s knobs), <strong>Drum</strong> (the lanes) and <strong>Lanes</strong> (their levels) tabs.</p>
           <div class="shots">
             <figure class="shot"><img src="stage_drum.png" alt="Drum Stage" width="240" height="240"><figcaption>Drum Stage: lanes light as they hit.</figcaption></figure>
-            <figure class="shot"><img src="drum_sound_808.png" alt="Drum sound page" width="240" height="240"><figcaption>DRUM SOUND: TUNE, DECAY, TONE for the picked drum.</figcaption></figure>
-            <figure class="shot"><img src="drum_mix_909.png" alt="Drum mix page" width="240" height="240"><figcaption>DRUM MIX: LEVEL per drum.</figcaption></figure>
+            <figure class="shot"><img src="drum_lane.png" alt="DRUM LANE page" width="240" height="240"><figcaption>DRUM LANE: the lane, its model, TUNE, DECAY.</figcaption></figure>
+            <figure class="shot"><img src="drum_lane_2.png" alt="DRUM LANE 2 page" width="240" height="240"><figcaption>DRUM LANE 2: the model’s next three knobs.</figcaption></figure>
             <figure class="shot"><img src="drum.png" alt="Drum step grid" width="240" height="240"><figcaption>The drum grid: white keys step, black keys pick lanes.</figcaption></figure>
           </div>
           <figure class="shot"><img src="map_drum_hit.png" alt="Drum EDIT map with pages in the selected category" width="240" height="240"><figcaption>EDIT map: KNOB 2 chooses a category, KNOB 1 its page.</figcaption></figure>
-          <h4>Kit macros (Sound section)</h4>
-          <p>These four-knob pages shape the whole kit at once (also the Stage knobs for TUNE, TONE, DECY and SNAP).</p>
+          <h4>Kits</h4>
+          <table>
+            <thead><tr><th>Kit</th><th>Character</th></tr></thead>
+            <tbody>
+              <tr><td>SUB</td><td>Deep and round: a long low kick, a bright snare, a cowbell (the 808 kit’s place)</td></tr>
+              <tr><td>HOUSE</td><td>Punchy: a short clipped kick, a snappy snare, a ride (the 909 kit’s place)</td></tr>
+              <tr><td>MD EFM</td><td>The FM machines as they come: glassy and metallic (the FM kit’s place)</td></tr>
+              <tr><td>TECHNO</td><td>Plaits’ kick and snare, metal hats, a roomy clap, a skin tom</td></tr>
+              <tr><td>FORGE</td><td>Industrial: a dirty, distorted kick, an FM crack, hiss, a bent metal head, an anvil</td></tr>
+              <tr><td>RUST</td><td>Power noise: an FM kick, a noisy snare, a hard clap, tremolo hats, a clanging FM bell</td></tr>
+              <tr><td>HAND</td><td>Hand percussion, no snare: a big skin, congas, claves, shakers, a bell</td></tr>
+              <tr><td>LO-FI</td><td>Dusty: a dirty short kick, a clipped low snare, dark hats (the CR78 and SID kits’ place)</td></tr>
+              <tr><td>MICRO</td><td>Minimal: a short clipped kick, clicks, tight hats, tuned FM</td></tr>
+              <tr><td>GLITCH</td><td>IDM: FM everywhere, tremolo hats, metallic noise</td></tr>
+            </tbody>
+          </table>
+          <h4>The kit’s knobs (Sound section)</h4>
+          <table>
+            <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td>TUNE</td><td>Every lane, ±12 semitones.</td></tr>
+              <tr><td>DECY</td><td>Every lane’s DECAY, from the next hit.</td></tr>
+              <tr><td>ACC</td><td>How much velocity matters: 0 plays every hit at full force.</td></tr>
+              <tr><td>DRV</td><td>Drive into a soft clip, level kept.</td></tr>
+            </tbody>
+          </table>
+          <h4>Per lane (Drum section)</h4>
+          <p>Pick the lane with KNOB 1 (or the grid’s lane keys); the other knobs then edit that lane. Changing MODEL resets the lane’s knobs to the model’s defaults. Models with eight knobs keep seven here; the eighth stays at its default.</p>
           <table>
             <thead><tr><th>Page</th><th>Controls</th></tr></thead>
             <tbody>
-              <tr><td>KIT</td><td>KIT (808, 909, SID, CR78 or FM), TUNE (overall pitch), TONE (overall character / brightness), DECY (overall decay).</td></tr>
-              <tr><td>HIT</td><td>SNAP (snare snappy / noise amount), ACC (how strongly velocity changes level — the circuits alone only move about 2&nbsp;dB from soft to hard), KICK (PUNCH keeps the bass-drum attack click; ROUND softens it), DRV (drive into a soft clip, level kept).</td></tr>
+              <tr><td>DRUM LANE</td><td>LANE, MODEL, TUNE, DECAY.</td></tr>
+              <tr><td>DRUM LANE 2</td><td>LANE and the model’s next three knobs.</td></tr>
+              <tr><td>DRUM LANE 3</td><td>LANE, the model’s last two knobs, LEVEL.</td></tr>
+              <tr><td>LANES / LANES 2</td><td>Every lane’s LEVEL.</td></tr>
             </tbody>
           </table>
-          <h4>Per drum (Drum section)</h4>
-          <p>Pick the lane on the black keys and its drum on the white keys, then offset that instrument from the kit macros. DRUM HIT uses the same lane-first ordering and shows the selected drum’s name.</p>
+          <h4>Models</h4>
           <table>
-            <thead><tr><th>Page</th><th>Controls</th></tr></thead>
+            <thead><tr><th>Kind</th><th>Models</th></tr></thead>
             <tbody>
-              <tr><td>DRUM SOUND</td><td>DRUM (which instrument), TUNE, DECAY, and TONE (or SNAPPY on the snare; ATTACK on 909 kick / toms).</td></tr>
-              <tr><td>DRUM MIX</td><td>LEVEL for the picked drum.</td></tr>
-              <tr><td>LANES</td><td>Levels for KICK, SNARE, CLAP, HATCL (closed hat).</td></tr>
-              <tr><td>LANES 2</td><td>Levels for HATOP (open hat), TOM, RIM, BELL.</td></tr>
+              <tr><td>Kicks</td><td>BDTRX, B2TRX, BDEFM, BOOM, PUNCH</td></tr>
+              <tr><td>Snares, claps, rims</td><td>SDTRX, SDEFM, SNAP, CRACK; CPTRX, CPEFM; RSTRX, RSEFM</td></tr>
+              <tr><td>Hats and cymbals</td><td>CHTRX, OHTRX, HHEFM, METAL, HISS, SHTRX (shaker); CYTRX, CYEFM</td></tr>
+              <tr><td>Toms and percussion</td><td>TMTRX, TMEFM, CGTRX (conga), SKIN (a struck drum head); CBTRX, CBEFM (cowbells), CLTRX (claves), FM</td></tr>
             </tbody>
           </table>
-          <p>Stage knobs: TUNE, TONE, DECY, SNAP. The SEQ sequencer drum grid uses white keys for steps and black keys to select which lane; recorded takes use the same NOTES piano roll as other engines after recording stops. A recorded hit can keep its own pitch and length (see <a href="#notes">Notes</a> and DRUM HIT).</p>
+          <p>Songs and sounds saved with the DRUM engine (1.3.5 and before) load on the nearest kit, each lane’s tuning kept: the 808 kit on SUB, the 909 on HOUSE, FM on MD EFM, CR78 and SID on LO-FI. Stage knobs: TUNE, DECY, ACC, DRV. The SEQ drum grid uses white keys for steps and black keys to select the lane; recorded takes use the same NOTES piano roll as other engines after recording stops (see <a href="#notes">Notes</a> and DRUM HIT).</p>
         </section>
 
         <section id="midi-track">
@@ -629,16 +658,16 @@
         <p>With AUTO2, CLOSE places accompaniment within the octave below your melody. OPEN lowers the bottom voice; INV1/INV2 choose the third/fifth as bass, adding a lower copy when the melody is that chord tone; +OCT adds a lower root. Your melody stays on top in every voicing. During a strum it sounds immediately, followed by accompaniment in DOWN/UP/ALT order. At the bottom of the MIDI range unavailable lower notes are omitted. Out-of-scale inputs map downward as in AUTO; QNT ALL makes successive keys walk the scale. Mono modes play the mapped melody alone. Kits and microtonal selections keep AUTO's bypass behaviour. The CHORD page highlights the melody and names the resulting harmony.</p>
         <p><strong>QNT:</strong> OFF (chromatic), SNAP (every key moves onto the scale: down to the scale note on 12-tone scales, to the nearest degree on microtonal ones), WHITE (white keys only; black silent), ALL (every key is the next scale degree), MPC (for an Akai MPC pad controller). With QNT MPC, MPC Sample banks <strong>E, F, G and H play Melodee tracks 1, 2, 3 and 4</strong> respectively, on any MIDI channel, overriding ROUT and the DRUM channel for notes. Playing a valid MPC pad silently selects its Melodee track, so the controls and octave indicator follow the most recently played bank. MPC mode suppresses the “MIDI IN → T…” notices; normal MIDI routing also remains silent and keeps the manually selected track. Each melodic bank’s 16 pads play successive scale degrees. The <strong>DEG</strong> control sets the degree pad&nbsp;02 plays (1 = ROOT); pad&nbsp;01 is one degree below, pad&nbsp;03 one above. On Stage, the octave buttons shift only the selected track’s bank (−3 to +3); pressing both resets that bank. The header and button lights show its octave. Each bank’s setting survives track/sound changes and is saved with projects and templates. Outside MPC mode, the shared keyboard octave stays independent. This uses the default program pad map: E = MIDI 100–115, F = 116–127 then 0–3, G = 4–19, H = 20–35. Banks A–D and absent tracks are silent. Enable the MPC’s Pad MIDI Out (Always, or Empty for empty pads). Controllers retain their MIDI channel routing; sustain and panic also follow that channel’s held notes across banks. Incoming MIDI follows WHITE and ALL the same way the keys do, without the octave buttons. ROOT, SCL, QNT and DEG are shared by all tracks; TRN (transpose) remains per track. Older projects with differing roots use the saved selected track’s root when loaded. Chord keys work on the keys, MIDI in, recording and the arpeggiator. Native drum keys keep their chromatic key map and octave; other kits and slices keep their own maps.</p>
         <p><strong>MPC drum pads:</strong> A DRUM track automatically uses this finger-drumming layout in its assigned bank. Pad 01 is bottom left. Drum pads ignore bank octave, scale, ROOT, TRN and DEG, so each pad keeps its sound. Normal MIDI outside MPC mode and recorded patterns retain their GM drum mapping.</p>
-        <table aria-label="MPC 808 and SID drum pads, viewed from above">
+        <table aria-label="MPC drum pads, viewed from above">
           <thead><tr><th>Left</th><th>Middle left</th><th>Middle right</th><th>Right</th></tr></thead>
           <tbody>
-            <tr><td>13 Conga low</td><td>14 Conga mid</td><td>15 Conga high</td><td>16 Clave</td></tr>
-            <tr><td>09 Tom low</td><td>10 Tom mid</td><td>11 Tom high</td><td>12 Maraca</td></tr>
-            <tr><td>05 Closed hat</td><td>06 Open hat</td><td>07 Cowbell</td><td>08 Cymbal</td></tr>
+            <tr><td>13 Conga low</td><td>14 Conga mute</td><td>15 Conga high</td><td>16 Clave</td></tr>
+            <tr><td>09 Tom low</td><td>10 Tom mid</td><td>11 Tom high</td><td>12 Ride</td></tr>
+            <tr><td>05 Closed hat</td><td>06 Open hat</td><td>07 Cowbell</td><td>08 Crash</td></tr>
             <tr><td>01 Kick</td><td>02 Snare</td><td>03 Clap</td><td>04 Rim</td></tr>
           </tbody>
         </table>
-        <p>The 909 keeps these main positions, with 07 Ride and 08 Crash. Its extra pads repeat useful hits: 12 Ride, 13 Kick, 14 Snare, 15 Closed hat and 16 Open hat. Each pad retriggers the hit even while its duplicate is held. CR78 and FM use the 808’s pad positions and play their own sound for each; on CR78, for example, 03 is its tambourine.</p>
+        <p>Each pad plays its GM note on its lane (toms and congas on TOM, cowbell, crash and ride on BELL, clave on RIM), at that note’s pitch; every kit uses the same layout.</p>
       </section>
 
       <section id="arp">
@@ -822,7 +851,7 @@
             <tr><td>MIXER</td><td><kbd>KNOB 1</kbd> LEVEL, <kbd>KNOB 2</kbd> PAN, <kbd>KNOB 4</kbd> MUTE for the selected track. Sends live on the effect pages.</td></tr>
             <tr><td>GLOBAL</td><td><kbd>KNOB 1</kbd> A4 concert pitch (<strong>400–480&nbsp;Hz</strong>, default 440), <kbd>KNOB 2</kbd> <strong>BUDGET</strong> budget for CPU resources (8–32 points, default 18; see <a href="#tracks">Tracks</a>), <kbd>KNOB 3</kbd> CLK (INT / USB / TRS / BLE; see <a href="#midi-clock">Clock and transport</a>), <kbd>KNOB 4</kbd> TUNE (fine cents, ±50). A4, BUDGET and CLK are device settings: they survive power-off and stay when you load a project. TUNE, and SYSTEM’s MIDI and ROUT, come back at power-on, but a project or template brings its own.</td></tr>
             <tr><td>SYSTEM</td><td>MIDI (the input MIDI tracks listen to: USB, TRS or BLE; instrument tracks accept every input), DRUM channel (OFF or 1–16, default 10), ROUT (<strong>CH1-4</strong>, <strong>SEL</strong>, <strong>CH5-8</strong>, <strong>CH9-12</strong> or <strong>CH13-16</strong>), and CPU info. <kbd>KNOB 1</kbd> also shows receive activity. See <a href="#midi">MIDI</a>.</td></tr>
-            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for SAW, ENS, FMT (FMTONE), WAV+ (WAV and NOISE), DRUM, LOFI, DUAL (DUALVCO), A4 (ANALOG4), WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
+            <tr><td>WEIGHTS, WEIGHTS 2, WEIGHTS 3</td><td>Budget points per sounding voice for SAW (and PULS), ENS, FMT (FMTONE), WAV+ (WAV and NOISE), DRUM, LOFI, DUAL (DUALVCO), A4 (ANALOG4), WHEEL and PHYS: <strong>AUTO</strong> (default, the rule under <a href="#tracks">Tracks</a>) or a number. A higher number lets fewer voices of that engine start. WEIGHTS 3 also has BUDGET and <strong>GUARD</strong>: ON lets an audio overload cut releasing voices. With OFF (default) the audio may glitch instead, and an overload that lasts several seconds can freeze the panel and restart the FM-1. Device settings; they survive power-off and stay when you load a project.</td></tr>
           </tbody>
         </table>
       </section>
