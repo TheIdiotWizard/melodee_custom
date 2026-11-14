@@ -26,7 +26,7 @@ static void matrix_setup(const uint32_t cat[4],uint32_t variant)
         if(c==2)cz_patch_of(p)->raw[0]=3;
         if(c==3){trk[p].p[P_E0]=variant&1u;trk[p].p[P_E2]=(variant%3u)==0?SID_DETUNE:(variant%3u)==1?SID_SYNC:SID_RING;}
         for(uint32_t k=0;k<2;k++)trk_note_on(&trk[p],c>=4?(k?38:36):48+p*3+k*7,110);
-        assert(active_voices(&trk[p])==2);
+        assert(active_voices(&trk[p])==(c>=4?1u:2u));   /* (DRM: two lanes, the kit's one voice) */
     }
 }
 static void matrix_render(const uint32_t cat[4],uint32_t variant,int parallel)
@@ -42,7 +42,7 @@ static void matrix_render(const uint32_t cat[4],uint32_t variant,int parallel)
         mix_block(out,CTL);
         assert(!audio_batch_count && AW_LOAD(&audio_worker.request)==AW_LOAD(&audio_worker.complete));
         assert(!resource_failures && !audio_worker.timeouts && !injected_faults);
-        if(block<16u)for(uint32_t p=0;p<4;p++)assert(active_voices(&trk[p])==2);
+        if(block<16u)for(uint32_t p=0;p<4;p++)assert(active_voices(&trk[p])==(cat[p]>=4?1u:2u));
         if(!parallel)memcpy(reference+block*CTL*2,out,sizeof out);
         else {if(memcmp(reference+block*CTL*2,out,sizeof out)){fprintf(stderr,"matrix mismatch %u/%u/%u/%u block %u\n",cat[0],cat[1],cat[2],cat[3],block);abort();}
             for(uint32_t i=0;i<CTL*2;i++)matrix_hash=matrix_hash*1099511628211ull^(uint32_t)out[i];}
@@ -57,6 +57,6 @@ int main(void)
     }
     assert(cases==1296u && audio_batch_pairs);
     assert(!pthread_cancel(thread));assert(!pthread_join(thread,0));
-    printf("Audio matrix: 1296 ordered assignments, two voices per track, controls/releases/retriggers/spread/Chorus, serial/concurrent PCM identical; hash %llx: OK\n",(unsigned long long)matrix_hash);
+    printf("Audio matrix: 1296 ordered assignments, two notes per track (DRM: on its one voice), controls/releases/retriggers/spread/Chorus, serial/concurrent PCM identical; hash %llx: OK\n",(unsigned long long)matrix_hash);
     return 0;
 }

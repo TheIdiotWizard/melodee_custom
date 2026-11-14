@@ -3,8 +3,8 @@
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)
 
 A customised build of [Melodee](https://github.com/keremimo/melodee) 1.6.1 for the M-VAVE FM-1.
-Current release: **[Melodee Custom 1.3.5](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.5)**
-([release notes](docs/RELEASE_1.3.5.md); earlier: [1.3.4](docs/RELEASE_1.3.4.md), [1.3.3](docs/RELEASE_1.3.3.md), [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
+Current release: **[Melodee Custom 1.3.6](https://github.com/TheIdiotWizard/melodee_custom/releases/tag/v1.3.6)**
+([release notes](docs/RELEASE_1.3.6.md); earlier: [1.3.5](docs/RELEASE_1.3.5.md), [1.3.4](docs/RELEASE_1.3.4.md), [1.3.3](docs/RELEASE_1.3.3.md), [1.3.2](docs/RELEASE_1.3.2.md), [1.3.0](docs/RELEASE_1.3.0.md), [1.2.8](docs/RELEASE_1.2.8.md), [1.2.7](docs/RELEASE_1.2.7.md), [1.2.6](docs/RELEASE_1.2.6.md), [1.2.5](docs/RELEASE_1.2.5.md), [1.2.4](docs/RELEASE_1.2.4.md), [1.2.3](docs/RELEASE_1.2.3.md), [1.2.2](docs/RELEASE_1.2.2.md), [1.2.0](docs/RELEASE_1.2.0.md), [1.0.3](docs/RELEASE_1.0.3.md),
 [1.0.0](docs/RELEASE_1.0.0.md)).
 
 - **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/): connect the FM-1 by USB, open it in Chrome or Edge
@@ -25,10 +25,17 @@ Current release: **[Melodee Custom 1.3.5](https://github.com/TheIdiotWizard/melo
   **PHASE** are retired.
 - **NOISE (1.2.8):** the **NOISE** engine (analog hiss, crackle, shift-register and metallic noise through its own
   resonant filter) in place of NOIS, whose tracks play silent.
-- **FILTER (1.2.4):** SAW, ENS, WAV, FMTONE, DUALVCO and ANALOG4 have a **FILTER** page (TRIO's filter: LP / BP /
+- **FILTER (1.2.4):** SAW, PULS, ENS, WAV, FMTONE, DUALVCO and ANALOG4 have a **FILTER** page (TRIO's filter: LP / BP /
   HP / notch, CUT, RES; CC 74 / 71).
+- **DRM (1.3.6):** the DRUM engine is replaced by **DRM**, [Hortator](https://github.com/DeadActive/hortator)'s
+  drum models on DRUM's eight lanes: 29 models (Machinedrum-style TRX and EFM voices, Plaits' drums, SKIN, FM), each
+  lane its own model and knobs, ten kits (SUB, HOUSE, MD EFM, TECHNO, FORGE, RUST, HAND, LO-FI, MICRO, GLITCH). The
+  808, 909, SID, CR78 and FM kits are gone; songs that used them load on the nearest DRM kit.
+- **PULS (1.3.6):** MONO2K's SWAV-PUL pulse machine (unison, two sine subs, a swept pulse width), between SAW and ENS.
+- **FMTONE (1.3.6):** ten of MONO2K's FM sounds remade on it (EPIANO, FMBELL, DXBASS, GLASPAD, GROWL, GLASSKY, FMPAD,
+  DRONE, BUBBLES, ZAP); the drum presets DRM covers are gone from DUALVCO, ANALOG4 and PHYS.
 - **Engines (1.0):** Felucca's **WHEEL** organ and its **LOFI** and **PHYS** engines are back, at their original
-  engine numbers. **CZ-1** and **SID** are retired (DRUM keeps KIT SID).
+  engine numbers. **CZ-1** and **SID** are retired.
 - **MIDI CCs, on the channel's own track:** CC 20–23 the four Stage knobs of the track the channel plays;
   CC 24 that track's sound, stepped as PRESETS does; CC 91 / 93 the MIX of the shared rack's REVERB (or ROOM) /
   CHORUS (or PEDAL CHORUS).
@@ -49,6 +56,17 @@ Current release: **[Melodee Custom 1.3.5](https://github.com/TheIdiotWizard/melo
   from where it is, like the panel knobs, except CC 7 LEVEL and CC 1 the mod wheel (1.0.3; every CC since 1.2.4).
 - **Fix:** a key, or a ROUT SEL MIDI note, could play another track's sound while the screen briefly selected
   that track (also fixed upstream).
+
+### This build's 1.3.6 and 1.3.5
+
+- **1.3.6:** **DRM** replaces the DRUM engine (engine 10): Hortator's drum models on eight lanes, a model and seven
+  knobs a lane, ten kits, TUNE / DECY / ACC / DRV for the whole kit; **PULS**, MONO2K's pulse machine, in engine 24;
+  MONO2K's FM sounds on FMTONE; seven duplicate drum presets removed ([release notes](docs/RELEASE_1.3.6.md)).
+- **1.3.6, engine order:** FMTONE, ANALOG4, SAW, PULS, ENS, LOFI, DUALVCO, WAV, WHEEL, VOX, PHYS, NOISE, DRM, then MIDI Track.
+- **1.3.5, PRESETS browsing fixed:** in 1.3.4 VOX's number (16) was also the browser's mark for a user preset, so turning
+  PRESETS jumped between unrelated sounds and did not come back the same way. VOX now uses retired VOICE's number (5);
+  songs saved in 1.3.4 with VOX load as VOX.
+- **1.3.5, engine order:** FMTONE, ANALOG4, SAW, ENS, LOFI, DUALVCO, WAV, WHEEL, VOX, PHYS, NOISE, DRM (DRUM until 1.3.5), then MIDI Track.
 
 Not affiliated with Melodee or Felucca: please report problems with this build here, not upstream. None of the
 changes have been validated on hardware beyond normal use. Everything below is Melodee's own README.
@@ -230,13 +248,6 @@ See the [release notes](docs/RELEASE_1.4.0.md) for compatibility and upgrade det
   defaults, including stereo USB audio. Compatible Melodee preferences survive.
 - **Project compatibility:** unknown layouts and engine IDs cannot load at boot.
   Incompatible projects remain recoverable as OLD FORMAT.
-
-## What's new in 1.3.5
-
-- **PRESETS browsing fixed:** in 1.3.4 VOX's number (16) was also the browser's mark for a user preset, so turning
-  PRESETS jumped between unrelated sounds and did not come back the same way. VOX now uses retired VOICE's number (5);
-  songs saved in 1.3.4 with VOX load as VOX.
-- **Engine order:** FMTONE, ANALOG4, SAW, ENS, LOFI, DUALVCO, WAV, WHEEL, VOX, PHYS, NOISE, DRUM, then MIDI Track.
 
 ## What's new in 1.3.4
 

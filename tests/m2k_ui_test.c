@@ -14,7 +14,7 @@ int main(void)
     uint32_t pg = NPAGES;
     for (uint32_t i = 0; i < NPAGES; i++) if (!strcmp(PAGES[i].title, "FILTER")) pg = i;
     static const struct { uint8_t e, on; } E[] = {{ENGI_SAW, 1}, {ENGI_SAW + 1u, 1}, {ENGI_WAV, 1}, {11u, 0},
-        {ENGI_FMTONE, 1}, {ENGI_DUAL, 1}, {ENGI_ANA4, 1}, {ENGI_SAW + 2u, 0}, {ENGI_SAW + 3u, 0}, {ENGI_SAW + 4u, 0},
+        {ENGI_FMTONE, 1}, {ENGI_DUAL, 1}, {ENGI_ANA4, 1}, {ENGI_PULS, 1}, {ENGI_SAW + 3u, 0}, {ENGI_SAW + 4u, 0},
         {3u, 0}, {ENGI_DRUM, 0}};
     ui_power_on();
     for (uint32_t k = 0; k < NELEM(E) && pg < NPAGES; k++) {
@@ -23,7 +23,7 @@ int main(void)
     }
     ok &= pg < NPAGES && PAGES[pg].fam == FAM_EDIT && PAGES[pg].id[0] == P_FMODE && PAGES[pg].id[1] == P_FCUT &&
           PAGES[pg].id[2] == P_FRES && PAGES[pg].id[3] == P_ED_FLT;
-    bad += check("EDIT FILTER (MODE CUT RES ENV): the six only, not NOISE, LOFI, DRUM or the retired STAT PAR DYN", ok);
+    bad += check("EDIT FILTER (MODE CUT RES ENV): the seven only (PULS too), not NOISE, LOFI, DRM or the retired PAR DYN", ok);
 
     ok = 1;
     uint32_t nf = 0, na = 0, a4mix = NPAGES;

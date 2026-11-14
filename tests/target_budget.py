@@ -18,11 +18,12 @@ import sys
 
 FUNCS = ["phase_render", "sid_render", "cz_native_render", "cz_native_wave", "fph_render_f", "fph_xfade", "lofi_render", "formant_render",
          "trio_render", "trio_pass", "wheel_render", "wheel_block",
-         "phys_render", "drum_render", "dsk_render", "noise_render", "fm6_render", "m2k_render", "m2k_ens_post", "fmt_render", "dual_render", "a4_render", "uflt_coef", "p5_samples", "p5_mod_samples", "px_modal_block", "px_modal_run", "px_memb_block",
+         "phys_render", "drum_render", "noise_render", "fm6_render", "m2k_render", "m2k_pul", "m2k_ens_post", "fmt_render", "dual_render", "a4_render", "uflt_coef", "p5_samples", "p5_mod_samples", "px_modal_block", "px_modal_run", "px_memb_block",
          "px_string_excite", "px_string_run", "px_symp_run",
-         "dr_bd", "dr_sd", "dr_tom", "dr_rs", "dr_cl", "dr_cp", "dr_ma", "dr_metal", "dr_cb", "dr_cy", "dr_hat", "dr8_run",   # drum_808.c
-         "drum_source", "drum_limit", "drum_color", "dr_metal_tune",
-         "d9_render_bd", "d9_render_sd", "d9_render_tom", "d9_render_rim", "d9_render_clap", "d9_render_smp",
+         "kboom_render", "kpunc_render", "ssnap_render", "scrak_render", "hh_render", "memb_render", "fm_render",   # DRM (drm/)
+         "ktrx_render", "sdtrx_render", "b2trx_render", "xt_render", "cltrx_render", "rstrx_render", "cptrx_render",
+         "matrx_render", "cbtrx_render", "trxm_render", "bdefm_render", "sdefm_render", "cpefm_render", "rsefm_render",
+         "cbefm_render", "hhefm_render", "cyefm_render",
                                    # SLICE (eng_slice.c): the render, the reverse windows
          "fm1_alnk0_irq", "track_render_audio",       # per-track renderer has its own bounded function
          "midi_parameter", "audition_tick", "click_render", # bounded optional recording/performance paths
@@ -38,8 +39,7 @@ OPTIONAL = {}                   # built only with an option, not in BUDGET: abse
 EXTRACTED = {
     "cz_native_wave": ("cz_native_wave_window4",),
     "sid_render": ("sid_render_into",),
-    "drum_render": ("drum_render_into",),
-    "dr8_run": ("dr8_run_into",),
+    "drum_render": ("drum_render_into", "drm_render"),
     "fm6_render": ("fm6_run", "fm6_run_into", "fm6_op_mark1", "fm6_op_modern_flat", "fm6_output", "fm6_join"),
     "fm1_alnk0_irq": ("mix_block", "mix_part", "mix_prepare_batch", "audio_batch_flush", "mix_mono_samples", "mix_mono_dry", "mix_mono_general", "master_samples", "master_out"),
     "track_render_audio": ("fm6_dc_samples", "p5_dc_samples"),

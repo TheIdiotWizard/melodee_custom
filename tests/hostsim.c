@@ -156,6 +156,8 @@ static void host_preset_values(track_t *t, uint32_t e, uint32_t pi, const preset
     cz_factory_loaded(t);
     if(e==ENGI_PROPHET){uint32_t k=(uint32_t)(t-trk)%NPART;p5_ready[k]=1;p5_preset_loaded(t,pi);}   /* (its program, as ui.c) */
     fm6_track_loaded(t);                          /* FM6: the preset's patch (ui.c apply_preset_to) */
+    if (e == ENGI_DRUM && t < &trk[NPART])
+        drm_kit_put(t, pi);                       /* DRM: the kit (ui.c apply_preset_to) */
 #if MELODEE_M2K_ENGINES
     t->p[P_FMODE] = TP[P_FMODE].def; t->p[P_FCUT] = TP[P_FCUT].def; t->p[P_FRES] = TP[P_FRES].def;
     uflt_preset_loaded(t, pi);                    /* (its FILTER, as ui.c apply_preset_to) */
@@ -252,6 +254,16 @@ static uint32_t started_since(const track_t *t, uint32_t a0)
         n += t->v[i].active && t->v[i].age > a0;
     return n;
 }
+/* DRM (one voice for the kit): the lanes struck since its hit count a0 (drm_part_t.age) */
+static uint32_t drm_age(const track_t *t) { const drm_part_t *K = drm_of(t); return K ? K->age : 0u; }
+static uint32_t lanes_since(const track_t *t, uint32_t a0)
+{
+    const drm_part_t *K = drm_of(t);
+    uint32_t l, n = 0;
+    for (l = 0; K && l < DV_NLANE; l++)
+        n += K->ch[l].on && K->ch[l].v.age > a0;
+    return n;
+}
 
 /* the demo song: T1 the power-on bass (TRK_DEF: PROPHET FUNK BASS II; ANALOG ACID until 2.0) (16 steps), T2 the
  * power-on pad (TRK_DEF: FM6 PAD; DIGITAL PAD until it was retired) (32 steps, tied chords), T3 SID INIT SID
@@ -326,10 +338,10 @@ static int tracks_demo(const char *dir, const char *name, uint32_t solo)
             input_on(td, 39, 110);
             input_off(td, 39);                     /* a drum hit, not a held SAMPLE note tied over the next step */
             clap_done = 1;
-            clap_age = vage;
+            clap_age = drm_age(td);
             clap_pass = 1;
         } else if (clap_pass == 1u && td->seq_idx == 4u) {
-            clap_hits = started_since(td, clap_age);   /* what step 4 triggered right after (36, 38, 42; not 39) */
+            clap_hits = lanes_since(td, clap_age);   /* what step 4 struck right after (36, 38, 42; not 39) */
             clap_pass = 2;
         }
         /* (b) MIDI ch 3 into the lead, early in its step 1 */

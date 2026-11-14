@@ -137,7 +137,7 @@ static uint32_t voice_units(const track_t *t)
     uint32_t en = t->engine;
     /* (the weights' slots, 1.2.6: FMT FMTONE where FM+ was, DUAL DUALVCO VOICE's, A4 ANALOG4 TRIO's; WAV+ WAV and,
      * since 1.2.8, NOISE in NOIS's place) */
-    int k = en == ENGI_SAW ? 0 : en == ENGI_SAW + 1u ? 1 : en == ENGI_FMTONE ? 2 : en == ENGI_WAV || en == 11u ? 3 :
+    int k = en == ENGI_SAW || en == ENGI_PULS ? 0 : en == ENGI_SAW + 1u ? 1 : en == ENGI_FMTONE ? 2 : en == ENGI_WAV || en == 11u ? 3 :
             e == &ENG_DRUM ? 4 : e == &ENG_LOFI ? 5 : en == ENGI_DUAL ? 6 : en == ENGI_ANA4 ? 7 : e == &ENG_WHEEL ? 8 :
             e == &ENG_PHYS ? 9 : -1;
 #elif MELODEE_FELUCCA_ENGINES                          /* (params.c weight_kind's order) */
@@ -153,7 +153,7 @@ static uint32_t voice_units(const track_t *t)
         return voice_p5_parts()>1u?4u:3u;
     }
     if((MELODEE_CZ&&e==&ENG_CZ))return 3u;
-    if(e==&ENG_FM6 || (MELODEE_SID&&e==&ENG_SID) || e==&ENG_DRUM)return 2u;
+    if(e==&ENG_FM6 || (MELODEE_SID&&e==&ENG_SID))return 2u;
 #endif
     return e->units ? e->units(t) : trk_nvoice(t) > NPOLY ? 1u : 2u;
 }
@@ -391,8 +391,8 @@ static void voice_start(track_t *t, voice_t *v, uint32_t note, uint32_t vel, int
     uint32_t keep = e->keep;
     /* MIDI replaces a repeated press by releasing its old owner first. A
      * same-pitch one-shot then retriggers the same circuit regardless of gate;
-     * it has not displaced another note or consumed another budget slot. */
-    capacity_steals+=(uint32_t)(sounding && (v->note!=note || (!v->gate && !e->oneshot)));
+     * it has not displaced another note or consumed another budget slot. DRM: its one voice is every lane's. */
+    capacity_steals+=(uint32_t)(sounding && ((v->note!=note && e!=&ENG_DRUM) || (!v->gate && !e->oneshot)));
     voice_was = (uint8_t)(!v->active ? 0u : v->gate ? 2u : 1u);
     v->note = (uint8_t)note;
     v->vel = (uint8_t)vel;
@@ -780,7 +780,7 @@ static void engine_render(track_t *t,voice_t *v,const engine_t *e,int32_t *out,u
         engine_batch_t j;j.track=t;j.voice=v;j.engine=e;j.modulation=*m;j.n=n;
         for(uint32_t k=0;k<8u;k++)j.engine_params[k]=t->p[P_E0+k];
         for(uint32_t k=0;k<DV_NLANE;k++)j.lane_params[k]=t->p[P_LN0+k];
-        audio_batch_push(engine_batch_kernel,&j,sizeof j,out,n,(MELODEE_CZ&&e==&ENG_CZ)?AP_CZ:(MELODEE_SID&&e==&ENG_SID)||drum_issid(t)?AP_SID:drum_is909(t)?AP_909:drum_isfm(t)?AP_FM6:AP_808);return;
+        audio_batch_push(engine_batch_kernel,&j,sizeof j,out,n,(MELODEE_CZ&&e==&ENG_CZ)?AP_CZ:(MELODEE_SID&&e==&ENG_SID)?AP_SID:AP_909);return;
     }
     e->render(t,v,out,n,m);
 }

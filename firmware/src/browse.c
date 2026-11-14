@@ -35,7 +35,7 @@ static const char *const PRESET_CAT[NENGINES] = {
 #endif
 #if MELODEE_FELUCCA_ENGINES
     [6] = "BLLEP",                                      /* TRIO: FAT BASS, ARP LEAD, SYNC LEAD, RING BELL, CHIP CHOIR */
-    [9] = "EEUSEDDSU",                                  /* PHYS: BELL TREE .. HARP */
+    [9] = "EEUSEDSU",                                   /* PHYS: BELL TREE .. HARP (TOMS cut, 1.3.6) */
 #endif
 #if MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL
     [7] = "GGGGG",                                      /* WHEEL: its five organs */
@@ -47,13 +47,15 @@ static const char *const PRESET_CAT[NENGINES] = {
 #endif
 #if MELODEE_M2K_ENGINES                                 /* MONO2K's four (eng_m2k.c), Mini-Tone's three (eng_mt.c) */
     [ENGI_SAW] = "LPLLB",                               /* SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS */
+    [ENGI_PULS] = "BLPLU",                              /* PULS: PWM BASS, SQUARE, PWM PAD, THIN LEAD, PWM STAB */
     [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
-    [ENGI_FMTONE] = "KEBRPLLE",                         /* TINE EP, BELL, FM BASS, BRASS, GLASS PAD, PLUCK / RESO PLUCK, FIFTH RING */
-    [ENGI_DUAL] = "DEEBLBPDL",                          /* 808 KICK, FM BELL, RING METAL, 2 BASSES, DUAL LEAD, F+R GLASS, TOM, RESO LEAD */
-    [ENGI_ANA4] = "BLLBPDDD",                           /* SAW BASS, PWM / SYNC LEAD, ACID, WARM PAD, KICK, ZAP TOM, NOISE HAT */
+    [ENGI_FMTONE] = "KEBRPLLEBKPFFF",                   /* EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK / RESO PLUCK, FIFTH RING,
+                                                         * GROWL, GLASSKY, FMPAD, DRONE, BUBBLES, ZAP */
+    [ENGI_DUAL] = "EBLBPL",                             /* FM BELL, SAW+SINE BASS, DUAL LEAD, FM BASS, F+R GLASS, RESO LEAD */
+    [ENGI_ANA4] = "BLLBP",                              /* SAW BASS, PWM / SYNC LEAD, ACID, WARM PAD */
 #endif
-    [10] = "DDDDDD",                                    /* DRUM: the kits (808, 909, SID, SID DIGI, CR78, FM) */
+    [10] = "DDDDDDDDDD",                                /* DRM: its ten kits */
     [12] = "KEBRPEGUKRBEEKGSPLUEWEBEO",                 /* FM6, INIT VOICE */
     [ENGI_CZ] = "ORRRSSSSSUUUBBBBURWSWWWWUKKKKKKKKGGGGGPPPEEEEEDEESSULLLLFDDDEFFFF",   /* INIT TONE, Casio's 64 */
     [ENGI_PROPHET] =                                    /* INIT, Sequential's 200 */

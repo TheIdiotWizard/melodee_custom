@@ -19,11 +19,10 @@ wheel_render 267
 wheel_block 102
 # PHYS restored (MELODEE_FELUCCA_ENGINES): Felucca's loop as it builds now, against the retired one's 61
 phys_render 68
-drum_render 83
+drum_render 376
 # SID-kit renderer baseline before the 2026-10-25 channel/filter split.
 # KIT SID without the SID engine: its envelope helper has one caller left and is inlined into the loop (2 calls
 # there before): the same work counted as loop instructions, not a slower kit
-dsk_render 786
 noise_render 247
 # Native fp32 serial FM6, decoded r3/fprev1 and counted with natural loops.
 # Includes extracted operator/output helpers; dual-core profile measures 3439.
@@ -34,18 +33,6 @@ px_memb_block 106
 px_string_excite 171
 px_string_run 264
 px_symp_run 252
-dr_bd 127
-dr_sd 137
-dr_tom 105
-dr_rs 148
-dr_cl 70
-dr_cp 59
-dr_ma 49
-dr_metal 121
-dr_cb 68
-dr_cy 114
-dr_hat 37
-dr8_run 20
 fm1_alnk0_irq 18778
 # Standalone voice-loop baseline from 83cdcdc's track_render, compiled
 # noinline with the same target flags. Existing ISR/engine limits unchanged.
@@ -61,18 +48,8 @@ cz_native_render 583
 cz_native_wave 0
 # Eight-control snapshot loop is now local and visible here; it replaces
 # drum808_values' full-track copy. The original PCM conversion loop remains.
-drum_source 15
-drum_limit 22
-drum_color 19
 # Private scratch pointer adds one loop instruction; concurrent voices no
 # longer race on global metal increments. All other kernel budgets retained.
-dr_metal_tune 8
-d9_render_bd 224
-d9_render_sd 280
-d9_render_tom 3064
-d9_render_rim 4383
-d9_render_clap 1047
-d9_render_smp 1444
 
 # Native fp32 Prophet kernels, r3 + fprev1 disassembly.
 p5_samples 1075
@@ -89,8 +66,34 @@ fx_bus_kernel 267
 # Full-rate stereo chorus: two integer taps; no sample-loop calls or divides.
 fx_chorus 97
 m2k_render 3691
+m2k_pul 357
 m2k_ens_post 191
 fmt_render 311
 dual_render 414
 a4_render 171
 uflt_coef 0
+# DRM (drm/): Hortator's models, one lane each (drum_render: the kit's lanes, levels, fades and output)
+kboom_render 368
+kpunc_render 332
+ssnap_render 408
+scrak_render 307
+hh_render 283
+memb_render 84
+fm_render 76
+ktrx_render 317
+sdtrx_render 310
+b2trx_render 162
+xt_render 142
+cltrx_render 100
+rstrx_render 75
+cptrx_render 207
+matrx_render 284
+cbtrx_render 475
+trxm_render 250
+bdefm_render 156
+sdefm_render 197
+cpefm_render 183
+rsefm_render 199
+cbefm_render 187
+hhefm_render 163
+cyefm_render 223

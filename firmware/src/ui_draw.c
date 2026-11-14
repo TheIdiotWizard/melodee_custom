@@ -731,13 +731,19 @@ static void draw_columns(void)
     if (ui.home)                                        /* Stage: its knobs drop in when turned (ui_stage.c stage_knobs);
                                                          * the page left (DRUM SOUND ..) draws none under them */
         return;
-    if(cur_page()->scope==SC_DRUM){
-        char v[12];uint32_t sound=ui.drum_sound%drum_sound_count(TSEL);const int8_t *c=drum_patch_of(song.sel)->c[sound];
-        draw_column(0,"DRUM",drum_sound_name(TSEL,sound),"",VAL(0u),-1,ICON_AUTO);
-        if(cur_page()->id[1]==4){fmt_int(v,127-c[3]);draw_column(1,"LEVEL",v,"",VAL(1u),-1,ICON_AUTO);draw_column(2,"","","",T_THEME,-1,ICON_NONE);draw_column(3,"","","",T_THEME,-1,ICON_NONE);return;}
-        fmt_int(v,c[0]);draw_column(1,"TUNE",v,"ST",VAL(1u),-1,ICON_PITCH);
-        fmt_int(v,c[1]+64);draw_column(2,"DECAY",v,"",VAL(2u),-1,ICON_GATE);
-        fmt_int(v,c[2]+64);draw_column(3,(drum_is909(TSEL)?drum_character(sound):drum_issid(TSEL)?"SNAP":sound==D9_SD?"SNAPPY":"TONE"),v,"",VAL(3u),-1,ICON_AUTO);return;
+    if(cur_page()->scope==SC_DRUM){                     /* DRM's LANE pages: the lane, its model, its knobs, LEVEL */
+        char v[16];uint32_t lane=ui.drum_sound%drum_sound_count(TSEL),m=drm_model(drum_patch_of(song.sel),lane);
+        for(uint32_t s=0;s<4u;s++){
+            uint32_t f=cur_page()->id[s];const char *unit="";
+            if(!f){draw_column(s,"LANE",drum_lane_name(TSEL,lane),"",VAL(s),-1,ICON_AUTO);continue;}
+            if(f==10u){draw_column(s,"MODEL",N_DRM_MODEL[m],"",VAL(s),-1,ICON_AUTO);continue;}
+            if(f==20u){fmt_int(v,TSEL->p[P_LN0+lane]);draw_column(s,"LEVEL",v,"",VAL(s),-1,ICON_AUTO);continue;}
+            const param_desc_t *d=drm_knob_desc(m,f-11u);
+            if(!d || d->label[0]=='-'){draw_column(s,"","","",T_THEME,-1,ICON_NONE);continue;}
+            param_format(d,drm_get(drum_patch_of(song.sel),lane,f-11u),v,&unit);
+            draw_column(s,d->label,v,unit?unit:"",VAL(s),-1,f==11u?ICON_PITCH:f==12u?ICON_GATE:ICON_AUTO);
+        }
+        return;
     }
     if(cur_page()->scope==SC_DRUMHIT){
         char v[12];uint32_t i=drum_hit_selected();const recorded_note_t *r=i<RECORD_MAX?&recording[i]:0;

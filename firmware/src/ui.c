@@ -321,6 +321,9 @@ static int page_visible(uint32_t i)
     if (PAGES[i].scope == SC_TRACK && PAGES[i].id[0] >= P_LN0 && PAGES[i].id[0] <= P_LN7)
         return drum_track(TSEL);
     if(TSEL->eng_req==ENGI_CZ && PAGES[i].scope==SC_ENGINE && PAGES[i].fam==FAM_EDIT && (PAGES[i].id[0]==P_E0 || PAGES[i].id[0]==P_E4))return 0;
+    if (PAGES[i].scope == SC_ENGINE && PAGES[i].fam == FAM_EDIT && PAGES[i].id[0] == P_E4 &&
+        ENGINES[eng_idx(TSEL->eng_req)]->page_title[1][0] == '-')
+        return 0;                                      /* (an engine's second page with nothing on it: DRM, VOX) */
     if (PAGES[i].scope == SC_CZ)                       /* (PHASE's CZ mode; PHASE retired without MELODEE_LEGACY_EXTRAS) */
         return !MELODEE_FELUCCA_ENGINES && TSEL->eng_req == 2u && eng_ok(2u) && TSEL->p[P_E7] == 1;   /* (Felucca's E7: FOLD) */
     if(PAGES[i].scope==SC_P5 || PAGES[i].scope==SC_P5STORE)return TSEL->eng_req==ENGI_PROPHET;
@@ -1070,6 +1073,8 @@ static void apply_preset_to(track_t *t, uint32_t pi)
     cz_factory_loaded(t);
     cz_track_accept(t);
     fm6_track_loaded(t);                              /* FM6: the preset's patch */
+    if (t->eng_req == ENGI_DRUM)
+        drm_kit_put(t, pi);                           /* DRM: the kit's lanes and their levels */
     load_end(t);
 }
 

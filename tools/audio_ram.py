@@ -39,6 +39,12 @@ def engine_roots(src):
         for field, name in re.findall(r'\.(\w+)\s*=\s*(\w+)\s*[,}]', file.read_text()):
             if field in CALLBACKS:
                 roots.add(name)
+    # DRM's models (src/drm/, eng_drum.c DMODELS) are called through their own table: each model's
+    # DM_*_DEF names its trigger and render
+    for file in (src / 'drm').glob('dm_*.c'):
+        text = file.read_text().replace('\\\n', ' ')
+        for trigger, render in re.findall(r'\b(\w+_trigger)\s*,\s*(\w+_render)\b', text):
+            roots.update((trigger, render))
     return roots
 
 

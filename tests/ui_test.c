@@ -915,7 +915,7 @@ static int test_track_count(void)
     int bad = 0, ok;
     uint32_t i, n;
     char a[32], b[CF_DETAIL];
-    static const char *const DEF[NPART] = {"It's a Prophet 5", "SOLID BASS", "SYNTH.LEAD 1", "808 KIT"};
+    static const char *const DEF[NPART] = {"It's a Prophet 5", "SOLID BASS", "SYNTH.LEAD 1", "SUB"};
     ui_power_on();
     stop_transport();
     memset(proj_slot, 0, sizeof proj_slot);
@@ -1491,7 +1491,7 @@ static int test_browser(void)
                  preset_cat(ENGI_FM6, find_preset(ENGI_FM6, "STEEL DRUM")) == CAT_BELL &&
                  preset_cat(ENGI_CZ, find_preset(ENGI_CZ, "METALLIC")) == CAT_BELL &&
                  preset_cat(ENGI_CZ, find_preset(ENGI_CZ, "SAXOPHONE")) == CAT_WIND &&
-                 preset_cat(ENGI_DRUM, find_preset(ENGI_DRUM, "909 KIT")) == CAT_DRUM);
+                 preset_cat(ENGI_DRUM, find_preset(ENGI_DRUM, "HOUSE")) == CAT_DRUM);
     bad += check("BROWSE: a slot's category from its name: a factory sound's of its engine, else its words",
                  cat_guess(ENGI_PROPHET, "Fat Poly Bas") == CAT_BASS &&
                  cat_guess(ENGI_PROPHET, "PICKLE PINCHER") == preset_cat(ENGI_PROPHET, find_preset(ENGI_PROPHET, "Pickle Pincher")) &&
@@ -2595,39 +2595,37 @@ static int test_popups(void)
         uint32_t sound_pages = smap_pages(sound_row, drum_pages);
         sec_short(drum_pages[0], first, sizeof first); sec_short(drum_pages[1], second, sizeof second);
         int map_pixels = map_pixels_match_full();
-        bad += check("DRUM MAP: opens Sound with Kit selected, Hit beside it, Drum below",
-                     smap.on && str_eq(sec.name[sound_row], "Sound") && sound_pages == 2u && !smap.col &&
-                     str_eq(first, "Kit") && str_eq(second, "Hit") && str_eq(sec.name[sound_row + 1u], "Drum"));
+        (void)second;
+        bad += check("DRUM MAP: opens Sound with Kit selected (DRM: its one page), Drum below",
+                     smap.on && str_eq(sec.name[sound_row], "Sound") && sound_pages == 1u && !smap.col &&
+                     str_eq(first, "Kit") && str_eq(sec.name[sound_row + 1u], "Drum"));
         turn(EN_K1, 1);
         map_pixels &= map_pixels_match_full();
-        bad += check("DRUM MAP: one KNOB 1 detent selects Hit while Sound and Drum below stay put",
-                     smap.on && smap.row == sound_row && smap.col == 1u &&
-                     str_eq(sec.name[smap.row + 1u], "Drum"));
+        bad += check("DRUM MAP: one KNOB 1 detent stays on Kit (Sound's one page), Drum below",
+                     smap.on && smap.row == sound_row && !smap.col && str_eq(sec.name[smap.row + 1u], "Drum"));
         turn(EN_K2, 1);
         map_pixels &= map_pixels_match_full();
         smap_pages(smap.row, drum_pages);
-        bad += check("DRUM MAP: one KNOB 2 detent selects Drum sound in Drum, with Lanes below",
+        bad += check("DRUM MAP: one KNOB 2 detent selects DRUM LANE in Drum, with Lanes below",
                      smap.on && smap.row == sound_row + 1u && !smap.col &&
-                     str_eq(PAGES[drum_pages[smap.col]].title, "DRUM SOUND") &&
+                     str_eq(PAGES[drum_pages[smap.col]].title, "DRUM LANE") &&
                      str_eq(sec.name[smap.row + 1u], "Lanes"));
         bad += check("DRUM MAP: each one-detent screen matches a complete redraw", map_pixels);
         press(B_OCTUP);
-        bad += check("DRUM MAP: OCT+ opens the selected Drum sound page", !smap.on && str_eq(cur_page()->title, "DRUM SOUND"));
-        go_title("DRUM MIX"); frame();
+        bad += check("DRUM MAP: OCT+ opens the selected DRUM LANE page", !smap.on && str_eq(cur_page()->title, "DRUM LANE"));
+        go_title("DRUM LANE 2"); frame();
         uint32_t drum_mix = ui.page;
-        go_title("EDIT 2"); frame(); press(B_EDIT);
-        o = smap.row == sound_row && smap.col == 1u;
+        go_title("EDIT 1"); frame(); press(B_EDIT);
+        o = smap.row == sound_row && !smap.col;
         turn(EN_K2, 1);
         smap_pages(smap.row, drum_pages);
-        bad += check("DRUM MAP: one KNOB 2 detent recalls Drum mix after it has been opened",
+        bad += check("DRUM MAP: one KNOB 2 detent recalls DRUM LANE 2 after it has been opened",
                      o && smap.row == sound_row + 1u && drum_pages[smap.col] == drum_mix);
         turn(EN_K2, -1); smap_pages(smap.row, drum_pages);
-        bad += check("DRUM MAP: one reverse detent recalls Hit inside Sound",
-                     smap.row == sound_row && str_eq(PAGES[drum_pages[smap.col]].title, "EDIT 2"));
-        turn(EN_K1, -1); turn(EN_K1, -1);
-        bad += check("DRUM MAP: KNOB 1 stops at Kit without leaving Sound", smap.row == sound_row && !smap.col);
-        turn(EN_K1, 1); turn(EN_K1, 1);
-        bad += check("DRUM MAP: KNOB 1 stops at Hit without leaving Sound", smap.row == sound_row && smap.col == 1u);
+        bad += check("DRUM MAP: one reverse detent recalls Kit inside Sound",
+                     smap.row == sound_row && str_eq(PAGES[drum_pages[smap.col]].title, "EDIT 1"));
+        turn(EN_K1, -1); turn(EN_K1, 1);
+        bad += check("DRUM MAP: KNOB 1 stays at Kit without leaving Sound", smap.row == sound_row && !smap.col);
         press(B_HOME);
     }
     go_page(GR_SONG); frame();
@@ -4958,7 +4956,7 @@ static int test_stage_knobs_after_drum(void)
     ui_power_on();
     track_select(3);
     set_engine_of(TSEL, ENGI_DRUM);
-    go_title("DRUM SOUND");
+    go_title("DRUM LANE");
     frame();
     go_home();
     frame(); frame();

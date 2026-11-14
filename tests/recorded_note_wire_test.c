@@ -15,5 +15,5 @@ int main(void)
             hash=fnv(hash,fixture_raw,sizeof fixture_raw);cases++;
         }
     printf("Frozen FBKK/FUN22 bytes: %u cases, hash %08x\n",cases,hash);
-    assert(hash==0x519392b4u);return 0;
+    assert(hash==0x552739eeu);return 0;   /* (1.3.6: DRM's kits on the drum tracks; 0x519392b4 before) */
 }

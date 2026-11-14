@@ -869,15 +869,17 @@ static int live_rec_sel(void);
 static void notes_event_edit(uint32_t slot, int32_t delta);
 static void step_move_edit(int32_t delta);
 /* The sound page edits a kit voice; HIT edits only one event, retaining its instrument. */
-static void drum_sound_edit(uint32_t slot,int32_t delta)
+static void drum_sound_edit(uint32_t slot,int32_t delta)   /* DRM's LANE pages (ui_draw.c) */
 {
     ui.drum_sound%=drum_sound_count(TSEL);
-    uint32_t field=cur_page()->id[slot];
+    uint32_t field=cur_page()->id[slot],lane=ui.drum_sound;drum_patch_t *d=drum_patch_of(song.sel);
     if(!field){drum_pick(drum_sound_step(TSEL,ui.drum_sound,delta));return;}
     if(field==255)return;
+    if(field==20u){TSEL->p[P_LN0+lane]=(int16_t)clamp(TSEL->p[P_LN0+lane]+delta,0,127);ui.force=1;return;}
     fm1_irq_off();
-    if(field==4){int8_t *p=&drum_patch_of(song.sel)->c[ui.drum_sound][3];*p=(int8_t)clamp(*p-delta,0,127);}
-    else {int8_t *p=&drum_patch_of(song.sel)->c[ui.drum_sound][field-1];*p=(int8_t)clamp(*p+delta,field==1?-24:-64,field==1?24:63);}
+    if(field==10u)drm_set_model(d,lane,(uint32_t)clamp((int32_t)drm_model(d,lane)+delta,0,DM_N-1));
+    else{const param_desc_t *e=drm_knob_desc(drm_model(d,lane),field-11u);
+        if(e && e->label[0]!='-')drm_put(d,lane,field-11u,clamp(drm_get(d,lane,field-11u)+delta,e->min,e->max));}
     fm1_irq_on();ui.force=1;
 }
 static void drum_hit_jog(int32_t delta);
@@ -2261,11 +2263,23 @@ static void mlearn_poll(void)
 }
 
 #include "ui_designer_input.c"
+/* DRM (eng_drum.c): the main loop's safety net: a kit any other path brought in (a part's sound from MIDI, the editor) */
+static void drm_upgrade_poll(void)
+{
+    for (uint32_t k = 0; k < NPART; k++)
+        if (trk[k].eng_req == ENGI_DRUM && trk[k].p[P_DRMFMT] != DRM_FMT) {
+            fm1_irq_off();
+            drm_upgrade_all();
+            fm1_irq_on();
+            return;
+        }
+}
 static void ui_input(void)
 {
     midi_knobs_poll();
     mlearn_poll();
     pattern_poll();
+    drm_upgrade_poll();                                 /* (a DRUM kit of 1.3.5 or before, from any path: DRM's) */
     uint32_t pressed = fm1_input_edges(0), notes = fm1_input_note_edges(), now = fm1_ticks(), id, b, k;
     dq_poll();                                          /* (destructive edits waiting for their loop end) */
     if (boot_work.state) {

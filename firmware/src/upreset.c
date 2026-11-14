@@ -616,6 +616,7 @@ static int up_load_to(uint32_t k,uint32_t tr)
         if(r->engine==ENGI_DRUM){memset(drum_patch_of(tr),0,sizeof(drum_patch_t));if(r->ver==UP_VER_DRUM || r->ver==UP_VER_DRUM_GRID)up_drum_raw(r,drum_patch_of(tr));}
         if(r->engine==ENGI_PROPHET && r->ver==UP_VER_P5){memcpy(&p5_patch[tr],r->packed,sizeof(p5_patch_t));p5_ready[tr]=1;p5_track_accept(t);}
         cz_track_accept(t);
+        drm_upgrade(t);                                 /* (a DRUM kit saved by 1.3.5 or before: DRM's) */
         fm1_irq_on();
         if (t->eng_req == ENGI_FM6) {                   /* FM6: its voice, native slot k (else INIT) */
             uint8_t v[FP_SIZE + 1u];

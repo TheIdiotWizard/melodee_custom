@@ -424,9 +424,9 @@ static int drum_retrigger_accounting(void)
     for(uint32_t repeat=0;repeat<100;repeat++){
         midi_note_event(0,36,110);midi_note_event(0,38,110);mix_block(out,CTL);
     }
-    bad+=check("same-pitch MIDI drum retriggers reuse circuits without capacity steals",capacity_steals==0);
+    bad+=check("MIDI drum retriggers on DRM's one voice without capacity steals",capacity_steals==0);
     uint32_t before=capacity_steals;midi_note_event(0,35,110);
-    bad+=check("replacing another drum pitch on its lane still counts",capacity_steals==before+1u);
+    bad+=check("another drum pitch on its lane: DRM's voice again, no steal",capacity_steals==before);
     midi_test_reset();set_engine_of(t,ENGI_CZ);apply_preset_to(t,0);t->engine=t->eng_req;t->p[P_VOICE]=V_POLY;settings_budget=8;
     capacity_steals=0;
     for(uint32_t note=48;note<60;note++){trk_note_on(t,note,100);mix_block(out,CTL);}

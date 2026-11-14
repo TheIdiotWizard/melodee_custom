@@ -360,7 +360,7 @@ static int designer_category(uint32_t i)
        str_prefix(s,"P5 MOD") || str_prefix(s,"FM LFO") || str_prefix(s,"CZ VIB"))return DT_MOVE;
     if(str_prefix(s,"VOICE") || str_prefix(s,"P5 UNI") || str_prefix(s,"P5 BEND") || str_prefix(s,"FM BEND") ||
        str_prefix(s,"FM PORT") || str_prefix(s,"FM WH") || str_prefix(s,"FM BR") || str_prefix(s,"CZ DET"))return DT_PLAY;
-    if(str_prefix(s,"P5 FILTER") || str_prefix(s,"CZ WINDOW") || str_eq(s,"EDIT 2") || str_eq(s,"SCALE") || str_eq(s,"CURVE") || str_prefix(s,"DRUM MIX"))return DT_TONE;
+    if(str_prefix(s,"P5 FILTER") || str_prefix(s,"CZ WINDOW") || str_eq(s,"EDIT 2") || str_eq(s,"SCALE") || str_eq(s,"CURVE") || str_prefix(s,"DRUM LANE 3"))return DT_TONE;
     return DT_SOURCE;
 }
 static int designer_page_ok(uint32_t i)

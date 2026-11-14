@@ -1,40 +1,53 @@
-Melodee 1.3.6 backports the stock V15 power startup to the 1.3.5 stable line.
-Both Standard and Single core apply the stock analog-register sequence, the
-LDO-to-DCDC handover and original settling loops, then select SYSVDD 15
-(nominal 1.38 V) and VDC14 7 (nominal 1.60 V). This happens before peripherals
-and CPU1 start. Transfer failures or incorrect read-back keep CPU1 off; existing
-boot guards and worker retirement remain. The system PLL is not changed.
-Matching stock's supply setup does not yet establish that all instability is
-resolved: physical rail measurements, cold/soft boot and loaded audio/CPU1
-validation remain pending.
+# Melodee Custom 1.3.6
 
-The release also retains the prepared stable backports:
+A new drum engine, **DRM**; a new synth engine, **PULS**; MONO2K's FM sounds on FMTONE; fewer duplicate drum presets.
 
-- Hold EDIT to undo; EDIT+OCT−/OCT+ performs undo/redo. Hold SAVE saves the
-  current project, stopping playback first and opening the project chooser
-  when the project has no saved slot.
-- MIDI channel selection is clamped to the supported range.
+- **Install:** [web installer](https://theidiotwizard.github.io/melodee_custom/webapp/installer/)
+  (Chrome or Edge, USB).
+- **Edit:** [web editor](https://theidiotwizard.github.io/melodee_custom/webapp/editor/)
 
-Melodee 1.3.6 resets unsupported user preset banks at startup instead of leaving
-them as OLD FORMAT. This intentionally discards unreadable preset-bank contents.
-Keep a backup before upgrading if those bytes may be needed by another firmware.
+## DRM
 
-- The four native FM6 and eight native CZ banks initialize to the same empty
-  defaults as a fresh installation when their format is unsupported or damaged.
-  Factory sounds remain available separately.
-- Unsupported general user-preset banks reset to empty. In a readable bank,
-  only unsupported entries are cleared; compatible presets survive.
-- Startup shows progress before writes. Each reset uses the existing A/B commit:
-  failure retains the previous committed copy and an error remains visible;
-  restart retries unfinished resets. Successful resets are not repeated.
-- Projects retain OLD FORMAT protection. Compatible settings and preset banks
-  are kept. The firmware does not change the system PLL.
+DRM replaces the DRUM engine, in its place (engine 10). It plays the drum models of
+[Hortator](https://github.com/DeadActive/hortator) by DEADACTIVE on DRUM's eight lanes (KICK, SNARE, CLAP, HATCL,
+HATOP, TOM, RIM, BELL), the whole kit on the track's one voice.
 
-The 1.3.5 boot stub, early display and first-boot settings cleanup remain included.
-On first installation from stock or Melodee through 1.3.4, interruption before
-the boot sector is complete can still require hardware recovery. Keep power
-connected throughout installation and startup maintenance.
+- **29 models:** Machinedrum-style TRX and EFM voices (built from measurements; no code or data of the machine),
+  Mutable Instruments Plaits' drums (BOOM, PUNCH, SNAP, CRACK, METAL, HISS), SKIN (a struck drum head) and FM.
+- **Every lane its own model and knobs:** EDIT › Drum › DRUM LANE: LANE, MODEL, TUNE, DECAY; DRUM LANE 2 and 3: the
+  model's other knobs and LEVEL. A model with eight knobs keeps seven; the eighth stays at its default.
+- **The kit's knobs:** TUNE (every lane), DECY (every lane's decay), ACC (how much velocity matters), DRV.
+- **Ten kits:** SUB, HOUSE, MD EFM, TECHNO, FORGE, RUST, HAND, LO-FI, MICRO, GLITCH. FORGE and RUST are the
+  industrial ones.
 
-Automated checks cover bank validation, interrupted resets, compatible presets,
-project preservation, both firmware variants and the existing regression suite.
-Physical stock-to-Melodee startup and recovery validation remains pending.
+The 808, 909, SID, CR78 and FM kits are gone. Songs and sounds that used them load on the nearest DRM kit (808: SUB,
+909: HOUSE, FM: MD EFM, CR78 and SID: LO-FI) with each lane's tuning, decay and level, and their patterns as they
+were. A kit is stored in the same space as before, so nothing else in a song changes. Firmware older than 1.3.6 plays
+a DRM kit wrongly; keep a backup if you may go back.
+
+The MPC pad layout is the same for every kit now.
+
+## PULS
+
+MONO2K's SWAV-PUL pulse machine, listed between SAW and ENS. UNISON: UNIL, UNIW, SUB1, SUB2 (sines an octave and two
+down). PULSE: PW (a square at 64), PWAD (the width swept back and forth), PWRS (ON: the sweep restarts at each note),
+TUNE. LFO or ENV to SHP moves the width. Presets: PWM BASS, SQUARE, PWM PAD (MONO2K's library's), THIN LEAD, PWM STAB.
+
+PULS takes engine number 24, which was FM+STAT's until 1.2.6: a STAT sound from 1.2.0 to 1.2.5, silent since, now
+plays as PULS.
+
+## FMTONE: MONO2K's FM sounds
+
+Ten sounds from MONO2K's library (its FM+STAT, FM+PAR and FM+DYN machines), remade on FMTONE by matching their
+renders: EPIANO, FMBELL, DXBASS and GLASPAD in the places of TINE EP, BELL, FM BASS and GLASS PAD, and GROWL,
+GLASSKY, FMPAD, DRONE, BUBBLES and ZAP after FIFTH RING. Some of them also set the track's LFO, DRIVE and ENV › PIT /
+SHP when loaded. The power-on bass is DXBASS (in FM BASS's place).
+
+## Fewer duplicates
+
+Drum presets on the synth engines that DRM covers are gone: DUALVCO 808 KICK, RING METAL and TOM; ANALOG4 KICK,
+ZAP TOM and NOISE HAT; PHYS TOMS (HAND DRUM stays). A project keeps its sounds (it stores their values), but a track
+that loaded a moved or removed preset may show another preset's name, and a starred factory preset on these engines
+may have moved its star.
+
+Everything from [1.3.5](RELEASE_1.3.5.md) is included.

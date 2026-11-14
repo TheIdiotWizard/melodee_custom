@@ -44,7 +44,7 @@ static void measure(uint32_t engine,uint32_t variant,uint32_t feature,uint32_t n
     }else if(engine==ENGI_CZ){
         id=AP_CZ;cz_patch_of(0)->raw[0]=(uint8_t)variant;
     }else if(engine==3){id=AP_SID;t->p[P_E0]=(int16_t)variant;t->p[P_E2]=(int16_t)(feature?6:1);}
-    else {t->p[P_E0]=(int16_t)(variant?DK_909:DK_808);id=variant?AP_909:AP_808;}
+    else {drm_kit_put(t,variant);id=AP_909;}             /* DRM: kit `variant` */
     trk_note_on(t,note,110);audio_batch_active=1;
     uint64_t totals[2]={0},maximum[2]={0};uint32_t calls[2]={0};
     for(uint32_t block=0;block<256;block++){
@@ -71,9 +71,7 @@ int main(void)
     for(uint32_t v=0;v<32;v++)for(uint32_t f=0;f<2;f++)measure(ENGI_FM6,v,f,60);
     for(uint32_t v=0;v<4;v++)measure(ENGI_CZ,v,0,60);
     for(uint32_t v=0;v<2;v++)for(uint32_t f=0;f<2;f++)measure(3,v,f,60);
-    for(uint32_t v=0;v<2;v++)for(uint32_t n=0;n<(v?D9_NUM:16u);n++){
-        trk[0].p[P_E0]=(int16_t)(v?DK_909:DK_808);
+    for(uint32_t v=0;v<NELEM(DRUM_PRESETS);v++)for(uint32_t n=0;n<DV_NLANE;n++)
         measure(10,v,0,drum_sound_note(&trk[0],n));
-    }
     return 0;
 }

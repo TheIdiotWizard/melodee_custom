@@ -124,10 +124,10 @@ static const char *const N_MSRC[] = {"OFF", "LFO", "ENV", "VEL", "KEY", "RAND", 
 static const char *const N_MDST[] = {"OFF", "PITCH", "CUT", "SHP", "AMP", "PAN", "", "", "", "", "RATE",
                                      "VIB", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "DEPTH"};
 #define ENGNAME_F(n) (MELODEE_LEGACY_EXTRAS || MELODEE_FELUCCA_ENGINES ? n : "-")   /* Felucca's restored engines */
-#define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6, PHASE (1.2.0), VOICE, TRIO, STAT, PAR, DYN (1.2.6): retired */
+#define ENGNAME_R(n) (MELODEE_M2K_ENGINES ? "-" : n)   /* PROPHET, FM6, PHASE (1.2.0), VOICE, TRIO, PAR, DYN (1.2.6): retired */
 static const char *const N_ENGNAME[] = {"-", "-", ENGNAME_R(ENGNAME_F("PHASE")), MELODEE_SID ? "SID" : "LOFI", "-", MELODEE_M2K_ENGINES ? "VOX" : ENGNAME_F("VOICE"), ENGNAME_R(ENGNAME_F("TRIO")), MELODEE_LEGACY_EXTRAS || MELODEE_WHEEL ? "WHEEL" : "-", "-", ENGNAME_F("PHYS"),
-                                             "DRUM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
-                                             "SAW", "ENS", "-", "-", "-", "WAV", "-", "FMTONE", "DUALVCO", "ANALOG4"};
+                                             "DRM", MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES ? "NOISE" : "-", ENGNAME_R("FM6"), MELODEE_SLICE ? "SLICE" : "-", "-", MELODEE_CZ ? "CZ-1" : "-", "-", "-", "-", ENGNAME_R("PROPHET"), "-", "MIDI Track",
+                                             "SAW", "ENS", "PULS", "-", "-", "WAV", "-", "FMTONE", "DUALVCO", "ANALOG4"};
 _Static_assert(NELEM(N_ENGNAME) == NENGINES, "an engine name each");
 
 #define PD(l, f, mn, mx, df) {l, f, mn, mx, df, 0, 0}
@@ -279,7 +279,7 @@ static const param_desc_t TP[P_COUNT] = {
     [P_DRIVE] = PD("DRIVE", F_PCT, 0, 127, 0),     /* ENV > DRIVE (1.3.4): each voice, before its amp */
     [P_DSHAPE] = PE("SHAPE", N_DSHAPE, 0),
     [P_DVEL] = PD("VEL", F_PCT, 0, 127, 0),         /* how far a soft note drives less (0: every note alike) */
-    [P_RESERVED48] = PD("", F_INT, 0, 127, 0),
+    [P_DRMFMT] = PD("", F_INT, 0, 1, 0),   /* DRM: 1 a DRM kit, 0 a DRUM kit of 1.3.5 or before (eng_drum.c) */
 #define MSLOT(k) [P_M##k##SRC] = PE("SRC" #k, N_MSRC, 0), [P_M##k##DST] = PE("DST" #k, N_MDST, 0), \
                  [P_M##k##AMT] = PD("AMT" #k, F_BIPCT, -64, 63, 0)
     MSLOT(1), MSLOT(2), MSLOT(3), MSLOT(4),
@@ -685,8 +685,9 @@ static const page_t PAGES[] = {
     {"FLT 2", FAM_EDIT, SC_TRACK, GR_NONE, {P_FM4_DEC, P_FM4_LEVEL, P_FM4_REL, P_FM4_SUS}, ENGI_ANA4},
     {"ENV 2", FAM_EDIT, SC_TRACK, GR_NONE, {P_FM2_ATK, P_FM2_DEC, P_FM2_SUS, P_FM2_REL}, ENGI_ANA4},
 #endif
-    {"DRUM SOUND",FAM_EDIT,SC_DRUM,GR_NONE,{0,1,2,3}},
-    {"DRUM MIX",FAM_EDIT,SC_DRUM,GR_NONE,{0,4,255,255}},
+    {"DRUM LANE",FAM_EDIT,SC_DRUM,GR_NONE,{0,10,11,12}},      /* DRM: LANE MODEL TUNE DECAY (ui_draw.c, ui_input.c) */
+    {"DRUM LANE 2",FAM_EDIT,SC_DRUM,GR_NONE,{0,13,14,15}},    /* .. the model's next knobs (11 + j: stored knob j) */
+    {"DRUM LANE 3",FAM_EDIT,SC_DRUM,GR_NONE,{0,16,17,20}},    /* .. LEVEL (20: the lane's P_LN) */
     /* FM6 only (page_visible): the patch as the DX7 has it, its operators (PRESETS picks one), the functions */
     {"P5 STORE",FAM_EDIT,SC_P5STORE,GR_NONE,{0,1,2,3}},
     {"P5 OSC A",FAM_EDIT,SC_P5,GR_NONE,{0,3,4,8}},

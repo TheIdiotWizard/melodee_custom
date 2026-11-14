@@ -11,20 +11,21 @@ int main(void)
      * retired (its stored tracks keep the number, play silent); SID's engine 3 plays as LOFI */
 #if MELODEE_M2K_ENGINES
     /* Melodee Custom 1.2: PHASE (2), FM6 (12) and PROPHET (19) retired too; MONO2K's engines at 22..28.
-     * 1.2.6: VOICE (5), TRIO (6) and MONO2K's STAT PAR DYN (24..26) retired; Mini-Tone's FMTONE DUALVCO ANALOG4 at 29..31 */
-    const uint8_t retired[]={2,6,12,15,19,24,25,26,28};   /* (1.2.8: NOIS 28 retired, NOISE 11 back; 1.3.5: VOX in 5) */
+     * 1.2.6: VOICE (5), TRIO (6) and MONO2K's STAT PAR DYN (24..26) retired; Mini-Tone's FMTONE DUALVCO ANALOG4 at 29..31.
+     * 1.3.6: PULS in STAT's number (24) */
+    const uint8_t retired[]={2,6,12,15,19,25,26,28};   /* (1.2.8: NOIS 28 retired, NOISE 11 back; 1.3.5: VOX in 5) */
 #else
     const uint8_t retired[]={11,15};
 #endif
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
-            {22, 5, "SAW"}, {23, 5, "ENS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
-            {29, 8, "FMTONE"}, {30, 9, "DUALVCO"}, {31, 8, "ANALOG4"}, {5, 7, "VOX"},
+            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 5, "PULS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
+            {29, 14, "FMTONE"}, {30, 6, "DUALVCO"}, {31, 5, "ANALOG4"}, {5, 7, "VOX"},
 #else
             {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
 #endif
-            {3, 5, "LOFI"}, {7, 5, "WHEEL"}, {9, 9, "PHYS"}};
+            {3, 5, "LOFI"}, {7, 5, "WHEEL"}, {9, 8, "PHYS"}};
         for (uint32_t j = 0; j < NELEM(back); j++) {
             uint32_t e = back[j].e, shown = 0;
             for (uint32_t k = 0; k < NENG_SHOWN; k++) shown |= eng_vis(k) == e;
@@ -40,10 +41,10 @@ int main(void)
                    eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && (MELODEE_M2K_ENGINES ? eng_state_size(5)==sizeof(vox_part_t) : !eng_state_size(5)) && !eng_state_size(6));
         bad+=check("track 3 powers on with LOFI PULSE LD", trk_def_engine(2)==3u && trk_def_preset(2)==0u);
 #if MELODEE_M2K_ENGINES
-        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and FMTONE FM BASS",
+        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and FMTONE DXBASS (FM BASS's place)",
                    trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==0u && trk_def_engine(1)==ENGI_FMTONE && trk_def_preset(1)==2u);
         bad+=check("the seven keep their voices as part state; ENS also its chorus",
-                   eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(27)==eng_state_size(22) &&
+                   eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(27)==eng_state_size(22) && eng_state_size(ENGI_PULS)==eng_state_size(22) &&
                    eng_state_size(ENGI_FMTONE)>0 && eng_state_size(ENGI_DUAL)>0 && eng_state_size(ENGI_ANA4)>0);
         {   /* SAVE > USER with each of MONO2K's seven: the slot holds it, LOAD brings it back */
             int ok=1;
@@ -132,12 +133,18 @@ int main(void)
         }
         bad+=check("PRESETS: every factory entry loads its own sound and the browser finds it at the same place",ok&&n>0);
 #if MELODEE_M2K_ENGINES
-        static const uint8_t order[]={ENGI_FMTONE,ENGI_ANA4,ENGI_SAW,ENGI_SAW+1u,3,ENGI_DUAL,ENGI_WAV,7,ENGI_VOX,9,11,ENGI_DRUM,ENGI_MIDI};
-        bad+=check("1.3.5 order: FMTONE ANALOG4 SAW ENS LOFI DUALVCO WAV WHEEL VOX PHYS NOISE DRUM, MIDI",
+        static const uint8_t order[]={ENGI_FMTONE,ENGI_ANA4,ENGI_SAW,ENGI_PULS,ENGI_SAW+1u,3,ENGI_DUAL,ENGI_WAV,7,ENGI_VOX,9,11,ENGI_DRUM,ENGI_MIDI};
+        bad+=check("1.3.6 order: FMTONE ANALOG4 SAW PULS ENS LOFI DUALVCO WAV WHEEL VOX PHYS NOISE DRM, MIDI",
                    NENG_SHOWN==NELEM(order)&&!memcmp(ENGINE_ORDER,order,sizeof order));
         set_engine_of(TSEL,ENGI_SAW);project_capture(&proj_scratch);proj_scratch.t[song.sel].engine=16;proj_scratch.t[song.sel].preset=2;proj_scratch.sum=proj_sum(&proj_scratch);
         bad+=check("a 1.3.4 project's VOX (engine 16) loads as VOX",!project_restore_runtime(&proj_scratch)&&TSEL->eng_req==ENGI_VOX&&TSEL->preset==2);
 #endif
+    }
+    {   /* DRM (1.3.6): a project's DRUM kit of 1.3.5 (P_DRMFMT 0, KIT FM) loads as the MD EFM kit */
+        set_engine_of(TSEL,ENGI_DRUM);TSEL->p[P_DRMFMT]=0;TSEL->p[P_E0]=8;
+        project_capture(&proj_scratch);static project_t dsaved;dsaved=proj_scratch;
+        bad+=check("a project's 1.3.5 FM drum kit loads as DRM's MD EFM",!project_restore_runtime(&dsaved)&&
+                   TSEL->eng_req==ENGI_DRUM&&TSEL->p[P_DRMFMT]==1&&TSEL->preset==DRMK_EFM&&drm_model(drum_patch_of(song.sel),0)==DM_BDEFM);
     }
     printf("Engine retirement test %s\n",bad?"FAILED":"passed");return !!bad;
 }

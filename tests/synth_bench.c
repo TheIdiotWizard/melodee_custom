@@ -73,8 +73,8 @@ static void measure_drum(uint32_t kit,uint32_t sound,uint32_t changing)
 static void drum_bench(void)
 {
     puts("kit,sound,changing,host_instructions_per_frame,pcm_hash");
-    for(uint32_t kit=0;kit<4;kit++)for(uint32_t changing=0;changing<2;changing++){
-        uint32_t count=kit==1?D9_NUM:16u;
+    for(uint32_t kit=0;kit<NELEM(DRUM_PRESETS);kit++)for(uint32_t changing=0;changing<2;changing++){
+        uint32_t count=DV_NLANE;                        /* (DRM: a lane each; 16: the beat) */
         for(uint32_t sound=0;sound<=count;sound++){
             fflush(stdout);pid_t pid=fork();if(!pid){measure_drum(kit,sound==count?16u:sound,changing);fflush(stdout);_exit(0);}
             int status;if(pid<0 || waitpid(pid,&status,0)<0 || !WIFEXITED(status) || WEXITSTATUS(status))exit(1);

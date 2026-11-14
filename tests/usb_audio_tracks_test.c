@@ -29,7 +29,7 @@ static struct result render(uint32_t channel, int sliced, int variant)
         t->p[P_RESERVED33] = 60;
         t->p[P_RESERVED45] = sliced ? 2 : 0;
         t->p[P_RESERVED46] = 1;
-        t->p[P_RESERVED48] = 127;
+        t->p[P_DRMFMT] = 1;                            /* (a synth ignores DRM's kit format) */
         t->p[P_PAN] = variant == 1 ? -64 : variant == 2 ? 64 : 0;
         t->p[P_RESERVED34] = t->p[P_RESERVED35] = t->p[P_RESERVED36] = variant == 1 ? 127 : 0;
         song.master_q12 = variant == 2 ? 0 : 4096;

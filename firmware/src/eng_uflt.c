@@ -12,7 +12,7 @@ typedef struct { int32_t a1, a2, a3, ma, mb, mc; } uflt_t;
 /* the engines with the FILTER page (ui.c page_visible, midi_control.c's CC 74 / 71) */
 static int uflt_engine(uint32_t e)
 {
-    return e == ENGI_SAW || e == ENGI_SAW + 1u || e == ENGI_WAV ||   /* (NOISE has its own filter; NOIS retired, 1.2.8) */
+    return e == ENGI_SAW || e == ENGI_SAW + 1u || e == ENGI_PULS || e == ENGI_WAV ||   /* (NOISE has its own filter; NOIS retired, 1.2.8) */
            (e >= ENGI_FMTONE && e <= ENGI_ANA4);
 }
 
@@ -54,15 +54,14 @@ static void uflt_preset_loaded(track_t *t, uint32_t pi)
     static const struct { uint8_t eng, preset, mode, cut, res; } F[] = {
         {ENGI_FMTONE, 6, 1, 60, 90},     /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
         {ENGI_FMTONE, 7, 2, 76, 110},    /* FIFTH RING: a band-pass ringing above the bell */
-        {ENGI_DUAL, 8, 1, 60, 90},       /* RESO LEAD */
+        {ENGI_FMTONE, 8, 1, 51, 5},      /* GROWL (MONO2K's): a low-pass the envelope opens */
+        {ENGI_FMTONE, 10, 1, 43, 5},     /* FMPAD (MONO2K's): the same, darker */
+        {ENGI_DUAL, 5, 1, 60, 90},       /* RESO LEAD */
         {ENGI_ANA4, 0, 1, 100, 30},      /* SAW BASS (filter 1 as Mini-Tone's, on this filter) */
         {ENGI_ANA4, 1, 1, 110, 20},      /* PWM LEAD */
         {ENGI_ANA4, 2, 1, 100, 25},      /* SYNC LEAD */
         {ENGI_ANA4, 3, 1, 95, 110},      /* ACID */
         {ENGI_ANA4, 4, 1, 85, 20},       /* WARM PAD */
-        {ENGI_ANA4, 5, 1, 127, 0},       /* KICK */
-        {ENGI_ANA4, 6, 1, 100, 0},       /* ZAP TOM */
-        {ENGI_ANA4, 7, 3, 100, 0},       /* NOISE HAT: a high-pass */
     };
     for (uint32_t k = 0; k < NELEM(F); k++)
         if (F[k].eng == t->eng_req && F[k].preset == pi) {

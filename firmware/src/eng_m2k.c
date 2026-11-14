@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Kerem Kilic (Ellic Studio)
  * Portions Copyright (C) 2026 Sequencist (InigoHernandez), MONO2K: https://github.com/InigoHernandez/mono2k */
-/* SAW, ENS and WAV: MONO2K's SWAV-SAW, SWAV-ENS and DIGI-WAV machines
+/* SAW, PULS, ENS and WAV: MONO2K's SWAV-SAW, SWAV-PUL, SWAV-ENS and DIGI-WAV machines
  * (MONO2K firmware/src/m2k_dsp.c mach_block, GPL-3.0-only), each voice of a part running its own copy. The machines'
  * sample loops, laws and tables are MONO2K's (m2k_tables.h, extracted unchanged); what changed for Melodee:
  *  - a machine is a voice: Melodee's ADSR, velocity, glide, unison and LFO play it (MONO2K's own track chain, its
@@ -15,7 +15,9 @@
  *  - MONO2K's chain filter is not ported: the FILTER page (TRIO's filter, eng_uflt.c) takes its place, OFF by default;
  *  - FLT (Melodee's LFO / ENV to the filter) and SHP move one control each, named in the table below;
  *  - FM+STAT, FM+PAR and FM+DYN (engines 24..26) were retired in 1.2.6 for Mini-Tone's FMTONE (eng_mt.c), GND-NOIS
- *    (NOIS, 28) in 1.2.8 for NOISE (eng_noise.c).
+ *    (NOIS, 28) in 1.2.8 for NOISE (eng_noise.c); PULS (SWAV-PUL, 1.3.6) took STAT's number, 24 (a STAT sound of
+ *    1.2.0..1.2.5 plays as PULS);
+ *  - PULS's PWRS OFF: each voice's sweep runs on over its notes (MONO2K's track: one sweep).
  * The 32 x 32 -> 64 multiplies sit in out-of-line helpers on the device (M2K_MUL_OUT, as MONO2K's FM-1 build). */
 #include "m2k_tables.h"
 static uint8_t spread_on;             /* (voice.c: SPREAD's part, its left side) */
@@ -27,7 +29,8 @@ static int32_t *spread_buf;
 #define M2K_ENS_LEN 1024u            /* ENS's chorus line: 46 ms at half rate */
 #define M2K_ENS_GAIN 7119            /* a voice against the others' levels (MONO2K: calibrated, chain_ens20) */
 #define M2K_CLAMP(v, lo, hi) ((v) < (lo) ? (lo) : (v) > (hi) ? (hi) : (v))
-enum { M2K_SAW, M2K_ENS, M2K_STAT, M2K_PAR, M2K_DYN, M2K_WAV };   /* (engine - ENGI_SAW; STAT PAR DYN retired, 1.2.6) */
+enum { M2K_SAW, M2K_ENS, M2K_PUL, M2K_PAR, M2K_DYN, M2K_WAV };    /* (engine - ENGI_SAW; PAR DYN retired, 1.2.6; PULS in
+                                                                  * STAT's place, 1.3.6) */
 #define M2K_KINDS 6
 
 #if defined(FM1_IRQ_TARGET)
@@ -162,6 +165,50 @@ static void m2k_saw(m2k_voice_t *s, const int32_t *q, uint32_t base, int32_t not
     }
 }
 
+/* SWAV-PUL: UNIL UNIW SUB1 SUB2 PW PWAD PWRS TUNE (MONO2K's: a pulse, its voices started together, its duty PW / 128,
+ * a square at 64, silent at 0 and 127, against GND-SIN's sine at 0.105; PWAD sweeps PW on, 5.38 steps a second a step,
+ * back and forth between 4 % and 96 %; a unison pair -+0.211 c a step of UNIW off, each as loud as UNIL says; sines an
+ * octave and two down) */
+#ifndef PULS_GAIN
+#define PULS_GAIN 5800         /* (Q12: its presets near SAW's and ENS's) */
+#endif
+#define M2K_PUL_A 3430
+#define M2K_PUL_S1 32767
+#define M2K_PUL_S2 31500
+static __attribute__((noinline)) void m2k_pul(m2k_voice_t *s, const int32_t *q, uint32_t base, int16_t *o)
+{
+    int32_t unil = q[0], uniw = q[1];
+    uint32_t inc[3], inv[3];
+    inc[0] = m2k_inc(base, QB(7) >> 7);
+    inc[1] = m2k_mulu_hi(inc[0], m2k_tq32(T_SW2LO, uniw), 24);     /* SWAV-SAW's extended pair's spread */
+    inc[2] = m2k_mulu_hi(inc[0], m2k_tq32(T_SW2HI, uniw), 24);
+    int nv = unil ? 3 : 1;
+    for (int k = 0; k < nv; k++) inv[k] = 0xFFFFFFFFu / (inc[k] | 1);
+    s->ms[4] = (int32_t)(((uint32_t)s->ms[4] + (uint32_t)((q[5] * 128) >> 8)) & 0x7FFFFFu);   /* the sweep, Q16 */
+    uint32_t duty = (uint32_t)(((q[4] << 8) + s->ms[4]) & 0x7FFFFF) << 9;
+    if (q[5] >> 8) {                 /* swept: back and forth between 4 % and 96 % (no dropout where it wraps) */
+        uint32_t x = (uint32_t)(((q[4] << 8) + s->ms[4]) & 0x7FFFFF);
+        uint32_t tri = x < 0x400000u ? x << 1 : (0x800000u - x) << 1;
+        duty = 0x0A3D70A4u + m2k_mulu_hi(tri, 0xEB851EB8u, 23);
+    }
+    int32_t g1 = M2K_PUL_A * unil / (127 * 256);
+    int32_t gs1 = M2K_PUL_S1 * q[2] / (127 * 256), gs2 = M2K_PUL_S2 * q[3] / (127 * 256);
+    int32_t dc = 32768 - (int32_t)(duty >> 16);
+    for (uint32_t i = 0; i < M2K_SUB; i++) {
+        int32_t x = (m2k_blep_saw(s->ph[0], inc[0], inv[0]) - m2k_blep_saw(s->ph[0] - duty, inc[0], inv[0]) + dc) * M2K_PUL_A;
+        if (unil)
+            for (int k = 1; k < 3; k++)
+                x += (m2k_blep_saw(s->ph[k], inc[k], inv[k]) - m2k_blep_saw(s->ph[k] - duty, inc[k], inv[k]) + dc) * g1;
+        x >>= 15;
+        for (int k = 0; k < nv; k++) s->ph[k] += inc[k];
+        if (gs1) x += (m2k_sinp(s->ph[5]) * gs1) >> 15;
+        if (gs2) x += (m2k_sinp(s->ph[6]) * gs2) >> 15;
+        s->ph[5] += inc[0] >> 1;
+        s->ph[6] += inc[0] >> 2;
+        o[i] = (int16_t)m2k_sat16(x);
+    }
+}
+
 /* SWAV-ENS's voices: PCH2 PCH3 PCH4 WAVE PW CHRL CHRW TUNE (the chorus: m2k_post). The root and up to three voices
  * off its intervals, each two saws an octave under its note, the second PW / 128 of a period on */
 static void m2k_ens(m2k_voice_t *s, const int32_t *q, const int16_t *p, uint32_t base, int16_t *o)
@@ -244,6 +291,7 @@ static void m2k_wav(m2k_voice_t *s, const int32_t *q, uint32_t base, int16_t *o)
 static const struct { int16_t gain; int8_t flt, shp; } M2K_ROLE[M2K_KINDS] = {
     [M2K_SAW] = {10240, 0, 1},       /* FLT UNIL, SHP UNIW */
     [M2K_ENS] = {6144, 3, 4},        /* FLT WAVE, SHP PW */
+    [M2K_PUL] = {PULS_GAIN, 0, 4},   /* FLT UNIL, SHP PW */
     [M2K_WAV] = {4500, 1, 0},        /* FLT SCAN, SHP WAVE */
 };
 
@@ -261,13 +309,14 @@ static void m2k_note_on(track_t *t, voice_t *v)
     if (!s) return;
     uint32_t keep = s->ph[2], drng = s->drng;
     int32_t fst[1][2], fdrift = s->fdrift;   /* (the filter runs on, as TRIO's: a retrigger does not click) */
-    int32_t fnoise = s->fnoise;
+    int32_t fnoise = s->fnoise, sweep = s->ms[4];
     memcpy(fst, s->f, sizeof fst);
     memset(s, 0, sizeof *s);
     memcpy(s->f, fst, sizeof fst); s->fdrift = fdrift; s->fnoise = fnoise;
     s->menv[0] = 1u << 30;
     if (kind == M2K_WAV && voice_was == 2u) s->ph[2] = keep;        /* a steal: the sync's master runs on */
     s->drng = drng;
+    if (kind == M2K_PUL && !t->p[P_E6]) s->ms[4] = sweep;     /* PWRS OFF: the sweep runs on */
     if (kind == M2K_ENS) {                       /* the first note after silence: the chorus starts empty */
         for (uint32_t k = 0; k < NVOICE; k++) if (&t->v[k] != v && t->v[k].active) return;
         memset(&m2k_part_of(t)->ch, 0, sizeof(m2k_chorus_t));
@@ -292,6 +341,7 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
         switch (kind) {
         case M2K_SAW: m2k_saw(s, q, m->inc, note, o, (uint32_t)(v - t->v) + (uint32_t)(t - trk) * 16u); break;
         case M2K_ENS: m2k_ens(s, q, t->p, m->inc, o); break;
+        case M2K_PUL: m2k_pul(s, q, m->inc, o); break;
         default: m2k_wav(s, q, m->inc, o); break;
         }
         for (uint32_t i = 0; i < M2K_SUB && b + i < n; i++) {
@@ -357,6 +407,7 @@ static const char *const N_M2K_WAVE[65] = {"OS01", "OS02", "OS03", "OS04", "OS05
     "OS25", "OS26", "OS27", "OS28", "OS29", "OS30", "OS31", "OS32", "OS33", "OS34", "OS35", "OS36", "OS37", "OS38", "OS39",
     "OS40", "OS41", "OS42", "OS43", "OS44", "OS45", "OS46", "OS47", "OS48", "OS49", "OS50", "OS51", "OS52", "OS53", "OS54",
     "OS55", "OS56", "OS57", "OS58", "OS59", "OS60", "OS61", "OS62", "OS63", "OS64", 0};
+static const char *const N_M2K_ONOFF[3] = {"OFF", "ON", 0};
 #define M2K_P(l) {l, F_INT, 0, 127, 0, 0, 0}
 #define M2K_PD(l, d) {l, F_INT, 0, 127, d, 0, 0}
 #define M2K_BI(l) {l, F_OFS, 0, 127, 64, 0, 0}     /* (MONO2K's bipolar: 64 the middle, shown -64..+63) */
@@ -370,6 +421,13 @@ static const preset_t M2K_SAW_PRESETS[] = {
     {"MONO SAW", {0, 0, 0, 0, 60, 80, 0, 64}, {0, 50, 100, 30}, 0, 1},
     {"DRIFT LD", {60, 20, 30, 90, 0, 0, 0, 64}, {2, 60, 110, 40}, 0, 1},
     {"SUB BASS", {0, 0, 0, 10, 100, 127, 60, 64}, {0, 40, 90, 20}, 0, 1},
+};
+static const preset_t M2K_PUL_PRESETS[] = {      /* PWM BASS, SQUARE, PWM PAD: MONO2K's library's PWMBASS SQUARE PWMPAD */
+    {"PWM BASS", {70, 40, 60, 0, 64, 40, 0, 64}, {0, 60, 100, 25}, 20, 1},
+    {"SQUARE", {0, 0, 30, 0, 64, 0, 0, 64}, {2, 60, 110, 35}, 0, 1},
+    {"PWM PAD", {80, 50, 20, 0, 64, 12, 0, 64}, {60, 80, 120, 80}, 0, 0},
+    {"THIN LEAD", {40, 20, 0, 0, 20, 0, 0, 64}, {0, 60, 100, 40}, 0, 1},
+    {"PWM STAB", {60, 30, 30, 0, 40, 90, 1, 64}, {0, 55, 0, 30}, 0, 0},
 };
 static const preset_t M2K_ENS_PRESETS[] = {
     {"MAJOR", {22, 26, 32, 0, 64, 80, 64, 64}, {10, 70, 110, 60}, 0, 0},
@@ -393,6 +451,16 @@ static const engine_t ENG_M2K_SAW = {
              M2K_P("SUB2"), M2K_BI("TUNE")},
     .presets = M2K_SAW_PRESETS, .npresets = NELEM(M2K_SAW_PRESETS),
     .knob = {P_E0, P_E1, P_E5, P_REL},
+    .poly = M2K_POLY,
+    .note_on = m2k_note_on, .render = m2k_render,
+};
+static const engine_t ENG_M2K_PULS = {
+    .name = "PULS",
+    .page_title = {"UNISON", "PULSE"},
+    .edit = {M2K_P("UNIL"), M2K_PD("UNIW", 40), M2K_P("SUB1"), M2K_P("SUB2"), M2K_PD("PW", 64), M2K_P("PWAD"),
+             {"PWRS", F_ENUM, 0, 1, 0, N_M2K_ONOFF, 0}, M2K_BI("TUNE")},
+    .presets = M2K_PUL_PRESETS, .npresets = NELEM(M2K_PUL_PRESETS),
+    .knob = {P_E4, P_E5, P_E0, P_REL},
     .poly = M2K_POLY,
     .note_on = m2k_note_on, .render = m2k_render,
 };

@@ -3,7 +3,7 @@
 /* MONO2K's three engines (src/eng_m2k.c), NOISE (src/eng_noise.c, in NOIS's place since 1.2.8; its own checks:
  * noise_test.c) and Mini-Tone's three (src/eng_mt.c) on the host, through hostsim.c.
  *   build/host/m2k_test
- * 1. every preset of SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 sounds: one note at velocity 127, its peak short of the voice clip.
+ * 1. every preset of SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 PULS sounds: one note at velocity 127, its peak short of the voice clip.
  * 2. the first note after silence: a note, its release run out, then idle blocks rendered the way the mixer does
  *    (track_render_audio, clear_idle 0) over a buffer full of other audio; the next note's first 50 ms peak no
  *    higher than the same note's from a fresh part (+25 %). ENS's chorus once took that buffer in and played it
@@ -88,7 +88,7 @@ static void saw_render(int mode, int cut, int res, int fenv, int32_t *y, uint32_
 /* one of Mini-Tone's engines, its preset 0, one note held, its FILTER mode / cut; n samples of the voice */
 static void mt_render(uint32_t e, int mode, int cut, int32_t *y, uint32_t n)
 {
-    setup(e, 0);
+    setup(e, e == ENGI_DUAL ? 2u : 0u);          /* (DUALVCO: DUAL LEAD, a sustained bright sound; 808 KICK until 1.3.5) */
     trk[0].p[P_FMODE] = (int16_t)mode; trk[0].p[P_FCUT] = (int16_t)cut; trk[0].p[P_FRES] = 0;
     trk[0].p[P_ED_FLT] = 0; trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
     trk_note_on(&trk[0], 48, 110);
@@ -102,10 +102,10 @@ static void mt_render(uint32_t e, int mode, int cut, int32_t *y, uint32_t n)
 
 int main(void)
 {
-    static const char *const NAME[7] = {"SAW", "ENS", "WAV", "NOISE", "FMTONE", "DUALVCO", "ANALOG4"};
-    static const uint8_t ENG7[7] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_WAV, 11u, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4};
+    static const char *const NAME[8] = {"SAW", "ENS", "WAV", "NOISE", "FMTONE", "DUALVCO", "ANALOG4", "PULS"};
+    static const uint8_t ENG7[8] = {ENGI_SAW, ENGI_SAW + 1u, ENGI_WAV, 11u, ENGI_FMTONE, ENGI_DUAL, ENGI_ANA4, ENGI_PULS};
     int ok = 1;
-    for (uint32_t k = 0; k < 7u; k++) {
+    for (uint32_t k = 0; k < 8u; k++) {
         const engine_t *e = ENGINES[ENG7[k]];
         ok &= e->npresets > 0 && !strcmp(e->name, NAME[k]);
         for (uint32_t pi = 0; pi < e->npresets; pi++) {
@@ -115,10 +115,10 @@ int main(void)
             if (!(pk > 500 && pk < 32000)) { printf("m2k: %s %s peak %d\n", NAME[k], e->presets[pi].name, (int)pk); ok = 0; }
         }
     }
-    check("every preset of the seven sounds: one note at velocity 127, short of the voice's clip (32000)", ok);
+    check("every preset of the eight sounds: one note at velocity 127, short of the voice's clip (32000)", ok);
 
     ok = 1;
-    for (uint32_t k = 0; k < 7u; k++) {
+    for (uint32_t k = 0; k < 8u; k++) {
         const engine_t *e = ENGINES[ENG7[k]];
         for (uint32_t pi = 0; pi < e->npresets; pi++) {
             setup(ENG7[k], pi);
@@ -202,6 +202,6 @@ int main(void)
         settings_midi_knob_mode = keep;
     }
 
-    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4: presets, the first note after silence, the FILTER, CC 74 / 71 and REL 1: OK\n");
+    printf(bad ? "m2k: FAILED\n" : "m2k: SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 PULS: presets, the first note after silence, the FILTER, CC 74 / 71 and REL 1: OK\n");
     return bad != 0;
 }

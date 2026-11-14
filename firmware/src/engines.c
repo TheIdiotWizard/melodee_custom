@@ -21,7 +21,7 @@
 #endif
 #include "eng_wheel.c"
 #include "eng_phys.c"           /* PHYS: DaisySP physical models (phys_dsp.c, MIT) */
-#include "eng_drum.c"           /* DRUM: synthesized 808 circuits (drum_808.c), the 909, a C64's SID (drum_sid.c), CR78, FM */
+#include "eng_drum.c"           /* DRM (10, DRUM's number): Hortator's drum models on eight lanes (drm/) */
 #if MELODEE_LEGACY_EXTRAS || MELODEE_M2K_ENGINES
 #include "eng_noise.c"            /* NOISE (11): retired in 2.x, back in the shipping build since 1.2.8 for MONO2K's NOIS */
 #endif
@@ -80,11 +80,11 @@ static uint32_t eng_state_size(uint32_t e)
 #if MELODEE_SID
     case 3: return sizeof(sid_part_t);              /* SID (eng_sid.c) */
 #endif                                              /* (Felucca's PHASE, LOFI, VOICE and TRIO: voice_t alone) */
-    case ENGI_DRUM: return sizeof(drum909_part_t);
+    case ENGI_DRUM: return sizeof(drm_part_t);
 #if !MELODEE_M2K_ENGINES                            /* (retired with MONO2K's six: no part state) */
     case ENGI_FM6: return sizeof(fm6_part_t);
 #endif
-    case ENGI_SAW: case ENGI_WAV:
+    case ENGI_SAW: case ENGI_WAV: case ENGI_PULS:
         return M2K_PART_BYTES(M2K_SAW);
     case ENGI_FMTONE: case ENGI_DUAL: case ENGI_ANA4:
         return mt_state_size(e);
@@ -109,10 +109,7 @@ static int eng_state_prepare(const track_t *t)
     return !size || resource_get(RES_ENGINE0 + (uint32_t)(t - trk), size) != 0;
 }
 static phys_slot_t *phys_slots(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(phys_slot_t) * PHYS_POLY); }
-static drum909_part_t *drum909_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(drum909_part_t)); }
-static drum_lane_t *drum_kit_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(drum_lane_t) * DV_NLANE); }
-static dsk_part_t *dsk_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(dsk_part_t)); }
-static dlk_part_t *dlk_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(dlk_part_t)); }
+static drm_part_t *drm_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(drm_part_t)); }
 static drw_part_t *drw_of(const track_t *t) { return resource_get(RES_ENGINE0 + (uint32_t)(t - trk), sizeof(drw_part_t)); }
 static fm6_part_t *fm6_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(fm6_part_t)); }
 static cz_part_t *cz_part(uint32_t part) { return resource_get(RES_ENGINE0 + part % NPART, sizeof(cz_part_t)); }
@@ -199,7 +196,8 @@ static const engine_t *const ENGINES[NENGINES] = {
     &ENG_MIDI,                   /* 21: USB MIDI Track */
     &ENG_M2K_SAW,                /* 22: SAW, MONO2K's SWAV-SAW */
     &ENG_M2K_ENS,                /* 23: ENS, MONO2K's SWAV-ENS */
-    &ENG_RETIRED,                /* 24: STAT (MONO2K's FM+STAT, 1.2.0..1.2.5): retired for FMTONE, its sounds silent */
+    &ENG_M2K_PULS,               /* 24: PULS, MONO2K's SWAV-PUL (1.3.6; STAT, FM+STAT of 1.2.0..1.2.5, retired for FMTONE
+                                  * in 1.2.6: its sounds play as PULS) */
     &ENG_RETIRED,                /* 25: PAR (FM+PAR): the same */
     &ENG_RETIRED,                /* 26: DYN (FM+DYN): the same */
     &ENG_M2K_WAV,                /* 27: WAV, MONO2K's DIGI-WAV */
@@ -239,7 +237,7 @@ static const preset_t *eng_preset(const engine_t *e, uint32_t k)
  * stores and the protocol hold them); only this table orders them */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
 #if MELODEE_M2K_ENGINES                          /* (1.3.5: the user's order) */
-    ENGI_FMTONE, ENGI_ANA4, ENGI_SAW, ENGI_SAW + 1, 3,   /* FMTONE ANALOG4 SAW ENS LOFI */
+    ENGI_FMTONE, ENGI_ANA4, ENGI_SAW, ENGI_PULS, ENGI_SAW + 1, 3,   /* FMTONE ANALOG4 SAW PULS ENS LOFI */
     ENGI_DUAL, ENGI_WAV,                                  /* DUALVCO WAV */
 #if MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS
     7,                                                    /* WHEEL */
@@ -295,8 +293,8 @@ static int eng_extra_retired(uint32_t e)
 #endif
     if (!MELODEE_CZ && e == ENGI_CZ) return 1;
     if (MELODEE_M2K_ENGINES && (e == ENGI_PROPHET || e == ENGI_FM6 || e == 2u)) return 1;   /* their sounds: silent */
-    if ((e >= ENGI_SAW + 2u && e <= ENGI_SAW + 4u) || e == ENGI_NOIS)
-        return 1;                /* STAT, PAR, DYN (retired for Mini-Tone's three), NOIS (for NOISE), in every build: silent */
+    if ((e >= ENGI_SAW + 3u && e <= ENGI_SAW + 4u) || e == ENGI_NOIS)
+        return 1;                /* PAR, DYN (retired for Mini-Tone's three), NOIS (for NOISE), in every build: silent */
     if (MELODEE_M2K_ENGINES && e == 6u)
         return 1;                /* TRIO (the shipping build's; the fixture build still plays it, and VOICE): silent */
     if (MELODEE_M2K_ENGINES && e == ENGI_VOX) return 0;   /* 5: VOX since 1.3.5 (VOICE's sounds play as VOX) */
@@ -334,8 +332,8 @@ static uint32_t eng_step(uint32_t e, int32_t dir)
 /* the parts at power-on and in a new song (engine, preset; the steps empty): poly, bass, lead, drums. IT'S A
  * PROPHET 5, FM6 SOLID BASS, CZ-1 SYNTH.LEAD 1, 808 KIT (until 2026-10-16: PROPHET FUNK BASS II, FM6 PAD, SID INIT
  * SID, 808 KIT) */
-#if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, FMTONE FM BASS (STAT FM BASS until 1.2.5), LOFI PULSE LD, 808 KIT */
-static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_FMTONE, 2}, {3, 0}, {ENGI_DRUM, 0}};   /* FMTONE FM BASS */
+#if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, FMTONE FM BASS (STAT FM BASS until 1.2.5), LOFI PULSE LD, DRM SUB (808 KIT until 1.3.5) */
+static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_FMTONE, 2}, {3, 0}, {ENGI_DRUM, 0}};   /* FMTONE DXBASS (FM BASS until 1.3.5) */
 #elif MELODEE_CZ
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {ENGI_CZ, 52}, {ENGI_DRUM, 0}};
 #else                                            /* (without the CZ-1: LOFI PULSE LD, Melodee 1.0's lead) */

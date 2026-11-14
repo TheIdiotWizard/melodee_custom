@@ -86,10 +86,10 @@ static void overload(void)
     fresh();
     host_preset(&trk[0], ENGI_DRUM, 0);
     trk_note_on(&trk[0], 36, 100); trk_note_on(&trk[0], 38, 100);
-    lead = held(&trk[0], 36); extra = held(&trk[0], 38);
+    lead = &trk[0].v[0];
     shed_voice(); mix_block(out, CTL);
-    check("overload frees a held one-shot drum without waiting for its decay",
-          lead && extra && lead->active && !extra->active && sounding() == 1u);
+    check("overload keeps DRM's kit, two lanes on its one voice (a part's only voice is protected)",
+          lead->active && sounding() == 1u && drm_tick(&trk[0]));
 
     fresh();
     trk[0].p[P_VOICE] = V_UNISON;

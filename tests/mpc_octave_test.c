@@ -190,10 +190,11 @@ static void track_follow(void)
 static void drum_pads(void)
 {
     /* Expected GM outputs in physical pad order, bottom row first. Do not derive from the firmware's table. */
-    static const uint8_t notes[2][16] = {
-        {36, 38, 39, 37, 42, 46, 56, 49, 41, 45, 50, 70, 64, 61, 60, 75},
-        {36, 38, 39, 37, 42, 46, 51, 49, 41, 45, 50, 51, 36, 38, 42, 46},
+    static const uint8_t notes[2][16] = {     /* (DRM: one map for every kit; DRUM's 909 had its own until 1.3.5) */
+        {36, 38, 39, 37, 42, 46, 56, 49, 41, 45, 50, 51, 64, 62, 63, 75},
+        {36, 38, 39, 37, 42, 46, 56, 49, 41, 45, 50, 51, 64, 62, 63, 75},
     };
+    enum { DK_808 = 0, DK_909 = 1, DK_FM = 1 };   /* (two kits, the same map) */
     for (uint32_t kit = DK_808; kit <= DK_FM; kit++) {
         setup_mpc();
         for (uint32_t k = 0; k < NPART; k++) {
@@ -243,23 +244,19 @@ static void drum_pads(void)
                 }
             }
         }
-    /* Duplicated 909 hits retain separate pad ownership across a kit/octave change. */
-    setup_mpc(); set_engine_of(&trk[0], ENGI_DRUM); trk[0].p[P_QUANT] = Q_MPC; trk[0].p[P_E0] = DK_909;
+    /* Two pads held keep their own ownership across a kit/octave change. */
+    setup_mpc(); set_engine_of(&trk[0], ENGI_DRUM); trk[0].p[P_QUANT] = Q_MPC;
     int32_t out[2u * CTL];
     for (uint32_t b = 0; b < 8u; b++) mix_block(out, CTL); /* finish the normal engine switch */
     assert(trk[0].engine == ENGI_DRUM && !trk[0].xf_on);
     midi_event(0x90, 0, MPC_PAD_NOTES[0][0], 100);
-    midi_event(0x90, 0, MPC_PAD_NOTES[0][12], 119);
-    assert(midi_owners[0] == 2u && midi_note_held(&trk[0], 36));
-    uint32_t struck = 0;
-    for (uint32_t v = 0; v < NVOICE; v++)
-        struck |= trk[0].v[v].active && trk[0].v[v].note == 36u && trk[0].v[v].mvel == 119u;
-    assert(struck); /* the second pad actually retriggers at its own velocity */
-    trk[0].p[P_E0] = DK_808; trk[0].mpc_octave = -3;
+    midi_event(0x90, 0, MPC_PAD_NOTES[0][1], 119);
+    assert(midi_owners[0] == 2u && midi_note_held(&trk[0], 36) && midi_note_held(&trk[0], 38));
+    apply_preset_to(&trk[0], DRMK_FORGE); trk[0].mpc_octave = -3;
     midi_event(0x80, 0, MPC_PAD_NOTES[0][0], 0);
-    assert(midi_owners[0] == 1u && midi_note_held(&trk[0], 36));
-    midi_event(0x80, 0, MPC_PAD_NOTES[0][12], 0);
-    assert(!midi_owners[0] && !midi_note_held(&trk[0], 36));
+    assert(midi_owners[0] == 1u && !midi_note_held(&trk[0], 36) && midi_note_held(&trk[0], 38));
+    midi_event(0x80, 0, MPC_PAD_NOTES[0][1], 0);
+    assert(!midi_owners[0] && !midi_note_held(&trk[0], 38));
     puts("MPC drums: all banks/notes/kits/octaves, native keys and normal MIDI preserved: OK");
     puts("MPC drums: USB/TRS pads select silently, record GM hits and release their original owners: OK");
 }

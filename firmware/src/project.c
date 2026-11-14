@@ -1002,6 +1002,7 @@ static int project_restore_runtime(const project_t *input)
     }
     song.ntrk = (uint8_t)(p->parts - 1u < NTRK ? p->parts : NPART);
     song.sel = (uint8_t)(p->sel < song.ntrk ? p->sel : 0u);
+    drm_upgrade_all();                                  /* a DRUM kit of 1.3.5 or before: DRM's (eng_drum.c) */
     fm1_irq_on();
     proj_name_get(proj_name, (const uint8_t *)p->name);
     proj_cur = PROJ_NO_SLOT;                            /* (project_load: its slot) */

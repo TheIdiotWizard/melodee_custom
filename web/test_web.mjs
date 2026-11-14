@@ -264,7 +264,7 @@ async function editorMock() {
   const rq = async (r, o) => link.request(r, o);
   const info = E.parse[E.CMD.INFO](await rq(E.req.info()));
   ok(info.nengines === 22 && info.engines[20] === "-" && info.engines[21] === "MIDI Track" && info.engines[14] === "-" && info.engines[1] === "-" && info.engines[12] === "FM6" && info.engines[13] === "-"
- && info.engines[2] === "PHASE" && info.engines[3] === "LOFI" && info.engines[5] === "VOICE" && info.engines[6] === "TRIO" && info.engines[7] === "WHEEL" && info.engines[8] === "-" && info.engines[9] === "PHYS" && info.engines[15] === "-" && info.engines[10] === "DRUM" && info.engines[11] === "-" && info.pcount === 124 && info.pe0 === 116 && info.engines[4] === "-",
+ && info.engines[2] === "PHASE" && info.engines[3] === "LOFI" && info.engines[5] === "VOICE" && info.engines[6] === "TRIO" && info.engines[7] === "WHEEL" && info.engines[8] === "-" && info.engines[9] === "PHYS" && info.engines[15] === "-" && info.engines[10] === "DRM" && info.engines[11] === "-" && info.pcount === 124 && info.pe0 === 116 && info.engines[4] === "-",
     "editor: INFO");
   let descs = 0;
   for (let i = 0; i < info.pcount; i++) if (E.parse[E.CMD.DESC](await rq(E.req.desc(0, i))).label) descs++;
@@ -372,7 +372,7 @@ async function editorMock() {
   ok(!prefs.favorites[info.namespace.general][31] && !E.devicePresetRows(info, names, prefs).some((r) => r.user), "editor: erased slot disappears and loses star");
   {   /* the lists in the device's order: FM6 second, MIDI Track last, "-" never; the numbers stay */
     const shown = E.engineOrder(info.engines).map((i) => info.engines[i]);
-    ok(shown.join() === "PROPHET,FM6,PHASE,LOFI,VOICE,TRIO,WHEEL,PHYS,DRUM,MIDI Track" &&
+    ok(shown.join() === "PROPHET,FM6,PHASE,LOFI,VOICE,TRIO,WHEEL,PHYS,DRM,MIDI Track" &&
        E.engineOrder(info.engines)[1] === 12 && E.engineOrder(info.engines).at(-1) === 21,
        "editor: engines listed FM6 second, MIDI Track last (indices kept)");
     ok(E.engineOrder(["ANALOG", "X", "-", "DRUM", "FM6"]).join() === "0,4,3,1", "editor: an unknown engine follows the known ones");
@@ -517,20 +517,20 @@ function mockTables() {
        "editor: NOISE and CZ-1 retired with their original IDs reserved");
     const m1 = E.makeMockDevice({ auto: false, m2k: true });
     m1.stop();
-    ok([2, 6, 12, 16, 19, 24, 25, 26, 28].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
+    ok([2, 6, 12, 16, 19, 25, 26, 28].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
        m1.tables.ENG[11].name + m1.tables.ENG[11].presets.length === "NOISE4" && m1.tables.ENG[5].name + m1.tables.ENG[5].presets.length === "VOX7" &&
-       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,-0,-0,-0,WAV5,-0,FMTONE8,DUALVCO9,ANALOG48",
-       "editor: shipping firmware: PROPHET FM6 PHASE TRIO STAT PAR DYN NOIS retired (numbers reserved), VOX at 5 (VOICE's), NOISE at 11, SAW ENS WAV at 22, 23, 27, FMTONE DUALVCO ANALOG4 at 29..31");
-    ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 9]].every(([i, n, k]) =>
+       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW5,ENS5,PULS5,-0,-0,WAV5,-0,FMTONE14,DUALVCO6,ANALOG45",
+       "editor: shipping firmware: PROPHET FM6 PHASE TRIO PAR DYN NOIS retired (numbers reserved), VOX at 5 (VOICE's), NOISE at 11, SAW ENS PULS WAV at 22, 23, 24, 27, FMTONE DUALVCO ANALOG4 at 29..31");
+    ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 8]].every(([i, n, k]) =>
        m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),
        "editor: Felucca's PHASE, LOFI, VOICE, TRIO and PHYS restored with their original IDs");
     const wh = m0.tables.ENG[7];
     ok(wh.name === "WHEEL" && wh.edit.map((d) => d.label).join() === "REG,SUB,BODY,TOP,PERC,CLICK,DRV,ROTR" &&
        wh.presets.map((p) => p.name).join() === "FULL ORGAN,JAZZ PERC,GOSPEL,SOFT FLUTE,ROCK DRIVE",
        "editor: WHEEL restored as engine 7 (REG SUB BODY TOP PERC CLICK DRV ROTR), its five organs");
-    ok(dr.name === "DRUM" && dr.edit.map((d) => d.label).join() === "KIT,TUNE,TONE,DECY,SNAP,ACC,KICK,DRV" &&
-       dr.edit[0].names.join() === "808,909,SID,CR78,FM" && dr.edit[0].min === 4 && dr.edit[0].max === 8 && dr.presets.length === 6 && dr.presets[0].name === "808 KIT" && dr.presets[2].name === "SID KIT" && dr.presets[3].name === "SID DIGI" && dr.presets[4].name === "CR78 KIT" && dr.presets[5].name === "FM KIT",
-       "editor: DRUM engine 10 (KIT TUNE TONE DECY SNAP ACC KICK DRV, KIT 808), 808, 909, SID, CR78 and FM kits");
+    ok(dr.name === "DRM" && dr.edit.map((d) => d.label).join() === "TUNE,DECY,ACC,DRV,-,-,-,-" &&
+       dr.presets.map((p) => p.name).join() === "SUB,HOUSE,MD EFM,TECHNO,FORGE,RUST,HAND,LO-FI,MICRO,GLITCH",
+       "editor: DRM engine 10 (TUNE DECY ACC DRV), its ten kits");
   }
   const dj = join(HERE, "../build/host/desc.json");
   if (!existsSync(dj)) { console.log("editor: mock tables == firmware (no build/host/desc.json)        skip"); return; }

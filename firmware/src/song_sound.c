@@ -83,6 +83,7 @@ static void song_sound_apply(uint32_t k, const song_sound_t *s)
     else if (s->engine == ENGI_CZ) { *cz_patch_of(k) = s->patch.cz; cz_track_accept(t); }
     else if (s->engine == ENGI_PROPHET) { *p5_patch_of(t) = s->patch.p5; p5_ready[k] = 1; }
     else if (s->engine == ENGI_DRUM) *drum_patch_of(k) = s->patch.drum;
+    drm_upgrade(t);                                   /* (a DRUM kit of 1.3.5 or before: DRM's) */
     motion_rebase(t);
 }
 static int song_sound_prepare(void)

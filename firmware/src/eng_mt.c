@@ -307,30 +307,49 @@ static void fmt_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
     S->dy1 = dy1;
 }
 
-/* name, {ALGO, RAT C, RAT A, RAT B, HARM, DTN, FB, MIX}, {A D S R}, fenv, mono (Mini-Tone's) */
+/* name, {ALGO, RAT C, RAT A, RAT B, HARM, DTN, FB, MIX}, {A D S R}, fenv, mono: Mini-Tone's BRASS, PLUCK LEAD, RESO PLUCK and
+ * FIFTH RING; MONO2K's FM sounds (its library's, FM+STAT / FM+PAR / FM+DYN, 1.3.6) fitted to its renders on FMTONE: EPIANO,
+ * FMBELL, DXBASS and GLASPAD in TINE EP's, BELL's, FM BASS's and GLASS PAD's places (a project keeps its sound: it
+ * stores the values), the six after them appended */
 static const preset_t FMT_PRESETS[] = {
-    {"TINE EP", {1, 3, 3, 10, 0, 3, 0, 127}, {0, 104, 0, 70}, 0, 0},
-    {"BELL", {0, 3, 9, 11, 0, 0, 0, 127}, {0, 112, 0, 100}, 0, 0},
-    {"FM BASS", {0, 3, 3, 3, 0, 0, 20, 127}, {0, 70, 100, 25}, 0, 1},
+    {"EPIANO", {4, 3, 3, 3, -35, 3, 0, 124}, {0, 94, 0, 93}, 40, 0},
+    {"FMBELL", {2, 3, 9, 6, 0, 4, 0, 114}, {0, 104, 1, 102}, 0, 0},
+    {"DXBASS", {7, 3, 4, 6, 63, 1, 0, 127}, {0, 85, 3, 82}, 60, 1},
     {"BRASS", {1, 3, 3, 3, 10, 0, 20, 127}, {40, 70, 100, 55}, 0, 0},
-    {"GLASS PAD", {4, 3, 6, 6, 0, 6, 0, 80}, {85, 90, 110, 95}, 0, 0},
+    {"GLASPAD", {3, 3, 3, 6, 55, 0, 81, 59}, {77, 107, 0, 117}, 47, 0},
     {"PLUCK LEAD", {2, 3, 6, 4, 0, 4, 15, 127}, {0, 75, 60, 40}, 0, 1},
     {"RESO PLUCK", {2, 3, 6, 4, 0, 4, 15, 127}, {0, 75, 60, 40}, 40, 1},   /* (its FILTER: eng_uflt.c) */
     {"FIFTH RING", {0, 3, 3, 3, 0, 0, 0, 127}, {0, 90, 70, 60}, 0, 0},
+    {"GROWL", {1, 2, 1, 15, -64, 16, 10, 101}, {0, 77, 0, 15}, -15, 1},
+    {"GLASSKY", {0, 3, 6, 8, 45, 0, 2, 127}, {0, 82, 0, 81}, 13, 0},
+    {"FMPAD", {2, 3, 3, 11, -29, 14, 11, 65}, {88, 123, 43, 97}, 63, 0},
+    {"DRONE", {1, 3, 3, 3, 0, 3, 0, 127}, {112, 127, 127, 105}, 0, 1},
+    {"BUBBLES", {0, 3, 3, 6, 0, 0, 0, 127}, {0, 90, 127, 30}, 0, 0},
+    {"ZAP", {0, 3, 6, 8, 0, 0, 20, 127}, {0, 70, 0, 35}, 0, 0},
 };
 typedef struct {
     int8_t a[5], b[5];           /* operator A / B: ATK DEC END DEL LEV */
     int8_t k[2], f[3];           /* TRK A, TRK B; FT A, FT B1, FT B2 */
+    uint8_t more;                /* 1: the track's LFO, DRIVE and ENV -> PIT / SHP below (MONO2K's sounds), 0: as loaded */
+    int8_t lfo[6];               /* RATE WAVE, -> PIT SHP AMP, TRIG */
+    int8_t drv[2];               /* DRIVE, SHAPE */
+    int8_t ed[2];                /* ENV -> PIT, -> SHP */
 } fmt_x_t;
 static const fmt_x_t FMT_X[NELEM(FMT_PRESETS)] = {
-    {{0, 85, 12, 0, 42}, {0, 55, 0, 0, 30}, {25, 0}, {0, 0, 0}},       /* TINE EP: a bright start that mellows */
-    {{0, 108, 10, 0, 42}, {0, 100, 0, 0, 26}, {35, 35}, {0, 0, 0}},    /* BELL: inharmonic (A 3.5, B 5 and 10) */
-    {{0, 58, 50, 0, 42}, {0, 50, 25, 0, 24}, {30, 0}, {0, 0, 0}},      /* FM BASS: a punch that settles */
+    {{0, 89, 13, 0, 36}, {52, 91, 29, 46, 22}, {127, 6}, {8, 11, 46}, 1, {60, 0, 0, 0, 0, 0}, {0, 0}, {0, 28}},   /* EPIANO (MONO2K's): warm tine e-piano */
+    {{0, 94, 0, 21, 27}, {0, 14, 28, 0, 25}, {103, 0}, {6, 17, 4}, 1, {60, 0, 0, 0, 0, 0}, {0, 0}, {0, 5}},   /* FMBELL (MONO2K's): clear bell, long ring */
+    {{28, 7, 127, 18, 0}, {120, 64, 57, 0, 47}, {5, 49}, {51, -46, -33}, 1, {60, 0, 0, 0, 0, 0}, {68, 0}, {19, 63}},   /* DXBASS (MONO2K's): punchy slap bass */
     {{70, 0, 100, 0, 46}, {62, 0, 100, 0, 16}, {10, 0}, {0, 0, 0}},    /* BRASS: the modulation swells in */
-    {{80, 85, 70, 20, 30}, {85, 90, 60, 0, 22}, {0, 0}, {0, 5, -5}},   /* GLASS PAD: slow, B1 / B2 a little apart */
+    {{23, 15, 41, 14, 50}, {10, 48, 11, 32, 21}, {97, 127}, {4, -59, 28}, 1, {60, 0, 0, 0, 0, 0}, {0, 0}, {0, -64}},   /* GLASPAD (MONO2K's): shimmering bell pad */
     {{0, 55, 30, 0, 32}, {0, 45, 0, 0, 40}, {25, 0}, {0, 0, 0}},       /* PLUCK LEAD */
     {{0, 55, 30, 0, 32}, {0, 45, 0, 0, 40}, {25, 0}, {0, 0, 0}},       /* RESO PLUCK */
     {{0, 90, 20, 0, 24}, {0, 80, 0, 0, 14}, {0, 0}, {0, 0, 0}},        /* FIFTH RING */
+    {{5, 18, 86, 0, 76}, {57, 121, 123, 0, 28}, {0, 41}, {46, 14, -52}, 1, {86, 0, 0, 63, 0, 0}, {31, 3}, {0, -50}},   /* GROWL (MONO2K's): growling bass */
+    {{0, 89, 1, 0, 39}, {0, 5, 3, 0, 25}, {4, 124}, {-33, -44, 11}, 1, {60, 0, 0, 0, 0, 0}, {0, 0}, {0, 34}},   /* GLASSKY (MONO2K's): glassy mallet keys */
+    {{0, 77, 42, 8, 54}, {27, 56, 0, 24, 127}, {87, 52}, {-8, -24, -46}, 1, {60, 1, 0, -4, 0, 1}, {0, 0}, {0, 16}},   /* FMPAD (MONO2K's): slow-breathing pad */
+    {{118, 0, 127, 0, 48}, {120, 0, 127, 0, 28}, {0, 0}, {0, 0, 0}, 1, {25, 0, 0, 12, 0, 0}, {40, 0}, {0, 0}},   /* DRONE (MONO2K's): dark swelling drone */
+    {{0, 20, 40, 0, 60}, {0, 10, 20, 0, 40}, {0, 0}, {0, 0, 0}, 1, {102, 4, 40, 30, 127, 0}, {0, 0}, {0, 0}},   /* BUBBLES (MONO2K's): bubbling drops */
+    {{0, 60, 0, 0, 50}, {0, 50, 0, 0, 30}, {0, 0}, {0, 0, 0}, 1, {60, 0, 0, 0, 0, 0}, {0, 0}, {60, 0}},   /* ZAP (MONO2K's): quick falling zap */
 };
 
 static const engine_t ENG_FMTONE = {
@@ -497,14 +516,11 @@ static void dual_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const 
 
 /* name, {TUNE, DET, DEC1, DEC2, CNFG, BEND, BAL, OVER}, {A D S R}, fenv, mono (Mini-Tone's) */
 static const preset_t DUAL_PRESETS[] = {
-    {"808 KICK", {-12, 0, 85, 40, 40, 90, 0, 10}, {0, 64, 127, 10}, 0, 0},
     {"FM BELL", {0, 19, 100, 70, 60, 0, 0, 0}, {0, 64, 127, 40}, 0, 0},
-    {"RING METAL", {0, 6, 90, 90, 11, 0, 0, 10}, {0, 64, 127, 30}, 0, 0},
     {"SAW+SINE BASS", {0, -12, 127, 127, 4, 0, 0, 20}, {0, 64, 127, 25}, 0, 1},
     {"DUAL LEAD", {0, 12, 127, 127, 9, 0, 0, 10}, {0, 64, 127, 40}, 0, 1},
     {"FM BASS", {0, 0, 127, 60, 22, 20, 0, 0}, {0, 64, 127, 25}, 0, 1},
     {"F+R GLASS", {0, 7, 110, 90, 30, 0, 0, 0}, {10, 64, 127, 60}, 0, 0},
-    {"TOM", {0, 0, 75, 45, 42, 70, 0, 0}, {0, 64, 127, 10}, 0, 0},
     {"RESO LEAD", {0, 12, 127, 127, 9, 0, 0, 10}, {0, 64, 127, 40}, 30, 1},   /* (its FILTER: eng_uflt.c) */
 };
 
@@ -762,9 +778,6 @@ static const preset_t A4_PRESETS[] = {
     {"SYNC LEAD", {2, 64, 0, 0, 2, 64, 7, 0}, {0, 70, 100, 35}, 0, 1},
     {"ACID", {2, 64, 0, 0, 2, 64, 0, 0}, {0, 50, 70, 20}, 0, 1},
     {"WARM PAD", {2, 64, 0, 40, 3, 70, 0, 9}, {70, 90, 110, 85}, 0, 0},
-    {"KICK", {0, 64, 0, 0, 0, 64, 0, 0}, {0, 62, 0, 15}, 0, 0},
-    {"ZAP TOM", {1, 64, 0, 0, 0, 64, 0, 0}, {0, 70, 0, 20}, 0, 0},
-    {"NOISE HAT", {2, 64, 0, 0, 2, 64, 0, 0}, {0, 38, 0, 18}, 0, 0},
 };
 typedef struct {
     int8_t fa, fd, fs, fr, lev1, lev2, ga, gd, gam, gds, nois, sync, f1en, drv, f2md, key, res2, cut2;
@@ -776,9 +789,6 @@ static const a4_x_t A4_X[NELEM(A4_PRESETS)] = {
     {0, 60, 80, 40, 127, 100, 0, 0, 127, 0, 0, 1, 40, 0, 0, 127, 0, 127},        /* SYNC LEAD */
     {0, 50, 0, 25, 127, 127, 0, 0, 127, 0, 0, 0, 90, 20, 0, 127, 0, 127},        /* ACID */
     {40, 80, 100, 80, 90, 90, 0, 0, 127, 0, 5, 0, 25, 0, 0, 127, 0, 127},        /* WARM PAD */
-    {0, 0, 127, 0, 127, 0, 0, 40, 100, 1, 0, 0, 0, 0, 0, 127, 0, 127},           /* KICK */
-    {0, 0, 127, 0, 127, 0, 0, 55, 60, 1, 20, 0, 0, 10, 0, 127, 0, 127},          /* ZAP TOM */
-    {0, 30, 0, 15, 0, 0, 0, 0, 127, 0, 127, 0, 0, 0, 0, 127, 0, 127},            /* NOISE HAT */
 };
 
 static const engine_t ENG_ANA4 = {
@@ -836,6 +846,15 @@ static void mt_track_loaded(track_t *t)
         t->p[P_FM3_REL] = x->f[0];
         t->p[P_FM4_ATK] = x->f[1];
         t->p[P_FM4_DEC] = x->f[2];
+        if (x->more) {
+            static const uint8_t LP[6] = {P_LRATE, P_LWAVE, P_LD_PIT, P_LD_SHP, P_LD_AMP, P_LTRIG};
+            for (k = 0; k < 6u; k++)
+                t->p[LP[k]] = x->lfo[k];
+            t->p[P_DRIVE] = x->drv[0];
+            t->p[P_DSHAPE] = x->drv[1];
+            t->p[P_ED_PIT] = x->ed[0];
+            t->p[P_ED_SHP] = x->ed[1];
+        }
     } else if (t->eng_req == ENGI_ANA4) {
         const a4_x_t *x = &A4_X[(uint32_t)t->preset % NELEM(A4_X)];
         t->p[AP_FA] = x->fa; t->p[AP_FD] = x->fd; t->p[AP_FS] = x->fs; t->p[AP_FR] = x->fr;

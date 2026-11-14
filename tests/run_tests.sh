@@ -61,17 +61,11 @@
 # PHYS (tests/phys_test.c): stability over the whole parameter and pitch range, the worst-case cost against
 #                   the heaviest factory preset, demos in build/phys_demo/; tests/phys_ref.cpp compares the
 #                   fixed-point models with DaisySP's float originals when DaisySP is there (DAISYSP=path).
-# DRUM (tests/drum_test.c): the drum voices (src/drum_voice.c): pitch, decay, centroid and level against
-#                   Melodee's targets, the controls' directions, no clipping, DC, retriggers, the hat choke, the
-#                   kick on a small speaker; the DRUM engine (src/eng_drum.c): its key map, the 8 lanes together,
-#                   one hit per lane, the choke between lanes; the cost per voice; demos in build/drum_demo/.
-# DRUM SID (tests/drum_sid_test.c): KIT SID (src/drum_sid.c): one 6581 on one voice, its three voices taken by
-#                   the hits, frame programs at PAL frames, DIGI on $D418 and its effect on the voices ringing,
-#                   the filter for the routed drums, levels next to the 808; demos in build/sid_kit_demo/.
-# DRUM KITS (tests/drum_kits_test.c): KIT CR78 (src/drum_cr78.c) and KIT FM (src/drum_fm.c) on the lanes of
-#                   src/drum_lanes.c: every drum alone, one voice, a lane struck again without a step, the hat choke,
-#                   a recorded length, kit switches, the knobs' directions, levels next to the 808, no wrapped
-#                   sample, the corners; demos in build/drum_kits_demo/.
+# DRM (tests/drm_test.c): the DRUM engine (src/eng_drum.c, Hortator's models in src/drm/): every model sounds,
+#                   ends, stays under full scale and renders the same twice; the kits' levels next to the 808 kit of
+#                   1.3.5; a kit stored and read back exactly in the old record (drum_patch_t, its wire bytes); the
+#                   lanes on one voice, a retrigger without a step, the hat choke, a recorded length, the knobs live;
+#                   a DRUM kit of 1.3.5 converted; demos in build/drm_demo/.
 # NOISE (tests/noise_test.c): the engine (src/eng_noise.c): COLR's slope (white, pink, brown), the filter and the
 #                   register clock following the key, META periodic at the key, no DC, no clipping at the
 #                   corners, a note from silence the same twice, the cost per voice; demos in build/noise_demo/.
@@ -315,7 +309,7 @@ if core; then
     run "CPU live takes: native replay comparison, timed input, failure cleanup and guarded restoration" "$PY" tests/audio_cpu_take_test.py
     run "target budget: natural loops and FPU decoding" "$PY" tests/target_budget_test.py
     t "retired synth identities, project/user patch preservation and favorites" engine_retirement_test -O2 $FW
-    t "shipping engines: LOFI WHEEL PHYS NOISE VOX (5), MONO2K's and Mini-Tone's; CZ-1 TRIO STAT PAR DYN NOIS retired; PRESETS round trip (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
+    t "shipping engines: LOFI WHEEL PHYS NOISE VOX (5), MONO2K's and Mini-Tone's; PULS in 24; CZ-1 TRIO PAR DYN NOIS retired; PRESETS round trip (shipping build)" engine_retirement_felucca:engine_retirement_test -O2 $FWS
     t "MONO2K, NOISE and Mini-Tone engines: presets, the first note after silence, the FILTER, CC 74 / 71, a relative MIDI MODE" m2k_test -O2 $FWS
     t "ENV > DRIVE: each voice's drive before its amp, its shapes, VEL, FUZZ's DC, the FX picker without DRIVE" drive_test -O2 $FWS
     t "VOX (MONO2K's VOX-6): its presets' levels, VOC2's formant, VOIC's whisper, the fade-in and legato" vox_test -O2 $FWS
@@ -442,7 +436,6 @@ if core && [ $TABLES = 1 ]; then
     t "SWING: track + global at most 100, sequencer step lengths, the SWG display" swing_test -O2 $FW
     t "GLO double-tap lock, SCL tap navigation, SCREEN OFF, LFO 2 SYNC / TRIG / POL" layer_screen_test \
         -O1 -DMELODEE_USB_AUDIO=1 $FW
-    t "DRUM EDITOR: synthesized 909, sound controls, individual pitch/length, undo and storage" drum_editor_test -O2 $FW
 fi
 
 if sound && [ $TABLES = 1 ]; then
@@ -475,8 +468,6 @@ if sound && [ $TABLES = 1 ]; then
         -UMELODEE_RECORD_INDEX -DMELODEE_RECORD_INDEX=1 $FW -- "$OUT/capture_alloc_index" 400 nocost
     t "routing rebuild probes: full-state parity and rejected steady/changing costs" mod_churn_bench -O2 $FW
     t "SID filter output: exact full state across models/waves/stacks/modes and costs" sid_filter_test -O2 $FW
-    t "808/909 metal preparation: exact pitches, states and steady/changing costs" drum_prepare_test -O2 $FW
-    t "SID drum kernel: original PCM/state through digi, controls, steals and releases" drum_sid_fast_test -O2 $FW
     t "CZ native window: exact phase kernel and full renderer through live edits" cz_window_test -O2 $FW
     t "FM6 zero-level preparation: exact state and static/changing costs" fm6_prepare_test -O2 $FW
     t "Prophet zero-wheel: exact shared state and static/changing cost" prophet_fast_test -O2 $FW
@@ -489,12 +480,9 @@ if sound && [ $TABLES = 1 ]; then
         -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW
     t "SID: oscillator/LFSR/register semantics, revisions and 32 factory presets" sid_test -O2 $FW
     job phys_ref
-    t "DRUM: 808 instruments, velocity, hat choke, release, eight lanes and shared voice budget" drum_test -O2 $FW -- \
-        "$OUT/drum_test" build/drum_demo
-    t "DRUM SID: one 6581 on one voice, frame programs, DIGI on \$D418, filter routing, levels" drum_sid_test -O2 $FW -- \
-        "$OUT/drum_sid_test" build/sid_kit_demo
-    t "DRUM CR78/FM: eight lanes on one voice, retriggers, choke, length, knobs, levels, corners" drum_kits_test -O2 $FW -- \
-        "$OUT/drum_kits_test" build/drum_kits_demo
+    mkdir -p build/drm_demo
+    t "DRM: 29 models, ten kits, levels, storage, one voice, choke, length, live knobs, 1.3.5 kits converted, demos" \
+        drm_test -O2 $FWS -- "$OUT/drm_test" build/drm_demo
     t "NOISE: colour slopes, key-tracked filter and clock, META period, DC, clipping, retrigger, cost, demos" noise_test \
         -DMELODEE_LEGACY_EXTRAS=1 -O2 $FW -- "$OUT/noise_test" build/noise_demo
     t "NOISE in the shipping build (1.2.8, NOIS's place): the same checks" noise_ship:noise_test -O2 $FWS -- \

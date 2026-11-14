@@ -84,6 +84,7 @@ _Static_assert(NSTEP <= 128u && NTRK * NPAT <= 128u, "recorded-note identifiers 
 #define USER_NATIVE_P5 20u
 #define ENGI_MIDI 21u            /* 20 reserved for the Prophet user-preset namespace */
 #define ENGI_SAW 22u
+#define ENGI_PULS 24u                /* PULS, MONO2K's SWAV-PUL (1.3.6: in retired STAT's number) */
 #define ENGI_WAV 27u
 #define ENGI_NOIS 28u            /* MONO2K's GND-NOIS (1.2.2..1.2.7; retired for NOISE, 11, in 1.2.8): its ID reserved */
 #define ENGI_FMTONE 29u          /* Mini-Tone's FMTONE, DUALVCO and ANALOG4 (1.2.6: eng_mt.c) */
@@ -115,7 +116,7 @@ static inline uint32_t eng_stored(uint32_t e);   /* a stored engine number as th
 #define MELODEE_CZ (!MELODEE_FELUCCA_ENGINES)    /* CZ-1 (engine 15): its stored tracks keep the number and play silent */
 #define MELODEE_SID (!MELODEE_FELUCCA_ENGINES)   /* SID (engine 3, LOFI's again) */
 #if MELODEE_FELUCCA_ENGINES && MELODEE_M2K_ENGINES
-#define NENG_SHOWN (12u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS))
+#define NENG_SHOWN (13u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS))
                                                 /* SAW ENS WAV NOISE FMTONE DUALVCO ANALOG4 VOX LOFI [WHEEL] PHYS DRUM MIDI */
 #elif MELODEE_FELUCCA_ENGINES
 #define NENG_SHOWN (9u + MELODEE_SLICE + (uint32_t)(MELODEE_WHEEL || MELODEE_LEGACY_EXTRAS) + (uint32_t)MELODEE_LEGACY_EXTRAS)
@@ -162,7 +163,7 @@ enum {                          /* per-track parameters */
     P_RESERVED33, P_RESERVED34, P_RESERVED35, P_RESERVED36,
     P_VOICE, P_GLIDE, P_PAN, P_MUTE,
     P_GLMODE, P_PRIO, P_ALLOC, P_DETUNE,
-    P_RESERVED45, P_RESERVED46, P_RESERVED47, P_RESERVED48,      /* retired effect format padding */
+    P_RESERVED45, P_RESERVED46, P_RESERVED47, P_DRMFMT,      /* retired effect format padding; P_DRMFMT: eng_drum.c */
     P_M1SRC, P_M1DST, P_M1AMT,                 /* modulation matrix (mod.c): 4 slots of SRC, DST, AMT; */
     P_M2SRC, P_M2DST, P_M2AMT,                 /* new common parameters go just before P_E0 (user presets */
     P_M3SRC, P_M3DST, P_M3AMT,                 /* and projects map by count) */
@@ -314,7 +315,7 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define P_DVEL P_RESERVED47
 enum { DS_SOFT, DS_HARD, DS_FOLD, DS_FUZZ };     /* P_DSHAPE */
 static int param_reserved(uint32_t id)
-{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) || id==P_RESERVED48; }
+{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) ; }
 static int global_reserved(uint32_t id)
 { return (id>=G_RESERVED4 && id<=G_RESERVED11) || (id>=G_RESERVED24 && id<=G_RESERVED26); }
 
