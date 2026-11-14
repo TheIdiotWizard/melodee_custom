@@ -81,7 +81,7 @@
     </div>
   </nav>
   <h1>Manual</h1>
-  <p class="small">Firmware: <span data-firmware-version>1.3.6</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
+  <p class="small">Firmware: <span data-firmware-version>1.3.7</span>. Use the guide shipped with your firmware; the <a href="https://keremimo.github.io/melodee/webapp/manual/nightly/">nightly manual</a> follows the latest development build.</p>
   <p>How to use Melodee on the M-VAVE FM-1 after installing the custom firmware. This guide shows screenshots of each page and tables what each knob and control on that page does. Screens shown here use the MONO palette (MENU Settings page, long hold HOME button → COLOR). Type on the device is large. FONT in that same menu switches between Rubik and Melodee Pixel.</p>
 
   <div class="layout">
@@ -350,8 +350,8 @@
           <table>
             <thead><tr><th>Engine</th><th>Page 1</th><th>Page 2</th><th>Presets</th></tr></thead>
             <tbody>
-              <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS</td></tr>
-              <tr><td>PULS</td><td>UNISON: UNIL (unison level), UNIW (width), SUB1, SUB2 (sine subs an octave and two below)</td><td>PULSE: PW (pulse width: a square at 64), PWAD (the width’s sweep speed, back and forth), PWRS (ON: the sweep starts again at each note), TUNE<br>FLT moves UNIL and SHP the width.</td><td>PWM BASS, SQUARE, PWM PAD, THIN LEAD, PWM STAB</td></tr>
+              <tr><td>SAW</td><td>UNISON: UNIL (unison level), UNIW (width), UNIX (mix), DRFT (drift)</td><td>SUBS: SUBX (sub mix), SUB1, SUB2 (sub levels), TUNE</td><td>ACID, REESE, MOOG, SUPERLD, BRASS, STRINGS, SUPERSAW (MONO2K’s, through FILTER M2K)</td></tr>
+              <tr><td>PULS</td><td>UNISON: UNIL (unison level), UNIW (width), SUB1, SUB2 (sine subs an octave and two below)</td><td>PULSE: PW (pulse width: a square at 64), PWAD (the width’s sweep speed, back and forth), PWRS (ON: the sweep starts again at each note), TUNE<br>FLT moves UNIL and SHP the width.</td><td>PWMBASS, SQUARE, PWMPAD, REED (MONO2K’s, through FILTER M2K)</td></tr>
               <tr><td>ENS</td><td>CHORD: PCH2, PCH3, PCH4 (each oscillator’s interval: −12…+12 semitones or a ratio such as 3:2), WAVE</td><td>CHORUS: PW (pulse width), CHRL (chorus level), CHRW (chorus width), TUNE</td><td>MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS</td></tr>
               <tr><td>WAV</td><td>WAVE: WAVE (OS01–OS64), SCAN (through the table), STIM (scan time), SYNC</td><td>SHAPE: BITS (reduction), DTUN (second oscillator), MIX2, STEP</td><td>WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS</td></tr>
             </tbody>
@@ -390,7 +390,7 @@
         </section>
         <section id="filter">
           <h3>FILTER</h3>
-          <p>An EDIT page on SAW, PULS, ENS, WAV, FMTONE, DUALVCO and ANALOG4 (not NOISE, LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP or NOT (notch); <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>ENV</strong> (the envelope’s amount on the cutoff, as on ENV DEST). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
+          <p>An EDIT page on SAW, PULS, ENS, WAV, FMTONE, DUALVCO and ANALOG4 (not NOISE, LoFi, Wheel, Phys or Drum): TRIO’s filter, after the engine. <strong>MODE</strong> OFF (default), LP, BP, HP, NOT (notch) or M2K; <strong>CUT</strong>; <strong>RES</strong> (strong, but it does not self-oscillate); <strong>DIST</strong>. M2K is MONO2K’s chain: DIST (0 = MONO2K’s 64, its neutral) drives a resonant low-pass that clips at the machine’s ceiling and screams, then MONO2K’s high-pass; its cutoffs follow the note, CUT is MONO2K’s WDTH and RES its LPQ. DIST works in M2K only. The envelope’s amount on the cutoff is on ENV DEST (FLT). CC 74 sets CUT and CC 71 RES. With MODE OFF the sound is the engine’s alone.</p>
           <p>PROPHET, FM6 and PHASE were removed in Melodee Custom 1.2.0, STAT, PAR, DYN, TRIO and VOICE in 1.2.6, NOIS in 1.2.8. A project, user sound or favorite that uses one of them still loads, but the track plays silent until you choose another engine.</p>
         </section>
         <section id="lofi">
