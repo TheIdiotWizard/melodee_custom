@@ -24,6 +24,7 @@ static void render(uint32_t e, int drive, int shape, int vel_amt, int vel, int32
     host_tracks_init();
     host_preset(&trk[0], e, 0);
     trk[0].p[P_VOICE] = V_POLY; trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
+    trk[0].p[P_FMODE] = 0;     /* (its FILTER OFF: the drive alone, 1.3.8) */
     trk[0].p[P_DRIVE] = (int16_t)drive; trk[0].p[P_DSHAPE] = (int16_t)shape; trk[0].p[P_DVEL] = (int16_t)vel_amt;
     trk_note_on(&trk[0], 45, (uint32_t)vel);
     for (uint32_t i = 0; i < n; i += CTL) {

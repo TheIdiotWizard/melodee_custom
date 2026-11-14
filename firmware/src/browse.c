@@ -50,8 +50,7 @@ static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_PULS] = "BLPL",                               /* PULS: PWMBASS, SQUARE, PWMPAD, REED */
     [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
-    [ENGI_FMTONE] = "KEBRPLLEBKPFFF",                   /* EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK / RESO PLUCK, FIFTH RING,
-                                                         * GROWL, GLASSKY, FMPAD, DRONE, BUBBLES, ZAP */
+    [ENGI_FMTONE] = "KEBRPLLEBKPFFFDDDDDDDKEB",   /* (1.3.8: MONO2K's FM sounds, all, and Mini-Tone's four) */
     [ENGI_DUAL] = "EBLBPL",                             /* FM BELL, SAW+SINE BASS, DUAL LEAD, FM BASS, F+R GLASS, RESO LEAD */
     [ENGI_ANA4] = "BLLBP",                              /* SAW BASS, PWM / SYNC LEAD, ACID, WARM PAD */
 #endif

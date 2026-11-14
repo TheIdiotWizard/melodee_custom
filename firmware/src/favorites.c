@@ -17,7 +17,7 @@
  *         bytes 0..1 held retired ANALOG's stars.
  *   row 1 bytes 24..27 hold tagged CLICK LEVEL (CK + version 1 + percent; FX RATE's FQ until 1.2); 28..31 mark validated Melodee settings (MDS + version 1).
  *   row 11 (NOISE, retired) bytes 0..6: MONO2K's SAW .. NOIS factory stars, 10..15 Mini-Tone's FMTONE DUALVCO ANALOG4 (two
- *   bytes each), tagged M2K + 1 in bytes 28..31 (favorite_has)
+ *   bytes each; FMTONE's 16..31 in 16, 17), tagged M2K + 1 in bytes 28..31 (favorite_has)
  * Rows 1 (DIGITAL, retired), 4 (SAMPLE) and 13 (SLICE, built with MELODEE_SLICE) may hold Felucca 1.0's stars; 6, 7, 9 are LEGACY_EXTRAS' engines. Native FM6 slots: row 12 bits 24..87. */
 typedef struct {
     uint8_t factory[16][32]; /* engine 0..15, preset 0..255 */
@@ -70,6 +70,7 @@ static int m2k_fav_byte(uint32_t engine, uint32_t preset)
 #endif
     if (engine >= ENGI_SAW && engine < ENGI_SAW + 7u && preset < 8u) return (int)(engine - ENGI_SAW);
     if (engine > ENGI_SAW + 6u && engine <= ENGI_ANA4 && preset < 16u) return 10 + (int)(engine - ENGI_SAW - 7u) * 2 + (int)(preset >> 3);
+    if (engine == ENGI_SAW + 7u && preset < 32u) return 16 + (int)((preset - 16u) >> 3);   /* FMTONE's 16..31 (1.3.8): 16, 17 */
     return -1;
 }
 static int m2k_fav_row(uint32_t engine, uint32_t preset) { return m2k_fav_byte(engine, preset) >= 0; }

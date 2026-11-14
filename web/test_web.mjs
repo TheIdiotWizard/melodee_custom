@@ -491,19 +491,19 @@ async function editorMiniTone() {
   await rq(E.req.preset(29, 6));                 /* FMTONE RESO PLUCK */
   let d = E.parse[C.DUMP](await rq(E.req.dump()), info);
   const del = await desc(64), fto = await desc(76);
-  ok(d.engine === 29 && d.preset === 6 && d.p[33] === 1 && d.p[34] === 60 && d.p[35] === 90 && d.p[62] === 55 && d.p[70] === 40 &&
+  ok(d.engine === 29 && d.preset === 6 && d.p[33] === 1 && d.p[34] === 33 && d.p[35] === 54 && d.p[62] === 55 && d.p[70] === 40 &&
      del.label === "DEL A" && fto.label === "FT B1" && fto.min === -64 && fto.unit === "ct",
-     "editor: FMTONE RESO PLUCK: its FILTER (LP 60 90) and operator-slot controls (DEL A, FT B1 in cents)");
+     "editor: FMTONE RESO PLUCK: its FILTER (LP 33 54) and operator-slot controls (DEL A, FT B1 in cents)");
   await rq(E.req.preset(31, 3));                 /* ANALOG4 ACID */
   d = E.parse[C.DUMP](await rq(E.req.dump()), info);
   const f2 = await desc(77);
   await rq(E.req.set(0, 77, 9));                 /* F2MD 0..5: clamped */
   d = E.parse[C.DUMP](await rq(E.req.dump()), info);
-  ok(f2.label === "F2MD" && f2.names.join() === "LP-S,BP-S,HP-S,LP-P,BP-P,HP-P" && d.p[33] === 1 && d.p[35] === 110 && d.p[73] === 90 && d.p[77] === 5,
+  ok(f2.label === "F2MD" && f2.names.join() === "LP-S,BP-S,HP-S,LP-P,BP-P,HP-P" && d.p[33] === 1 && d.p[35] === 66 && d.p[73] === 90 && d.p[77] === 5,
      "editor: ANALOG4 ACID: FLT 2's MODE described and clamped, its FILTER and F1EN set");
   await rq(E.req.preset(22, 0));                 /* SAW: the slots TP's again, the FILTER OFF */
   d = E.parse[C.DUMP](await rq(E.req.dump()), info);
-  ok((await desc(77)).label !== "F2MD" && d.p[33] === 5 && d.p[34] === 27 && d.p[35] === 104 && d.p[36] === 20, "editor: back on SAW (ACID) the operator slots are TP's, its FILTER M2K 27 104 DIST +20");
+  ok((await desc(77)).label !== "F2MD" && d.p[33] === 1 && d.p[34] === 27 && d.p[35] === 104 && d.p[36] === 20, "editor: back on SAW (ACID) the operator slots are TP's, its FILTER LP 27 104 DIST +20");
   done();
 }
 
@@ -519,7 +519,7 @@ function mockTables() {
     m1.stop();
     ok([2, 6, 12, 16, 19, 25, 26, 28].every((i) => m1.tables.ENG[i].name === "-" && !m1.tables.ENG[i].presets.length) &&
        m1.tables.ENG[11].name + m1.tables.ENG[11].presets.length === "NOISE4" && m1.tables.ENG[5].name + m1.tables.ENG[5].presets.length === "VOX7" &&
-       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW7,ENS5,PULS4,-0,-0,WAV5,-0,FMTONE14,DUALVCO6,ANALOG45",
+       m1.tables.ENG.slice(22).map((e) => e.name + e.presets.length).join() === "SAW7,ENS5,PULS4,-0,-0,WAV5,-0,FMTONE24,DUALVCO6,ANALOG45",
        "editor: shipping firmware: PROPHET FM6 PHASE TRIO PAR DYN NOIS retired (numbers reserved), VOX at 5 (VOICE's), NOISE at 11, SAW ENS PULS WAV at 22, 23, 24, 27, FMTONE DUALVCO ANALOG4 at 29..31");
     ok([[2, "PHASE", 6], [3, "LOFI", 5], [5, "VOICE", 4], [6, "TRIO", 5], [9, "PHYS", 8]].every(([i, n, k]) =>
        m0.tables.ENG[i].name === n && m0.tables.ENG[i].presets.length === k),

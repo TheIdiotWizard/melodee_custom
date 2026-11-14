@@ -88,7 +88,7 @@ static void saw_render(int mode, int cut, int res, int fenv, int32_t *y, uint32_
 /* one of Mini-Tone's engines, its preset 0, one note held, its FILTER mode / cut; n samples of the voice */
 static void mt_render(uint32_t e, int mode, int cut, int32_t *y, uint32_t n)
 {
-    setup(e, e == ENGI_DUAL ? 2u : 0u);          /* (DUALVCO: DUAL LEAD, a sustained bright sound; 808 KICK until 1.3.5) */
+    setup(e, e == ENGI_DUAL ? 2u : e == ENGI_FMTONE ? 3u : 0u);   /* (FMTONE: BRASS; DUALVCO: DUAL LEAD, a sustained bright sound; 808 KICK until 1.3.5) */
     trk[0].p[P_FMODE] = (int16_t)mode; trk[0].p[P_FCUT] = (int16_t)cut; trk[0].p[P_FRES] = 0;
     trk[0].p[P_ED_FLT] = 0; trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
     trk_note_on(&trk[0], 48, 110);

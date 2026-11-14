@@ -183,8 +183,16 @@ static void uflt_preset_loaded(track_t *t, uint32_t pi)
         {ENGI_PULS, 3, UF_LP, 45, 12, 0, 0},
         {ENGI_FMTONE, 6, 1, 33, 54, 0, 0},     /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
         {ENGI_FMTONE, 7, 1, 42, 66, 0, 0},    /* FIFTH RING: a resonant low-pass ringing above the bell */
-        {ENGI_FMTONE, 8, 1, 28, 3, 0, 0},      /* GROWL (MONO2K's): a low-pass the envelope opens */
-        {ENGI_FMTONE, 10, 1, 24, 3, 0, 0},     /* FMPAD (MONO2K's): the same, darker */
+        {ENGI_FMTONE, 0, 1, 120, 0, 5, 0},
+        {ENGI_FMTONE, 2, 1, 45, 68, 10, 0},
+        {ENGI_FMTONE, 8, 1, 39, 38, 44, 0},
+        {ENGI_FMTONE, 10, 1, 29, 15, 3, 0},
+        {ENGI_FMTONE, 12, 2, 9, 112, -2, 0},
+        {ENGI_FMTONE, 13, 1, 105, 34, 54, 0},
+        {ENGI_FMTONE, 14, 1, 25, 6, -6, 0},
+        {ENGI_FMTONE, 16, 2, 98, 0, 1, 0},
+        {ENGI_FMTONE, 20, 1, 91, 5, -1, 0},
+        {ENGI_FMTONE, 21, 1, 14, 47, 30, 0},   /* FMTONE's MONO2K sounds (1.3.8): their chains, fitted */
         {ENGI_DUAL, 5, 1, 33, 54, 0, 0},  /* (1.3.8: TRIO's cutoffs as steps over C3, its RES x 0.6) */       /* RESO LEAD */
         {ENGI_ANA4, 0, 1, 56, 18, 0, 0},      /* SAW BASS (filter 1 as Mini-Tone's, on this filter) */
         {ENGI_ANA4, 1, 1, 62, 12, 0, 0},      /* PWM LEAD */
