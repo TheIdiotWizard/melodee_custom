@@ -20,7 +20,7 @@ int main(void)
     {
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
-            {22, 5, "SAW"}, {23, 5, "ENS"}, {24, 5, "PULS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
+            {22, 7, "SAW"}, {23, 5, "ENS"}, {24, 4, "PULS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
             {29, 14, "FMTONE"}, {30, 6, "DUALVCO"}, {31, 5, "ANALOG4"}, {5, 7, "VOX"},
 #else
             {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
@@ -41,8 +41,8 @@ int main(void)
                    eng_state_size(9)==sizeof(phys_slot_t)*PHYS_POLY && !eng_state_size(2) && !eng_state_size(3) && (MELODEE_M2K_ENGINES ? eng_state_size(5)==sizeof(vox_part_t) : !eng_state_size(5)) && !eng_state_size(6));
         bad+=check("track 3 powers on with LOFI PULSE LD", trk_def_engine(2)==3u && trk_def_preset(2)==0u);
 #if MELODEE_M2K_ENGINES
-        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW and FMTONE DXBASS (FM BASS's place)",
-                   trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==0u && trk_def_engine(1)==ENGI_FMTONE && trk_def_preset(1)==2u);
+        bad+=check("tracks 1 and 2 power on with SAW SUPERSAW (MONO2K's SAW INIT) and FMTONE DXBASS",
+                   trk_def_engine(0)==ENGI_SAW && trk_def_preset(0)==6u && trk_def_engine(1)==ENGI_FMTONE && trk_def_preset(1)==2u);
         bad+=check("the seven keep their voices as part state; ENS also its chorus",
                    eng_state_size(22)>0 && eng_state_size(23)>eng_state_size(22) && eng_state_size(27)==eng_state_size(22) && eng_state_size(ENGI_PULS)==eng_state_size(22) &&
                    eng_state_size(ENGI_FMTONE)>0 && eng_state_size(ENGI_DUAL)>0 && eng_state_size(ENGI_ANA4)>0);

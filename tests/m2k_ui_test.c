@@ -22,8 +22,8 @@ int main(void)
         if (page_visible(pg) != E[k].on) { printf("m2k ui: FILTER page, engine %u: %d\n", E[k].e, page_visible(pg)); ok = 0; }
     }
     ok &= pg < NPAGES && PAGES[pg].fam == FAM_EDIT && PAGES[pg].id[0] == P_FMODE && PAGES[pg].id[1] == P_FCUT &&
-          PAGES[pg].id[2] == P_FRES && PAGES[pg].id[3] == P_ED_FLT;
-    bad += check("EDIT FILTER (MODE CUT RES ENV): the seven only (PULS too), not NOISE, LOFI, DRM or the retired PAR DYN", ok);
+          PAGES[pg].id[2] == P_FRES && PAGES[pg].id[3] == P_FDIST;   /* (1.3.6: DIST, M2K's) */
+    bad += check("EDIT FILTER (MODE CUT RES DIST): the seven only (PULS too), not NOISE, LOFI, DRM or the retired PAR DYN", ok);
 
     ok = 1;
     uint32_t nf = 0, na = 0, a4mix = NPAGES;
@@ -47,7 +47,7 @@ int main(void)
     printf("m2k ui: ANALOG4 MIX knob 1: %d -> %d\n", mix0, TSEL->p[P_FM1_LEVEL]);
     bad += check("ANALOG4 MIX: KNOB 1 turns the control kept in its operator slot", a4mix < NPAGES && TSEL->p[P_FM1_LEVEL] != mix0);
 
-    set_engine_of(TSEL, ENGI_SAW); apply_preset_to(TSEL, 0); go_home(); frame();
+    set_engine_of(TSEL, ENGI_SAW + 1u); apply_preset_to(TSEL, 0); go_home(); frame();   /* (ENS: its FILTER OFF) */
     ui.home = 0; ui.page = (uint8_t)pg; ui.force = 1; frame();
     turn(EN_K1, 1); turn(EN_K2, -10); turn(EN_K3, 20); frame();
     printf("m2k ui: FILTER after the knobs: MODE %d CUT %d RES %d\n", TSEL->p[P_FMODE], TSEL->p[P_FCUT], TSEL->p[P_FRES]);

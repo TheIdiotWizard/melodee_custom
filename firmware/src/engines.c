@@ -333,7 +333,7 @@ static uint32_t eng_step(uint32_t e, int32_t dir)
  * PROPHET 5, FM6 SOLID BASS, CZ-1 SYNTH.LEAD 1, 808 KIT (until 2026-10-16: PROPHET FUNK BASS II, FM6 PAD, SID INIT
  * SID, 808 KIT) */
 #if MELODEE_M2K_ENGINES                          /* SAW SUPERSAW, FMTONE FM BASS (STAT FM BASS until 1.2.5), LOFI PULSE LD, DRM SUB (808 KIT until 1.3.5) */
-static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 0}, {ENGI_FMTONE, 2}, {3, 0}, {ENGI_DRUM, 0}};   /* FMTONE DXBASS (FM BASS until 1.3.5) */
+static const uint8_t TRK_DEF[NPART][2] = {{ENGI_SAW, 6}, {ENGI_FMTONE, 2}, {3, 0}, {ENGI_DRUM, 0}};   /* SAW SUPERSAW (MONO2K's SAW INIT), FMTONE DXBASS */
 #elif MELODEE_CZ
 static const uint8_t TRK_DEF[NPART][2] = {{ENGI_PROPHET, 1}, {ENGI_FM6, 10}, {ENGI_CZ, 52}, {ENGI_DRUM, 0}};
 #else                                            /* (without the CZ-1: LOFI PULSE LD, Melodee 1.0's lead) */

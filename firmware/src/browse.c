@@ -46,8 +46,8 @@ static const char *const PRESET_CAT[NENGINES] = {
     [3] = "LBULL",                                      /* LOFI: PULSE LD, WAVE BASS, ARP 8BIT, WAVE LEAD, STEP LEAD */
 #endif
 #if MELODEE_M2K_ENGINES                                 /* MONO2K's four (eng_m2k.c), Mini-Tone's three (eng_mt.c) */
-    [ENGI_SAW] = "LPLLB",                               /* SUPERSAW, BIG PAD, MONO SAW, DRIFT LD, SUB BASS */
-    [ENGI_PULS] = "BLPLU",                              /* PULS: PWM BASS, SQUARE, PWM PAD, THIN LEAD, PWM STAB */
+    [ENGI_SAW] = "BBBLLPP",                             /* ACID, REESE, MOOG, SUPERLD, BRASS, STRINGS, SUPERSAW (MONO2K's) */
+    [ENGI_PULS] = "BLPL",                               /* PULS: PWMBASS, SQUARE, PWMPAD, REED */
     [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
     [ENGI_FMTONE] = "KEBRPLLEBKPFFF",                   /* EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK / RESO PLUCK, FIFTH RING,

@@ -308,6 +308,7 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define P_FMODE P_RESERVED33
 #define P_FCUT P_RESERVED34
 #define P_FRES P_RESERVED35
+#define P_FDIST P_RESERVED36     /* MODE M2K's DIST less 64 (1.3.6; zero in every older store: MONO2K's neutral 64) */
 /* the voice's DRIVE (1.3.4, ENV > DRIVE; voice.c, dsp.c voice_drive): after the engine (and its FILTER), before the amp
  * envelope, each voice its own, in three of the reserved four (zero in every older store: no drive) */
 #define P_DRIVE P_RESERVED45
@@ -315,7 +316,7 @@ static int param_master_fx(uint32_t id){return id>=G_MFXTYPE && id<=G_MFX3CHAR;}
 #define P_DVEL P_RESERVED47
 enum { DS_SOFT, DS_HARD, DS_FOLD, DS_FUZZ };     /* P_DSHAPE */
 static int param_reserved(uint32_t id)
-{ return (id>=P_RESERVED33 + 3u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) ; }
+{ return (id>=P_RESERVED33 + 4u * MELODEE_M2K_ENGINES && id<=P_RESERVED36) ; }
 static int global_reserved(uint32_t id)
 { return (id>=G_RESERVED4 && id<=G_RESERVED11) || (id>=G_RESERVED24 && id<=G_RESERVED26); }
 

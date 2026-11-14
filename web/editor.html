@@ -2058,8 +2058,8 @@ function makeMockDevice(opt = {}) {
     D("SWG", F.PCT, 0, 100, 0), D("PROB", F.PCT, 0, 127, 127), E("HOLD", NONOFF, 0), E("ORD", ["NOTE", "PLAY"], 0),
     D("ROOT", F.NOTE, 0, 11, 0), E("SCL", ["CHR", "MAJ", "MIN", "DOR", "MIX", "PEN", "MPEN", "HARM", "PHRY", "LYD", "LOC", "MEL", "BLUES", "WHOLE", "DIMHW", "DIMWH", "5EDO", "7EDO", "9EDO", "10EDO", "13EDO", "14EDO", "15EDO", "16EDO", "17EDO", "18EDO", "19EDO", "20EDO", "21EDO", "22EDO", "23EDO", "24EDO", "26EDO", "27EDO", "29EDO", "31EDO", "34EDO", "36EDO", "41EDO", "53EDO", "JI-MAJ", "JI-MIN", "JI-12", "JI-7L", "JI-7", "HARM8", "HARM16", "PARTCH", "HARRIS", "PYTH", "MT-1/4", "MT-1/3", "MT-1/6", "WERCK3", "KIRN3", "VALLOT", "YOUNG2", "RAST-J", "SABA-J", "SHRUTI", "SLENDR", "PELOG", "BP-ET", "BP-JI", "RAST", "BAYATI", "HIJAZ", "SABA", "HUSAYN", "SIKAH"], 0), E("QNT", ["OFF", "SNAP", "WHITE", "ALL", "MPC"], 0), D("TRN", F.SEMI, -24, 24, 0),
     D("LEN", F.STEPS, 1, 64, 16), E("DIV", NDIV, 2), D("SWG", F.PCT, 0, 100, 0), D("GATE", F.PCT, 1, 127, 64),
-    ...(m2k ? [E("MODE", ["OFF", "LP", "BP", "HP", "NOT"], 0), D("CUT", F.CUTOFF, 0, 127, 127), D("RES", F.PCT, 0, 127, 0)]   /* 1.2.4: the FILTER page (MONO2K's seven) */
-         : Array.from({length:3},()=>D("",F.INT,0,127,0))), D("",F.INT,0,127,0),
+    ...(m2k ? [E("MODE", ["OFF", "LP", "BP", "HP", "NOT", "M2K"], 0), D("CUT", F.CUTOFF, 0, 127, 127), D("RES", F.PCT, 0, 127, 0), D("DIST", F.INT, -64, 63, 0)]   /* 1.2.4: the FILTER page (MONO2K's seven) */
+         : Array.from({length:4},()=>D("",F.INT,0,127,0))),   /* (1.3.6: DIST in 36, M2K's) */
     E("VCE", ["POLY", "MONO", "LEG", "UNI"], 0), D("GLD", F.TIME, 0, 127, 0), D("PAN", F.BIPCT, -64, 63, 0), E("MUTE", NONOFF, 0),
     E("GLMOD", ["RATE", "TIME"], 0), E("PRIO", ["LAST", "LOW", "HIGH"], 0), E("ALLOC", ["ROT", "REUSE"], 0), D("DTUNE", F.INT, 0, 127, 40),
     D("DRIVE", F.PCT, 0, 127, 0), E("SHAPE", ["SOFT", "HARD", "FOLD", "FUZZ"], 0), D("VEL", F.PCT, 0, 127, 0),   /* 1.3.4: ENV > DRIVE */
@@ -2084,11 +2084,11 @@ function makeMockDevice(opt = {}) {
      (opt.m2k, not the CZ-1 fixture's) */
   const M2K_ENG = [
     { name: "SAW", titles: ["UNISON", "SUBS"], edit: [D("UNIL", F.INT, 0, 127, 100), D("UNIW", F.INT, 0, 127, 40), D("UNIX", F.INT, 0, 127, 64), D("DRFT", F.INT, 0, 127, 0), D("SUBX", F.INT, 0, 127, 0), D("SUB1", F.INT, 0, 127, 0), D("SUB2", F.INT, 0, 127, 0), D("TUNE", F.OFS, 0, 127, 64)],
-      presets: [P("SUPERSAW", [100, 40, 64, 20, 0, 40, 0, 64], [0, 64, 110, 50], 0), P("BIG PAD", [127, 70, 100, 40, 0, 60, 20, 64], [60, 80, 120, 80], 0), P("MONO SAW", [0, 0, 0, 0, 60, 80, 0, 64], [0, 50, 100, 30], 1), P("DRIFT LD", [60, 20, 30, 90, 0, 0, 0, 64], [2, 60, 110, 40], 1), P("SUB BASS", [0, 0, 0, 10, 100, 127, 60, 64], [0, 40, 90, 20], 1)] },
+      presets: [P("ACID", [0, 0, 0, 0, 0, 0, 0, 64], [8, 127, 56, 51], 1, {flt: [5, 27, 104, 20]}), P("REESE", [127, 46, 0, 20, 0, 40, 0, 64], [17, 65, 119, 64], 1, {flt: [5, 27, 24, 0]}), P("MOOG", [0, 0, 0, 0, 70, 90, 0, 64], [0, 127, 127, 92], 1, {flt: [5, 28, 24, 26]}), P("SUPERLD", [90, 40, 40, 10, 0, 0, 0, 64], [16, 127, 108, 105], 1, {flt: [5, 33, 16, 0]}), P("BRASS", [70, 20, 0, 0, 0, 0, 0, 64], [63, 126, 127, 51], 1, {flt: [5, 8, 20, 20]}), P("STRINGS", [100, 50, 70, 20, 0, 0, 0, 64], [95, 0, 127, 108], 0, {flt: [5, 44, 10, 0]}), P("SUPERSAW", [100, 60, 80, 10, 0, 0, 0, 64], [38, 127, 127, 104], 0, {flt: [5, 32, 20, 0]})] },
     { name: "ENS", titles: ["CHORD", "CHORUS"], edit: [E("PCH2", ["-12", "-11", "-10", "-9", "-8", "-3:2", "-7", "-6", "-5", "-4:3", "-4", "-5:4", "-6:5", "-3", "-2", "-1", "OFF", "+1", "+2", "+3", "+6:5", "+5:4", "+4", "+4:3", "+5", "+6", "+7", "+3:2", "+8", "+9", "+10", "+11", "+12"], 16), E("PCH3", ["-12", "-11", "-10", "-9", "-8", "-3:2", "-7", "-6", "-5", "-4:3", "-4", "-5:4", "-6:5", "-3", "-2", "-1", "OFF", "+1", "+2", "+3", "+6:5", "+5:4", "+4", "+4:3", "+5", "+6", "+7", "+3:2", "+8", "+9", "+10", "+11", "+12"], 16), E("PCH4", ["-12", "-11", "-10", "-9", "-8", "-3:2", "-7", "-6", "-5", "-4:3", "-4", "-5:4", "-6:5", "-3", "-2", "-1", "OFF", "+1", "+2", "+3", "+6:5", "+5:4", "+4", "+4:3", "+5", "+6", "+7", "+3:2", "+8", "+9", "+10", "+11", "+12"], 16), D("WAVE", F.INT, 0, 127, 0), D("PW", F.INT, 0, 127, 64), D("CHRL", F.INT, 0, 127, 80), D("CHRW", F.INT, 0, 127, 64), D("TUNE", F.OFS, 0, 127, 64)],
       presets: [P("MAJOR", [22, 26, 32, 0, 64, 80, 64, 64], [10, 70, 110, 60], 0), P("MINOR", [19, 26, 32, 0, 64, 80, 64, 64], [10, 70, 110, 60], 0), P("FIFTHS", [26, 32, 16, 40, 64, 60, 90, 64], [0, 64, 110, 50], 0), P("OCT PULS", [32, 16, 16, 127, 32, 50, 40, 64], [0, 60, 100, 40], 1), P("STRINGS", [26, 32, 22, 20, 90, 110, 110, 64], [70, 80, 120, 90], 0)] },
     { name: "PULS", titles: ["UNISON", "PULSE"], edit: [D("UNIL", F.INT, 0, 127, 0), D("UNIW", F.INT, 0, 127, 40), D("SUB1", F.INT, 0, 127, 0), D("SUB2", F.INT, 0, 127, 0), D("PW", F.INT, 0, 127, 64), D("PWAD", F.INT, 0, 127, 0), E("PWRS", ["OFF", "ON"], 0), D("TUNE", F.OFS, 0, 127, 64)],   /* 24: PULS, MONO2K's SWAV-PUL (1.3.6, STAT's number) */
-      presets: [P("PWM BASS", [70, 40, 60, 0, 64, 40, 0, 64], [0, 60, 100, 25], 1), P("SQUARE", [0, 0, 30, 0, 64, 0, 0, 64], [2, 60, 110, 35], 1), P("PWM PAD", [80, 50, 20, 0, 64, 12, 0, 64], [60, 80, 120, 80], 0), P("THIN LEAD", [40, 20, 0, 0, 20, 0, 0, 64], [0, 60, 100, 40], 1), P("PWM STAB", [60, 30, 30, 0, 40, 90, 1, 64], [0, 55, 0, 30], 0)] },
+      presets: [P("PWMBASS", [70, 40, 60, 0, 64, 40, 0, 64], [26, 127, 126, 62], 1, {flt: [5, 24, 20, 0]}), P("SQUARE", [0, 0, 30, 0, 64, 0, 0, 64], [5, 127, 77, 59], 1, {flt: [5, 33, 20, 0], more: {38: 30}}), P("PWMPAD", [80, 50, 20, 0, 64, 12, 0, 64], [93, 101, 5, 99], 0, {flt: [5, 44, 16, 0]}), P("REED", [0, 0, 0, 0, 64, 0, 0, 64], [28, 127, 127, 82], 1, {flt: [5, 45, 12, 0]})] },
     { name: "-", titles: ["-", "-"], edit: Array(8).fill(NONE), presets: [] },   /* 25, 26: MONO2K's PAR, DYN (retired 1.2.6, their numbers reserved) */
     { name: "-", titles: ["-", "-"], edit: Array(8).fill(NONE), presets: [] },
     { name: "WAV", titles: ["WAVE", "SHAPE"], edit: [D("WAVE", F.INT, 0, 127, 26), D("SCAN", F.OFS, 0, 127, 64), D("STIM", F.INT, 0, 127, 60), D("SYNC", F.INT, 0, 127, 0), D("BITS", F.INT, 0, 127, 0), D("DTUN", F.OFS, 0, 127, 64), D("MIX2", F.INT, 0, 127, 0), D("STEP", F.INT, 0, 127, 0)],
@@ -2342,7 +2342,7 @@ function makeMockDevice(opt = {}) {
                                                      settings stay (ui.c apply_preset_to) */
     if (m2k) {                                    /* the FILTER: OFF, or the preset's (eng_uflt.c uflt_preset_loaded); the
                                                      operator slots: the preset's (eng_mt.c mt_track_loaded) */
-      [33, 34, 35].forEach((id, k) => { st.p[id] = pr.flt ? pr.flt[k] : TP[id].def; });
+      [33, 34, 35, 36].forEach((id, k) => { st.p[id] = pr.flt && pr.flt[k] !== undefined ? pr.flt[k] : TP[id].def; });
       if (pr.ops) pr.ops.forEach((x, k) => { st.p[61 + k] = x; });
       if (pr.more) for (const [id, x] of Object.entries(pr.more)) st.p[+id] = x;   /* (MONO2K's FM sounds: LFO, DRIVE, ENV) */
     }
@@ -2383,7 +2383,7 @@ function makeMockDevice(opt = {}) {
     clearSteps(); st.p[29] = 16;
   });
   /* the power-on sounds (engines.c TRK_DEF): IT'S A PROPHET 5, SOLID BASS, LOFI PULSE LD, 808 KIT */
-  (m2k ? [[1, 29, 2], [2, 3, 0], [3, 10, 0], [0, 22, 0]]   /* SAW SUPERSAW, FMTONE DXBASS, LOFI PULSE LD, DRM SUB */
+  (m2k ? [[1, 29, 2], [2, 3, 0], [3, 10, 0], [0, 22, 6]]   /* SAW SUPERSAW, FMTONE DXBASS, LOFI PULSE LD, DRM SUB */
        : [[1, FM6_E, 10], [2, 3, 0], [3, 10, 0], [0, 19, 1]]).forEach(([i, e, p]) => { st.sel = i; setEngine(e); applyPreset(p); });
   /* the device powers on with its sequencers empty; the mock starts as a little demo to look at: track 1 with
      IT'S A PROPHET 5, track 4 with BEAT, bass left, lead right */
@@ -3369,7 +3369,7 @@ const LAYOUT = (pe0) => [
   { t: "LFO", pages: [["LFO", 0, [9, 10, 11, 12]], ["LFO DEST", 0, [13, 14, 15, 16]], ...(pe0>=96 ? [["LFO 2",0,[92,93,94]]] : [])] },
   ...(pe0 >= 61 ? [{ t: "MOD", mod: 49 }] : []),   /* the matrix: P_M1SRC 49 .. P_M4AMT 60, one row per slot */
   { t: "EDIT", engine: true, pages: [["EDIT 1", 0, [pe0, pe0 + 1, pe0 + 2, pe0 + 3]], ["EDIT 2", 0, [pe0 + 4, pe0 + 5, pe0 + 6, pe0 + 7]]] },
-  ...(pe0 >= 116 && M2K_NAMES.includes(engName()) ? [{ t: "FILTER", pages: [["FILTER", 0, [33, 34, 35, 5]]] }] : []),   /* 1.2.4: the FILTER page's engines (P_FMODE..P_FRES, ENV -> FLT) */
+  ...(pe0 >= 116 && M2K_NAMES.includes(engName()) ? [{ t: "FILTER", pages: [["FILTER", 0, [33, 34, 35, 36]]] }] : []),   /* 1.2.4: the FILTER page's engines (P_FMODE..P_FRES, ENV -> FLT) */
   ...(pe0 >= 116 && engName() === "FMTONE" ? [{ t: "FMTONE", pages: [   /* 1.2.6: its controls in the operator slots (params.c's pages) */
     ["A ENV", 0, [61, 62, 63, 65]], ["B ENV", 0, [66, 67, 68, 70]], ["DEL TRK", 0, [64, 69, 71, 72]], ["FINE", 0, [74, 76, 77]]] }] : []),
   ...(pe0 >= 116 && engName() === "ANALOG4" ? [{ t: "ANALOG4", pages: [

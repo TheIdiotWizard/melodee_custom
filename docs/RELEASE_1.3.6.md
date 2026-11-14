@@ -31,7 +31,7 @@ The MPC pad layout is the same for every kit now.
 
 MONO2K's SWAV-PUL pulse machine, listed between SAW and ENS. UNISON: UNIL, UNIW, SUB1, SUB2 (sines an octave and two
 down). PULSE: PW (a square at 64), PWAD (the width swept back and forth), PWRS (ON: the sweep restarts at each note),
-TUNE. LFO or ENV to SHP moves the width. Presets: PWM BASS, SQUARE, PWM PAD (MONO2K's library's), THIN LEAD, PWM STAB.
+TUNE. LFO or ENV to SHP moves the width.
 
 PULS takes engine number 24, which was FM+STAT's until 1.2.6: a STAT sound from 1.2.0 to 1.2.5, silent since, now
 plays as PULS.

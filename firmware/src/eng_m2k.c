@@ -94,7 +94,7 @@ typedef struct {
     int32_t ms[6];
     uint32_t menv[1];                /* Q30 envelope from the note (WAV's) */
     uint32_t drng;                   /* SAW's drift */
-    int32_t f[1][2], fdrift;         /* the FILTER page (TRIO's filter): its two states; the cutoff's wander */
+    int32_t f[1][UFLT_ST], fdrift;   /* the FILTER page (TRIO's filter: two states; M2K, MONO2K's chain: all); the wander */
     int32_t fnoise;
 } m2k_voice_t;
 typedef struct {                     /* ENS: the part's chorus line, after its voices */
@@ -295,6 +295,9 @@ static const struct { int16_t gain; int8_t flt, shp; } M2K_ROLE[M2K_KINDS] = {
     [M2K_WAV] = {4500, 1, 0},        /* FLT SCAN, SHP WAVE */
 };
 
+/* MONO2K's machine each is (its DIST ceiling, FILTER's M2K) */
+static const uint8_t M2K_MACH[M2K_KINDS] = {[M2K_SAW] = 5, [M2K_ENS] = 6, [M2K_PUL] = 10, [M2K_WAV] = 7};
+
 static m2k_voice_t *m2k_voice_of(track_t *t, voice_t *v)
 {
     uint32_t i = (uint32_t)(v - t->v);
@@ -308,7 +311,7 @@ static void m2k_note_on(track_t *t, voice_t *v)
     int kind = m2k_kind(t);
     if (!s) return;
     uint32_t keep = s->ph[2], drng = s->drng;
-    int32_t fst[1][2], fdrift = s->fdrift;   /* (the filter runs on, as TRIO's: a retrigger does not click) */
+    int32_t fst[1][UFLT_ST], fdrift = s->fdrift;   /* (the filter runs on, as TRIO's: a retrigger does not click) */
     int32_t fnoise = s->fnoise, sweep = s->ms[4];
     memcpy(fst, s->f, sizeof fst);
     memset(s, 0, sizeof *s);
@@ -335,7 +338,7 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
     uflt_t flt;                      /* the FILTER page (eng_uflt.c) */
     int fon = t->p[P_FMODE] != 0;
     if (fon)
-        uflt_coef(&flt, (uint32_t)t->p[P_FMODE], (t->p[P_FCUT] << 8) + m->cutoff, t->p[P_FRES], &s->fdrift, &s->fnoise,
+        uflt_set(&flt, t->p, (t->p[P_FCUT] << 8) + m->cutoff, m->pitch16, M2K_MACH[kind], 4096, gain, &s->fdrift, &s->fnoise,
                   0x2545F491u ^ (uint32_t)(t - trk) * 7919u ^ (uint32_t)(s - m2k_part_of(t)->v) * 104729u);
     for (uint32_t b = 0; b < n; b += M2K_SUB) {
         switch (kind) {
@@ -345,7 +348,7 @@ static void m2k_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
         default: m2k_wav(s, q, m->inc, o); break;
         }
         for (uint32_t i = 0; i < M2K_SUB && b + i < n; i++) {
-            int32_t x = m2k_sat16(((int32_t)o[i] * gain) >> 12);
+            int32_t x = fon && flt.m2k ? o[i] : m2k_sat16(((int32_t)o[i] * gain) >> 12);   /* (M2K: the machine's own) */
             out[b + i] += voice_amp(fon ? uflt_run(&flt, s->f[0], x) : x, m, b + i);
         }
     }
@@ -416,18 +419,19 @@ static const char *const N_M2K_ONOFF[3] = {"OFF", "ON", 0};
 
 /* presets: MONO2K's controls at their values (a ratio its step of 24, an interval its place of 33), the ADSR Melodee's */
 static const preset_t M2K_SAW_PRESETS[] = {
-    {"SUPERSAW", {100, 40, 64, 20, 0, 40, 0, 64}, {0, 64, 110, 50}, 0, 0},
-    {"BIG PAD", {127, 70, 100, 40, 0, 60, 20, 64}, {60, 80, 120, 80}, 0, 0},
-    {"MONO SAW", {0, 0, 0, 0, 60, 80, 0, 64}, {0, 50, 100, 30}, 0, 1},
-    {"DRIFT LD", {60, 20, 30, 90, 0, 0, 0, 64}, {2, 60, 110, 40}, 0, 1},
-    {"SUB BASS", {0, 0, 0, 10, 100, 127, 60, 64}, {0, 40, 90, 20}, 0, 1},
+    {"ACID", {0, 0, 0, 0, 0, 0, 0, 64}, {8, 127, 56, 51}, 29, 1},          /* MONO2K's library's SAW sounds (1.3.6): */
+    {"REESE", {127, 46, 0, 20, 0, 40, 0, 64}, {17, 65, 119, 64}, -11, 1},  /* their pages and chains (FILTER M2K, */
+    {"MOOG", {0, 0, 0, 0, 70, 90, 0, 64}, {0, 127, 127, 92}, 19, 1},       /* eng_uflt.c), the envelopes fitted to */
+    {"SUPERLD", {90, 40, 40, 10, 0, 0, 0, 64}, {16, 127, 108, 105}, 12, 1}, /* MONO2K's renders; SUPERSAW its SAW INIT */
+    {"BRASS", {70, 20, 0, 0, 0, 0, 0, 64}, {63, 126, 127, 51}, 28, 1},
+    {"STRINGS", {100, 50, 70, 20, 0, 0, 0, 64}, {95, 0, 127, 108}, 1, 0},
+    {"SUPERSAW", {100, 60, 80, 10, 0, 0, 0, 64}, {38, 127, 127, 104}, 16, 0},
 };
-static const preset_t M2K_PUL_PRESETS[] = {      /* PWM BASS, SQUARE, PWM PAD: MONO2K's library's PWMBASS SQUARE PWMPAD */
-    {"PWM BASS", {70, 40, 60, 0, 64, 40, 0, 64}, {0, 60, 100, 25}, 20, 1},
-    {"SQUARE", {0, 0, 30, 0, 64, 0, 0, 64}, {2, 60, 110, 35}, 0, 1},
-    {"PWM PAD", {80, 50, 20, 0, 64, 12, 0, 64}, {60, 80, 120, 80}, 0, 0},
-    {"THIN LEAD", {40, 20, 0, 0, 20, 0, 0, 64}, {0, 60, 100, 40}, 0, 1},
-    {"PWM STAB", {60, 30, 30, 0, 40, 90, 1, 64}, {0, 55, 0, 30}, 0, 0},
+static const preset_t M2K_PUL_PRESETS[] = {
+    {"PWMBASS", {70, 40, 60, 0, 64, 40, 0, 64}, {26, 127, 126, 62}, 14, 1},   /* MONO2K's library's PULS sounds (as SAW's); */
+    {"SQUARE", {0, 0, 30, 0, 64, 0, 0, 64}, {5, 127, 77, 59}, -1, 1},          /* REED its PULS INIT */
+    {"PWMPAD", {80, 50, 20, 0, 64, 12, 0, 64}, {93, 101, 5, 99}, -2, 0},
+    {"REED", {0, 0, 0, 0, 64, 0, 0, 64}, {28, 127, 127, 82}, 0, 1},
 };
 static const preset_t M2K_ENS_PRESETS[] = {
     {"MAJOR", {22, 26, 32, 0, 64, 80, 64, 64}, {10, 70, 110, 60}, 0, 0},

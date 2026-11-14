@@ -17,7 +17,12 @@
  * engine only (params.c PAGES' own). */
 
 /* ------------------------------------------------------------------------------------------------ part memory --- */
-typedef struct { int32_t f[2][2], drift, nst; } mt_vflt_t;   /* a voice's FILTER: two filters' states, the wander */
+typedef struct { int32_t f[1][UFLT_ST], drift, nst; } mt_vflt_t;   /* a voice's FILTER: its states (M2K: all), the wander */
+#define MT_M2K_FM 3u                  /* FILTER's M2K: FMTONE as MONO2K's FM+STAT, DUALVCO and ANALOG4 as SWAV-SAW (their DIST */
+#define MT_M2K_VCO 5u                 /* ceilings) */
+#ifndef MT_M2K_GAIN
+#define MT_M2K_GAIN 5900              /* a voice's level a machine sample (Q12: FMTONE's carrier against FM+'s, half scale) */
+#endif
 #define MT_VFLT_SEED(t, k) (0x9E3779B9u ^ (uint32_t)((t) - trk) * 7919u ^ (uint32_t)(k) * 104729u)
 static void *mt_mem(const track_t *t, uint32_t bytes)
 {
@@ -225,8 +230,8 @@ static void fmt_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const v
     dx1 = S->dx1;
     dy1 = S->dy1;
     if (fon)
-        uflt_coef(&rf, (uint32_t)p[P_FMODE], (p[P_FCUT] << 8) + m->cutoff, p[P_FRES], &S->flt.drift, &S->flt.nst,
-                  MT_VFLT_SEED(t, v - t->v));
+        uflt_set(&rf, p, (p[P_FCUT] << 8) + m->cutoff, m->pitch16, MT_M2K_FM, MT_M2K_GAIN, MT_M2K_GAIN, &S->flt.drift, &S->flt.nst,
+                 MT_VFLT_SEED(t, v - t->v));
     for (i = 0; i < n; i++) {
         int32_t o1, o2, o3, o4, s, ga, gb;
         ia += dia;
@@ -477,8 +482,8 @@ static void dual_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const 
     d2 = ((e2n >> 9) - l2) / (int32_t)n;
     tr = 32768 + mulq15((beo >> 9), bend * 258);          /* the transient: up to twice the level at the start of a bend */
     if (fon)
-        uflt_coef(&rf, (uint32_t)p[P_FMODE], (p[P_FCUT] << 8) + m->cutoff, p[P_FRES], &fs->drift, &fs->nst,
-                  MT_VFLT_SEED(t, v - t->v));
+        uflt_set(&rf, p, (p[P_FCUT] << 8) + m->cutoff, m->pitch16, MT_M2K_VCO, MT_M2K_GAIN, MT_M2K_GAIN, &fs->drift, &fs->nst,
+                 MT_VFLT_SEED(t, v - t->v));
     for (i = 0; i < n; i++) {
         int32_t a1 = mulq15(l1, b1), a2 = mulq15(l2, b2), s, c;
         inc1 = (uint32_t)in1;
@@ -708,8 +713,8 @@ static void a4_render(track_t *t, voice_t *v, int32_t *out, uint32_t n, const vm
     pw = (uint32_t)pw12 << 20;
     f1on = p[P_FMODE] != 0;
     if (f1on)
-        uflt_coef(&f1, (uint32_t)p[P_FMODE], a4_cut(p[P_FCUT], fe15, p[AP_F1EN], key, m->cutoff), p[P_FRES],
-                  &s1->drift, &s1->nst, MT_VFLT_SEED(t, vk));
+        uflt_set(&f1, p, a4_cut(p[P_FCUT], fe15, p[AP_F1EN], p[P_FMODE] == UF_M2K ? 0 : key, m->cutoff), m->pitch16,
+                 MT_M2K_VCO, MT_M2K_GAIN, MT_M2K_GAIN, &s1->drift, &s1->nst, MT_VFLT_SEED(t, vk));   /* (M2K: its own key) */
     cut2 = (p[AP_CUT2] << 8) + key + m->cutoff + c2x;
     f2on = par || f2ty || p[AP_RES2] || cut2 < (127 << 8);   /* (an open low-pass in series: nothing to do) */
     if (f2on)

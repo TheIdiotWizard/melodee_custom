@@ -32,6 +32,8 @@ Current release: **[Melodee Custom 1.3.6](https://github.com/TheIdiotWizard/melo
   lane its own model and knobs, ten kits (SUB, HOUSE, MD EFM, TECHNO, FORGE, RUST, HAND, LO-FI, MICRO, GLITCH). The
   808, 909, SID, CR78 and FM kits are gone; songs that used them load on the nearest DRM kit.
 - **PULS (1.3.6):** MONO2K's SWAV-PUL pulse machine (unison, two sine subs, a swept pulse width), between SAW and ENS.
+- **FILTER M2K (1.3.7):** MONO2K's chain (DIST into a resonant, clipping, note-following filter) as a FILTER mode, with
+  a DIST knob; SAW and PULS presets are MONO2K's library sounds through it.
 - **FMTONE (1.3.6):** ten of MONO2K's FM sounds remade on it (EPIANO, FMBELL, DXBASS, GLASPAD, GROWL, GLASSKY, FMPAD,
   DRONE, BUBBLES, ZAP); the drum presets DRM covers are gone from DUALVCO, ANALOG4 and PHYS.
 - **Engines (1.0):** Felucca's **WHEEL** organ and its **LOFI** and **PHYS** engines are back, at their original
@@ -57,7 +59,7 @@ Current release: **[Melodee Custom 1.3.6](https://github.com/TheIdiotWizard/melo
 - **Fix:** a key, or a ROUT SEL MIDI note, could play another track's sound while the screen briefly selected
   that track (also fixed upstream).
 
-### This build's 1.3.6 and 1.3.5
+### This build's 1.3.7, 1.3.6 and 1.3.5
 
 - **1.3.6:** **DRM** replaces the DRUM engine (engine 10): Hortator's drum models on eight lanes, a model and seven
   knobs a lane, ten kits, TUNE / DECY / ACC / DRV for the whole kit; **PULS**, MONO2K's pulse machine, in engine 24;
