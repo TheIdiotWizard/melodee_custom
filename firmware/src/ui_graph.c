@@ -593,6 +593,67 @@ static void fm_bus(int32_t cl, int32_t cr, int32_t bus)
 #define FM6_CHART_HOOK(kind, a, b) ((void)0)   /* ui_render.c (host tests): the chart's parts one by one (its lint) */
 #endif
 enum { FMH_BOX, FMH_ROUTE, FMH_CAR, FMH_BUS, FMH_FB, FMH_LABEL, FMH_END };
+/* FMTONE's 8 algorithms as charts. Operators: 0=C (carrier/output), 1=A, 2=B1, 3=B2 (feedback on B2).
+ * CELL: per operator [C,A,B1,B2] its {col (bits 0..2), row (bits 4..5)}, same encoding as FM6_CELL.
+ * MOD: mod[i] = bitmask of operators that modulate op i (bit 0=C, 1=A, 2=B1, 3=B2).
+ * CAR: bitmask of carrier operators (direct to the output bus). */
+static void graph_fmtone(const track_t *t, uint16_t c)
+{
+    static const uint8_t CELL[8][4] = {
+        {0x00, 0x10, 0x20, 0x30},  /* 1: B2>B1>A>C (chain) */
+        {0x00, 0x10, 0x20, 0x21},  /* 2: (B1+B2)>A>C */
+        {0x00, 0x10, 0x20, 0x11},  /* 3: B1>A>C, B2>C */
+        {0x00, 0x10, 0x11, 0x21},  /* 4: B2>B1, (A+B1)>C */
+        {0x00, 0x10, 0x01, 0x11},  /* 5: B2>B1>out, A>C>out */
+        {0x00, 0x01, 0x02, 0x10},  /* 6: B2>C, A/B1 out */
+        {0x00, 0x01, 0x02, 0x12},  /* 7: B2>B1 out, A/C out */
+        {0x00, 0x01, 0x02, 0x03},  /* 8: all out */
+    };
+    static const uint8_t MOD[8][4] = {   /* mod[k] = bits of ops that modulate op k */
+        {2, 4, 8, 0}, {2, 12, 0, 0}, {10, 4, 0, 0}, {6, 0, 8, 0},
+        {2, 0, 8, 0}, {8, 0, 0, 0}, {0, 0, 8, 0},   {0, 0, 0, 0},
+    };
+    static const uint8_t CAR[8] = {1, 1, 1, 1, 5, 7, 7, 15};
+    static const char LABEL[4] = {'C', 'A', '1', '2'};  /* 1=B1, 2=B2 */
+    uint32_t alg = (uint32_t)t->p[P_E0] & 7u;
+    int32_t x[4], y[4], bus, cl = 240, cr = 0, top = 0, hi = 0;
+    uint32_t car = CAR[alg], k, j;
+    int32_t fb = t->p[P_E6];
+    uint16_t hot = ui.hot_t ? (uint32_t)cur_page()->id[ui.hot_col & 3u] : 0u;
+    char b[6] = {'A', 'L', 'G', ' ', (char)('1' + alg), 0};
+    for (k = 0; k < 4u; k++) {
+        uint32_t col = CELL[alg][k] & 7u, row = CELL[alg][k] >> 4;
+        hi = col > hi ? col : hi; top = row > top ? row : top;
+    }
+    bus = 50 + (27 + 23 * (int32_t)top) / 2;
+    for (k = 0; k < 4u; k++) {
+        x[k] = 120 + (int32_t)(CELL[alg][k] & 7u) * 24 - (int32_t)hi * 12;
+        y[k] = bus - 6 - FM_BH - 23 * (int32_t)(CELL[alg][k] >> 4);
+        if (car >> k & 1u) { cl = x[k] < cl ? x[k] : cl; cr = x[k] > cr ? x[k] : cr; }
+    }
+    for (k = 0; k < 4u; k++) {                        /* routes into op k: down from each source, jog above k */
+        uint32_t fan_k = MOD[alg][k] & (MOD[alg][k] - 1u);  /* >1 source modulating k */
+        for (j = 0; j < 4u; j++) {
+            if (!(MOD[alg][k] >> j & 1u)) continue;
+            fm_route(x[j], y[j] + FM_BH, x[k], y[k] - 3, y[k] - 3, c);
+            if (fan_k) fm_dot(x[k], y[k] - 3, c);         /* several modulating one */
+            /* fan-out dot if op j modulates multiple targets */
+            { uint32_t out_j = 0, m; for (m = 0; m < 4u; m++) out_j += (MOD[alg][m] >> j & 1u); if (out_j > 1u) fm_dot(x[j], y[k] - 3, c); }
+        }
+        if (car >> k & 1u) cv_rect(x[k], y[k] + FM_BH, 1, bus - y[k] - FM_BH, T_MID);
+    }
+    fm_bus(cl, cr, bus);
+    fm_loop(x[3], y[3], hot == P_E6 ? T_ACCENT : fb ? T_MID : T_DIM);  /* feedback on B2 */
+    for (k = 0; k < 4u; k++) {
+        uint16_t fill = (car >> k & 1u) ? c : T_RAISE;
+        char n[2] = {LABEL[k], 0};
+        cv_rrect(x[k] - 10, y[k], 21, FM_BH, 3, fill, T_SURF);
+        cv_text_c(x[k] + 1, ty_y(y[k] + FM_BH / 2, TY_LB), TY_LB, n, (car >> k & 1u) ? T_INK : c, fill);
+    }
+    if (graph_oy == GOY)
+        cv_text(10, ty_y(12 - GOY, TY_LB), TY_LB, b, hot == P_E0 ? T_ACCENT : T_MID);
+}
+
 /* FM6's 32 algorithms as charts. FM6_CELL: per operator 1..6 its cell, the column in 24 px steps (bits 0..2) and
  * the row above the output bus (bits 4..5; row 0 = the carriers). The routes, the carriers and the feedback
  * operator are fm6_core.c's FM6_ALG itself (fm6_routes, fm6_car_ops, fm6_fb_op). ui_test.c checks the cells
@@ -1061,6 +1122,7 @@ static void draw_graph(void)
 #endif
                 if ((pg->scope == SC_ENGINE || pg->scope == SC_FM6 || pg->scope == SC_FMOP) &&
                          t->eng_req % NENGINES == ENGI_FM6) graph_fm6(t, c);   /* EDIT 1 and 2, FM6's pages */
+                else if (pg->scope == SC_ENGINE && t->eng_req % NENGINES == ENGI_FMTONE) graph_fmtone(t, c);
                 else { cv_oy = 0; graph_scope(c, 0, H_GRAPH); }
                 break;
             }
