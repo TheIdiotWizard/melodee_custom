@@ -21,7 +21,7 @@ int main(void)
         static const struct { uint8_t e, n; const char *name; } back[] = {
 #if MELODEE_M2K_ENGINES
             {22, 7, "SAW"}, {23, 5, "ENS"}, {24, 4, "PULS"}, {27, 5, "WAV"}, {11, 4, "NOISE"},
-            {29, 14, "FMTONE"}, {30, 6, "DUALVCO"}, {31, 5, "ANALOG4"}, {5, 7, "VOX"},
+            {29, 18, "FMTONE"}, {30, 6, "DUALVCO"}, {31, 4, "ANALOG4"}, {5, 7, "VOX"},
 #else
             {2, 6, "PHASE"}, {5, 4, "VOICE"}, {6, 5, "TRIO"},
 #endif
@@ -81,9 +81,9 @@ int main(void)
             bad+=check("a project keeps a MONO2K track's FILTER (MODE CUT RES)",
                        !project_restore_runtime(&fsaved) && TSEL->p[P_FMODE]==3 && TSEL->p[P_FCUT]==21 && TSEL->p[P_FRES]==99);
             set_engine_of(TSEL,ENGI_FMTONE);apply_preset_to(TSEL,6);
-            bad+=check("a preset sets its FILTER: FMTONE RESO PLUCK a low-pass, its preset 0 OFF; ANALOG4 ACID resonant",
+            bad+=check("a preset sets its FILTER: FMTONE RESO PLUCK a low-pass, its preset 0 OFF; ANALOG4 WARM PAD low-pass",
                        TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==60 && TSEL->p[P_FRES]==90 && (apply_preset_to(TSEL,0),TSEL->p[P_FMODE]==0) &&
-                       (set_engine_of(TSEL,ENGI_ANA4),apply_preset_to(TSEL,3),TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==95 && TSEL->p[P_FRES]==110));
+                       (set_engine_of(TSEL,ENGI_ANA4),apply_preset_to(TSEL,3),TSEL->p[P_FMODE]==1 && TSEL->p[P_FCUT]==85 && TSEL->p[P_FRES]==20));
         }
 #endif
     }

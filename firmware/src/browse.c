@@ -50,10 +50,10 @@ static const char *const PRESET_CAT[NENGINES] = {
     [ENGI_PULS] = "BLPL",                               /* PULS: PWMBASS, SQUARE, PWMPAD, REED */
     [ENGI_SAW + 1u] = "PPPLS",                          /* ENS: MAJOR, MINOR, FIFTHS, OCT PULS, STRINGS */
     [ENGI_WAV] = "PLLKB",                               /* WAV: WAVE PAD, SCAN LEAD, SYNC LEAD, LOFI KEYS, DIGI BASS */
-    [ENGI_FMTONE] = "KEBRPLLEBKPFFF",                   /* EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK / RESO PLUCK, FIFTH RING,
+    [ENGI_FMTONE] = "KEBRPLLEBKPFFFKEBP",               /* EPIANO, FMBELL, DXBASS, BRASS, GLASPAD, PLUCK / RESO PLUCK, FIFTH RING,
                                                          * GROWL, GLASSKY, FMPAD, DRONE, BUBBLES, ZAP */
     [ENGI_DUAL] = "EBLBPL",                             /* FM BELL, SAW+SINE BASS, DUAL LEAD, FM BASS, F+R GLASS, RESO LEAD */
-    [ENGI_ANA4] = "BLLBP",                              /* SAW BASS, PWM / SYNC LEAD, ACID, WARM PAD */
+    [ENGI_ANA4] = "BLLP",                               /* SAW BASS, PWM / SYNC LEAD, WARM PAD */
 #endif
     [10] = "DDDDDDDDDD",                                /* DRM: its ten kits */
     [12] = "KEBRPEGUKRBEEKGSPLUEWEBEO",                 /* FM6, INIT VOICE */

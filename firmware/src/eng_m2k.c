@@ -419,7 +419,7 @@ static const char *const N_M2K_ONOFF[3] = {"OFF", "ON", 0};
 
 /* presets: MONO2K's controls at their values (a ratio its step of 24, an interval its place of 33), the ADSR Melodee's */
 static const preset_t M2K_SAW_PRESETS[] = {
-    {"ACID", {0, 0, 0, 0, 0, 0, 0, 64}, {8, 127, 56, 51}, 29, 1},          /* MONO2K's library's SAW sounds (1.3.6): */
+    {"ACID", {0, 0, 0, 0, 0, 0, 0, 63}, {8, 127, 56, 51}, 29, 1},          /* MONO2K's library's SAW sounds (1.3.6): */
     {"REESE", {127, 46, 0, 20, 0, 40, 0, 64}, {17, 65, 119, 64}, -11, 1},  /* their pages and chains (FILTER M2K, */
     {"MOOG", {0, 0, 0, 0, 70, 90, 0, 64}, {0, 127, 127, 92}, 19, 1},       /* eng_uflt.c), the envelopes fitted to */
     {"SUPERLD", {90, 40, 40, 10, 0, 0, 0, 64}, {16, 127, 108, 105}, 12, 1}, /* MONO2K's renders; SUPERSAW its SAW INIT */

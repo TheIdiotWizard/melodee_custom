@@ -167,7 +167,7 @@ static inline int32_t uflt_run(const uflt_t *f, int32_t *st, int32_t x)
 static void uflt_preset_loaded(track_t *t, uint32_t pi)
 {
     static const struct { uint8_t eng, preset, mode, cut, res; int8_t dist; uint8_t glide; } F[] = {
-        {ENGI_SAW, 0, UF_M2K, 27, 104, 20, 0},   /* MONO2K's SAW and PULS sounds (1.3.6): their chains, DIST less 64 */
+        {ENGI_SAW, 0, UF_M2K, 24, 48, 20, 0},     /* MONO2K's SAW and PULS sounds (1.3.6): their chains, DIST less 64 */
         {ENGI_SAW, 1, UF_M2K, 27, 24, 0, 0},
         {ENGI_SAW, 2, UF_M2K, 28, 24, 26, 0},
         {ENGI_SAW, 3, UF_M2K, 33, 16, 0, 0},
@@ -178,16 +178,16 @@ static void uflt_preset_loaded(track_t *t, uint32_t pi)
         {ENGI_PULS, 1, UF_M2K, 33, 20, 0, 30},  /* SQUARE: gliding */
         {ENGI_PULS, 2, UF_M2K, 44, 16, 0, 0},
         {ENGI_PULS, 3, UF_M2K, 45, 12, 0, 0},
-        {ENGI_FMTONE, 6, 1, 60, 90, 0, 0},     /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
-        {ENGI_FMTONE, 7, 2, 76, 110, 0, 0},    /* FIFTH RING: a band-pass ringing above the bell */
-        {ENGI_FMTONE, 8, 1, 51, 5, 0, 0},      /* GROWL (MONO2K's): a low-pass the envelope opens */
-        {ENGI_FMTONE, 10, 1, 43, 5, 0, 0},     /* FMPAD (MONO2K's): the same, darker */
+        {ENGI_FMTONE, 2, UF_M2K, 52, 82, 0, 0},  /* DXBASS (bank sound): M2K chain */
+        {ENGI_FMTONE, 6, 1, 60, 90, 0, 0},      /* RESO PLUCK: a plucked lead through a resonant low-pass the envelope opens */
+        {ENGI_FMTONE, 7, 2, 76, 110, 0, 0},     /* FIFTH RING (bank sound): a band-pass ringing */
+        {ENGI_FMTONE, 8, UF_M2K, 42, 43, 14, 0}, /* GROWL (bank sound): M2K chain, envelope opens */
+        {ENGI_FMTONE, 10, 1, 43, 5, 0, 0},      /* FMPAD (MONO2K's): the same, darker */
         {ENGI_DUAL, 5, 1, 60, 90, 0, 0},       /* RESO LEAD */
         {ENGI_ANA4, 0, 1, 100, 30, 0, 0},      /* SAW BASS (filter 1 as Mini-Tone's, on this filter) */
         {ENGI_ANA4, 1, 1, 110, 20, 0, 0},      /* PWM LEAD */
         {ENGI_ANA4, 2, 1, 100, 25, 0, 0},      /* SYNC LEAD */
-        {ENGI_ANA4, 3, 1, 95, 110, 0, 0},      /* ACID */
-        {ENGI_ANA4, 4, 1, 85, 20, 0, 0},       /* WARM PAD */
+        {ENGI_ANA4, 3, 1, 85, 20, 0, 0},       /* WARM PAD */
     };
     for (uint32_t k = 0; k < NELEM(F); k++)
         if (F[k].eng == t->eng_req && F[k].preset == pi) {
